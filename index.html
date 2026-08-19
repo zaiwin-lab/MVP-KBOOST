@@ -1,0 +1,1232 @@
+<meta charset="utf-8">
+<title>Winning Salesman</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Field-sales control room demo for KOBIS Berhad — plan the day, visit the outlet, take the order, collect payment, watch the ranking move.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+/* ============================================================
+   Winning Salesman — KOBIS Berhad field-sales demo
+   Single-file, zero-setup. Committed dark surface, warm paper
+   documents. Every colour painted explicitly.
+   ============================================================ */
+:root{
+  --page:#0A0D14; --s1:#10141D; --s2:#161C28; --s3:#1E2534; --s4:#28313F;
+  --rail:#0C0F17;
+  --text:#E6EAF2; --muted:#8B96AC; --dim:#5A6580;
+  --line:rgba(255,255,255,.075); --line-2:rgba(255,255,255,.14);
+
+  --jade:#2FB89B; --jade-lo:rgba(47,184,155,.13); --jade-hi:#4FD9BB;
+  --peri:#7C8CF8; --peri-lo:rgba(124,140,248,.13);
+  --gold:#E0A83C; --gold-lo:rgba(224,168,60,.13);
+  --coral:#E05C4B; --coral-lo:rgba(224,92,75,.13);
+
+  --paper:#F7F5F0; --paper-2:#EDE9E1; --paper-ink:#1A1814; --paper-dim:#6B6459;
+
+  --ui:"Manrope",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --dp:"Familjen Grotesk","Manrope",-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+
+  --r-s:7px; --r:11px; --r-l:16px; --r-pill:100px;
+  --pad:22px; --gap:16px;
+  --sh:0 1px 0 rgba(255,255,255,.04) inset, 0 8px 28px rgba(0,0,6,.5);
+  --rail-w:228px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--page); color:var(--text);
+  font-family:var(--ui); font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+h1,h2,h3,h4{font-family:var(--dp);font-weight:600;line-height:1.15;text-wrap:balance;letter-spacing:-.015em}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--jade);outline-offset:2px;border-radius:4px}
+.num{font-variant-numeric:tabular-nums}
+.mono{font-family:var(--mono)}
+
+/* ---------- shell ---------- */
+#app{min-height:100vh}
+.topbar{
+  position:sticky;top:0;z-index:60;height:56px;
+  display:flex;align-items:center;gap:14px;padding:0 20px;
+  background:rgba(10,13,20,.88);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--dp);font-weight:700;letter-spacing:-.02em;font-size:15px}
+.brand .mk{width:22px;height:22px;border-radius:6px;background:linear-gradient(140deg,var(--jade),#1C8A74);display:grid;place-items:center;flex:none}
+.brand small{display:block;font-family:var(--ui);font-weight:500;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);line-height:1}
+.live{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--jade)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--jade);box-shadow:0 0 0 0 var(--jade-lo);animation:pulse 2.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,184,155,.55)}70%{box-shadow:0 0 0 9px rgba(47,184,155,0)}100%{box-shadow:0 0 0 0 rgba(47,184,155,0)}}
+.spacer{flex:1}
+
+.toggle{display:flex;background:var(--s2);border:1px solid var(--line);border-radius:var(--r-pill);padding:3px;gap:2px}
+.toggle button{padding:6px 15px;border-radius:var(--r-pill);font-size:12.5px;font-weight:700;color:var(--muted);transition:.18s}
+.toggle button[aria-pressed="true"]{background:var(--jade);color:#04150F}
+.toggle button:hover:not([aria-pressed="true"]){color:var(--text)}
+
+.who{display:flex;align-items:center;gap:9px;padding:5px 12px 5px 5px;background:var(--s2);border:1px solid var(--line);border-radius:var(--r-pill)}
+.who select{background:none;border:none;font-size:12.5px;font-weight:700;cursor:pointer}
+.who select option{background:var(--s2)}
+.av{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:800;color:#04150F;flex:none;font-family:var(--ui)}
+
+.layout{display:flex;min-height:calc(100vh - 56px)}
+.rail{width:var(--rail-w);flex:none;border-right:1px solid var(--line);background:var(--rail);padding:18px 12px;display:flex;flex-direction:column;gap:3px;position:sticky;top:56px;height:calc(100vh - 56px)}
+.rail .lbl{font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);font-weight:700;padding:12px 10px 6px}
+.rail a{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:var(--r-s);color:var(--muted);font-weight:600;font-size:13.5px;transition:.15s}
+.rail a:hover{background:var(--s2);color:var(--text)}
+.rail a.on{background:var(--jade-lo);color:var(--jade-hi)}
+.ic{width:17px;height:17px;flex:none}
+.rail a .ic{opacity:.85}
+.tabs a .ic{width:20px;height:20px}
+.btn .ic{width:16px;height:16px}
+.rail .foot{margin-top:auto;padding:12px 10px;border-top:1px solid var(--line);font-size:11px;color:var(--dim);line-height:1.6}
+
+.main{flex:1;min-width:0;padding:26px 28px 60px;max-width:1440px}
+.head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.head h1{font-size:26px}
+.head p{color:var(--muted);font-size:13.5px;margin-top:5px}
+
+/* ---------- primitives ---------- */
+.card{background:var(--s1);border:1px solid var(--line);border-radius:var(--r-l);box-shadow:var(--sh)}
+.card .ch{display:flex;align-items:center;gap:10px;padding:15px var(--pad);border-bottom:1px solid var(--line)}
+.card .ch h3{font-size:14.5px}
+.card .cb{padding:var(--pad)}
+.grid{display:grid;gap:var(--gap)}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.split{grid-template-columns:1.35fr 1fr;align-items:start}
+@media(max-width:1080px){.split{grid-template-columns:1fr}}
+
+.kpi{background:var(--s1);border:1px solid var(--line);border-radius:var(--r-l);padding:17px 18px;position:relative;overflow:hidden}
+.kpi .k{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);font-weight:700}
+.kpi .v{font-family:var(--dp);font-size:29px;font-weight:700;margin-top:9px;letter-spacing:-.025em}
+.kpi .s{font-size:12px;color:var(--muted);margin-top:5px;display:flex;align-items:center;gap:6px}
+.kpi .bar{height:3px;background:var(--s3);border-radius:2px;margin-top:12px;overflow:hidden}
+.kpi .bar i{display:block;height:100%;border-radius:2px;background:var(--jade);transition:width .9s cubic-bezier(.2,.8,.2,1)}
+
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:var(--r-pill);font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap;transition:.25s}
+.c-ok{background:var(--jade-lo);color:var(--jade-hi)}
+.c-warn{background:var(--gold-lo);color:var(--gold)}
+.c-bad{background:var(--coral-lo);color:var(--coral)}
+.c-mut{background:var(--s3);color:var(--muted)}
+.c-ai{background:var(--peri-lo);color:var(--peri)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 17px;border-radius:var(--r-s);font-weight:700;font-size:13.5px;background:var(--s3);color:var(--text);border:1px solid var(--line-2);transition:.16s}
+.btn:hover{background:var(--s4)}
+.btn-p{background:var(--jade);color:#04150F;border-color:transparent}
+.btn-p:hover{background:var(--jade-hi)}
+.btn-g{background:transparent;border-color:var(--line-2);color:var(--muted)}
+.btn-g:hover{color:var(--text);border-color:var(--text)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-lg{width:100%;padding:15px;font-size:15px;border-radius:var(--r)}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+.tw{overflow-x:auto}
+th{text-align:left;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);font-weight:700;padding:0 12px 9px;white-space:nowrap}
+td{padding:11px 12px;border-top:1px solid var(--line);vertical-align:middle}
+tbody tr{transition:background .15s}
+tbody tr:hover{background:var(--s2)}
+.r{text-align:right}
+
+/* ---------- AI layer: periwinkle voice ---------- */
+.ai{background:linear-gradient(150deg,rgba(124,140,248,.10),rgba(124,140,248,.02) 55%),var(--s1);border:1px solid rgba(124,140,248,.24);border-radius:var(--r-l);padding:19px 21px}
+.ai .hd{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+.ai .hd b{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--peri);font-weight:800}
+.ai .hd .ts{margin-left:auto;font-size:11px;color:var(--dim);font-family:var(--mono)}
+.ai p{font-size:14.5px;line-height:1.68;color:#DCE1F5}
+.ai p b{color:#fff;font-weight:700}
+.ai .why{margin-top:13px;padding-top:12px;border-top:1px solid rgba(124,140,248,.18);display:flex;flex-wrap:wrap;gap:7px}
+.spark{width:15px;height:15px;flex:none}
+
+.nudge{background:var(--peri-lo);border:1px solid rgba(124,140,248,.3);border-radius:var(--r);padding:13px 15px;display:flex;gap:11px;align-items:flex-start}
+.nudge .tx{font-size:13.5px;line-height:1.55;color:#DCE1F5}
+
+.flag{background:var(--gold-lo);border:1px solid rgba(224,168,60,.35);border-radius:var(--r);padding:13px 15px;display:flex;gap:11px;align-items:flex-start}
+.flag .tx{font-size:13px;line-height:1.55;color:#F2DCB0}
+
+/* ---------- ranking ---------- */
+.rank{display:flex;flex-direction:column;gap:7px}
+.row{display:flex;align-items:center;gap:13px;padding:11px 13px;background:var(--s2);border:1px solid var(--line);border-radius:var(--r);will-change:transform}
+.row.me{border-color:var(--jade);background:var(--jade-lo)}
+.pos{width:25px;height:25px;border-radius:var(--r-s);background:var(--s3);display:grid;place-items:center;font-size:12px;font-weight:800;flex:none;font-variant-numeric:tabular-nums}
+.row:nth-child(1) .pos{background:linear-gradient(140deg,#E0A83C,#B8842A);color:#241800}
+.row:nth-child(2) .pos{background:linear-gradient(140deg,#C3CCDB,#8E99AB);color:#1A1D24}
+.row:nth-child(3) .pos{background:linear-gradient(140deg,#C08553,#8A5E39);color:#1E1206}
+.row .nm{flex:1;min-width:0}
+.row .nm b{display:block;font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .nm span{font-size:11.5px;color:var(--muted)}
+.row .vl{text-align:right;flex:none}
+.row .vl b{display:block;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
+.row .vl span{font-size:11px;color:var(--dim)}
+.mv{font-size:10.5px;font-weight:800;padding:2px 6px;border-radius:4px}
+.mv-up{background:var(--jade-lo);color:var(--jade-hi)}
+.mv-dn{background:var(--coral-lo);color:var(--coral)}
+
+.tgt{height:7px;background:var(--s3);border-radius:4px;overflow:hidden;display:flex}
+.tgt i{display:block;height:100%;transition:width 1s cubic-bezier(.2,.8,.2,1)}
+
+/* ---------- roadmap ---------- */
+.road{background:repeating-linear-gradient(135deg,var(--s1) 0 12px,#0E121A 12px 24px);border:1px dashed var(--line-2);border-radius:var(--r-l);padding:19px 21px}
+.road h3{font-size:14px;margin-bottom:4px}
+.road p{font-size:12.5px;color:var(--muted);margin-bottom:14px}
+.road .items{display:flex;flex-wrap:wrap;gap:8px}
+.road .it{padding:7px 13px;background:var(--s2);border:1px solid var(--line);border-radius:var(--r-pill);font-size:12.5px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:7px}
+.road .it::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--dim)}
+
+/* ---------- phone ---------- */
+.stage{display:flex;justify-content:center;padding:30px 20px 70px;gap:34px;align-items:flex-start}
+.phone{width:392px;flex:none;background:var(--s1);border:1px solid var(--line-2);border-radius:34px;padding:11px;box-shadow:0 40px 90px rgba(0,0,6,.7),0 0 0 1px rgba(255,255,255,.04) inset;position:sticky;top:82px}
+.screen{background:var(--page);border-radius:25px;overflow:hidden;height:748px;display:flex;flex-direction:column;position:relative}
+.notch{height:26px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-size:10.5px;color:var(--dim);font-family:var(--mono);flex:none}
+.sv{flex:1;overflow-y:auto;overflow-x:hidden;padding:4px 16px 16px;scrollbar-width:thin}
+.sv::-webkit-scrollbar{width:4px}
+.sv::-webkit-scrollbar-thumb{background:var(--s4);border-radius:2px}
+.tabs{flex:none;display:flex;border-top:1px solid var(--line);background:var(--s1);padding:7px 6px 9px}
+.tabs a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px;border-radius:var(--r-s);font-size:10.5px;font-weight:700;color:var(--dim)}
+.tabs a.on{color:var(--jade)}
+.side{width:320px;flex:none;position:sticky;top:82px}
+@media(max-width:900px){.stage{padding:0;display:block}.phone{width:100%;border:none;border-radius:0;padding:0;position:static;box-shadow:none}.screen{border-radius:0;height:auto;min-height:calc(100vh - 56px)}.notch{display:none}.stage .side{display:none}.tabs{position:sticky;bottom:0}}
+
+.sh{padding:14px 2px 12px}
+.sh h2{font-size:21px}
+.sh p{font-size:12.5px;color:var(--muted);margin-top:3px}
+.stop{display:flex;gap:11px;align-items:center;padding:13px;background:var(--s1);border:1px solid var(--line);border-radius:var(--r);margin-bottom:9px;width:100%;text-align:left;transition:.16s}
+.stop:hover{border-color:var(--line-2);transform:translateY(-1px)}
+.stop.done{opacity:.55}
+.stop .sq{width:30px;height:30px;border-radius:9px;background:var(--s3);display:grid;place-items:center;font-size:12px;font-weight:800;flex:none;font-variant-numeric:tabular-nums}
+.stop.done .sq{background:var(--jade-lo);color:var(--jade)}
+.stop .in{flex:1;min-width:0}
+.stop .in b{display:block;font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stop .in span{font-size:11.5px;color:var(--muted)}
+
+.fld{margin-bottom:14px}
+.fld label{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-weight:700;margin-bottom:6px}
+.fld input,.fld select{width:100%;padding:12px 13px;background:var(--s2);border:1px solid var(--line);border-radius:var(--r-s);font-size:14px;font-weight:600;transition:.15s}
+.fld input:focus,.fld select:focus{border-color:var(--jade);outline:none}
+.fld input.bad{border-color:var(--gold)}
+
+.line{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)}
+.line .pn{flex:1;min-width:0}
+.line .pn b{display:block;font-size:13px;font-weight:700}
+.line .pn span{font-size:11px;color:var(--dim);font-family:var(--mono)}
+.step{display:flex;align-items:center;gap:2px;background:var(--s2);border:1px solid var(--line);border-radius:var(--r-s);flex:none}
+.step button{width:29px;height:29px;display:grid;place-items:center;font-size:16px;font-weight:700;color:var(--muted)}
+.step button:hover{color:var(--jade)}
+.step .q{width:28px;text-align:center;font-size:13.5px;font-weight:800;font-variant-numeric:tabular-nums}
+
+.tot{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0;border-top:1px solid var(--line-2);margin-top:6px}
+.tot b{font-family:var(--dp);font-size:25px;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* ---------- paper documents ---------- */
+.paper{background:var(--paper);color:var(--paper-ink);border-radius:var(--r);padding:24px 22px;font-family:var(--mono);font-size:12px;line-height:1.65;box-shadow:0 20px 50px rgba(0,0,6,.6)}
+.paper .ph{text-align:center;padding-bottom:14px;border-bottom:1.5px solid var(--paper-ink)}
+.paper .ph b{font-family:var(--dp);font-size:17px;letter-spacing:-.01em;display:block}
+.paper .ph span{font-size:10.5px;color:var(--paper-dim);letter-spacing:.05em}
+.paper .rw{display:flex;justify-content:space-between;gap:12px;padding:3px 0}
+.paper .rw span{color:var(--paper-dim)}
+.paper .sec{padding:12px 0;border-bottom:1px dashed rgba(26,24,20,.28)}
+.paper .gt{display:flex;justify-content:space-between;padding:12px 0 0;font-size:15px;font-weight:700;border-top:1.5px solid var(--paper-ink);margin-top:10px}
+.paper .stamp{margin-top:16px;text-align:center;font-size:11px;letter-spacing:.16em;font-weight:700;padding:9px;border:2px solid var(--jade);color:#12705C;border-radius:6px;transform:rotate(-1.2deg)}
+.paper .ft{text-align:center;font-size:10px;color:var(--paper-dim);margin-top:14px;line-height:1.6}
+
+/* ---------- misc ---------- */
+.mask{position:fixed;inset:0;background:rgba(4,6,11,.78);backdrop-filter:blur(5px);z-index:100;display:grid;place-items:center;padding:20px;animation:fade .2s}
+@keyframes fade{from{opacity:0}}
+.sheet{background:var(--s1);border:1px solid var(--line-2);border-radius:var(--r-l);padding:24px;max-width:400px;width:100%;box-shadow:0 30px 80px rgba(0,0,6,.75);animation:rise .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes rise{from{transform:translateY(14px) scale(.98);opacity:0}}
+.wa{background:#0B141A;border-radius:var(--r);padding:15px;border:1px solid rgba(255,255,255,.08)}
+.bub{background:#005C4B;border-radius:9px 9px 2px 9px;padding:10px 12px;font-size:13px;line-height:1.55;margin-left:auto;max-width:88%;color:#E9EDEF}
+.bub .lk{color:#9AD5F0;word-break:break-all;font-size:12px;display:block;margin-top:6px}
+.bub .tm{font-size:10px;color:rgba(233,237,239,.6);text-align:right;margin-top:4px}
+
+.tick{display:flex;flex-direction:column;gap:9px;max-height:262px;overflow-y:auto}
+.tk{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;padding-bottom:9px;border-bottom:1px solid var(--line)}
+.tk:last-child{border:none}
+.tk .td{width:5px;height:5px;border-radius:50%;margin-top:6px;flex:none}
+.tk .tt{flex:1;color:var(--muted);line-height:1.5}
+.tk .tt b{color:var(--text);font-weight:700}
+.tk time{font-size:10.5px;color:var(--dim);font-family:var(--mono);flex:none}
+
+.note{background:var(--s2);border-left:2px solid var(--jade);border-radius:0 var(--r-s) var(--r-s) 0;padding:12px 14px;font-size:12.5px;color:var(--muted);line-height:1.6}
+.empty{text-align:center;padding:38px 20px;color:var(--dim)}
+.empty b{display:block;font-family:var(--dp);font-size:15px;color:var(--muted);margin-bottom:5px}
+.hist{display:flex;flex-direction:column;gap:0}
+.hv{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.hv .hd2{width:74px;flex:none;color:var(--dim);font-family:var(--mono);font-size:11px}
+.banner{border-radius:var(--r);padding:15px 17px;display:flex;gap:12px;align-items:center;font-size:13.5px;line-height:1.55}
+.b-ok{background:var(--jade-lo);border:1px solid rgba(47,184,155,.32);color:#BFF0E4}
+.b-warn{background:var(--coral-lo);border:1px solid rgba(224,92,75,.32);color:#F5CFC9}
+.mg{margin-top:var(--gap)}
+.stk{display:flex;flex-direction:column;gap:var(--gap)}
+
+/* Small screens: the top bar must never force the page wider than the viewport. */
+@media(max-width:560px){
+  .topbar{padding:0 12px;gap:9px}
+  .brand span:not(.mk){font-size:13.5px;white-space:nowrap}
+  .brand small{font-size:9px}
+  .live{display:none}
+  .who{padding:4px 9px 4px 4px;min-width:0}
+  .who select{max-width:96px;text-overflow:ellipsis}
+  .toggle button{padding:6px 11px;font-size:12px}
+  .sv{padding:4px 13px 16px}
+  .sh h2{font-size:19px}
+}
+@media(max-width:900px){
+  .stage{overflow-x:hidden}
+  .screen{max-width:100vw}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+</style>
+
+<div id="app"></div>
+<div id="modal"></div>
+
+<script>
+"use strict";
+/* ===========================================================
+   1. UTILITIES
+   =========================================================== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const RM = n => "RM " + Math.round(n).toLocaleString("en-MY");
+const RM2 = n => "RM " + n.toLocaleString("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2});
+const initials = n => n.split(" ").slice(0,2).map(w=>w[0]).join("").toUpperCase();
+const REDUCED = matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+// Deterministic RNG — a pitch demo must never surprise the presenter.
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const R = rng(20260819);
+const pick = a => a[Math.floor(R()*a.length)];
+const between = (a,b) => a + Math.floor(R()*(b-a+1));
+
+const DAY = 864e5;
+const TODAY = new Date(2026,7,19); // 19 Aug 2026, fixed for a repeatable pitch
+const dAgo = n => new Date(TODAY.getTime() - n*DAY);
+const fmtD = d => d.toLocaleDateString("en-MY",{day:"2-digit",month:"short",year:"numeric"});
+const fmtDS = d => d.toLocaleDateString("en-MY",{day:"2-digit",month:"short"});
+const daysBetween = (a,b) => Math.round((b-a)/DAY);
+const HUE = {jade:"#2FB89B",peri:"#7C8CF8",gold:"#E0A83C",coral:"#E05C4B",dim:"#5A6580"};
+
+const SPARK = `<svg class="spark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3.2"/></svg>`;
+const ic = p => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const ICON = {
+  dash: ic('<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>'),
+  rank: ic('<path d="M4 20v-6M12 20V5M20 20v-9"/>'),
+  book: ic('<path d="M4 4.5A2.5 2.5 0 016.5 2H20v18H6.5A2.5 2.5 0 004 22z"/><path d="M4 17.5A2.5 2.5 0 016.5 15H20"/>'),
+  road: ic('<path d="M12 2v6M12 12v3M12 19v3"/><circle cx="12" cy="10" r="2"/><circle cx="12" cy="17" r="2"/>'),
+  cal:  ic('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/>'),
+  pin:  ic('<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1116 0z"/><circle cx="12" cy="10" r="2.6"/>'),
+  cart: ic('<circle cx="9" cy="20" r="1.6"/><circle cx="18" cy="20" r="1.6"/><path d="M2 3h3l2.4 12.4a2 2 0 002 1.6h8.7a2 2 0 002-1.6L22 7H6"/>')
+};
+
+/* ===========================================================
+   2. DATA MODEL  (clean + extensible — the 10 roadmap modules
+      slot onto these same entities without a rebuild)
+   =========================================================== */
+const DB = {
+  company:{ id:"c1", name:"Aroma Prestige Sdn Bhd", trade:"Perfume & fragrance distribution",
+            monthTarget:850000, reg:"202301004471 (1498221-K)" },
+  otherCompany:{ id:"c2", name:"Bekal Segar Sdn Bhd", trade:"FMCG distribution", monthTarget:1200000 },
+  manager:{ id:"m1", name:"Coach Aril", role:"Sales Manager" },
+  salesmen:[], outlets:[], products:[], orders:[], invoices:[], payments:[], visits:[], assignments:[],
+  seq:{ order:0, invoice:0, receipt:0 }
+};
+
+DB.products = [
+  ["p1","Oud Royale 50ml","OUD-R50",189],["p2","Musk Al-Haramain 30ml","MSK-H30",95],
+  ["p3","Rose Damascena 50ml","ROS-D50",145],["p4","Amber Nights 100ml","AMB-N100",235],
+  ["p5","Citrus Fresh 30ml","CIT-F30",65],["p6","Jasmine Dew 50ml","JAS-D50",120],
+  ["p7","Sandalwood Classic 100ml","SND-C100",210],["p8","Vanilla Oud 30ml","VAN-O30",88]
+].map(([id,name,sku,price])=>({id,name,sku,price,floor:Math.round(price*0.82)}));
+
+DB.salesmen = [
+  ["s1","Ahmad Razif","Central KL","#2FB89B"],["s2","Kavitha Rani","Petaling","#7C8CF8"],
+  ["s3","Wong Jia Hui","Klang Valley South","#E0A83C"],["s4","Nurul Aina","Gombak & North","#E05C4B"],
+  ["s5","Syafiq Hakim","Cheras & East","#4FD9BB"],["s6","Devan Kumar","Klang & West","#B48CF0"]
+].map(([id,name,zone,color])=>({id,name,zone,color,active:true,joined:dAgo(between(220,900))}));
+
+DB.outlets = [
+  ["o1","Scentz Boutique KLCC","KLCC","Central KL","A","Lim Wei Sheng"],
+  ["o2","Haruman Klasik Shah Alam","Shah Alam","Petaling","A","Rosnah Abdullah"],
+  ["o3","Perfume Gallery Mid Valley","Mid Valley","Central KL","A","Tan Mei Ling"],
+  ["o4","Kedai Wangian Ampang","Ampang","Central KL","B","Hafiz Ismail"],
+  ["o5","Aroma House Subang Jaya","Subang Jaya","Petaling","A","Jessica Ong"],
+  ["o6","Bau Wangi Cheras","Cheras","Cheras & East","B","Zulkifli Hassan"],
+  ["o7","Elegance Scents Bangsar","Bangsar","Central KL","A","Priya Menon"],
+  ["o8","Wangian Murni Kajang","Kajang","Cheras & East","B","Norliza Yusof"],
+  ["o9","Scent Story Puchong","Puchong","Klang Valley South","B","Chong Ka Fai"],
+  ["o10","Minyak Wangi Setapak","Setapak","Gombak & North","C","Amirul Faiz"],
+  ["o11","Luxe Parfum Damansara","Damansara","Petaling","A","Sarah Lau"],
+  ["o12","Haruman Desa Petaling","Desa Petaling","Klang Valley South","C","Rahim Osman"],
+  ["o13","Fragrance Point Sunway","Sunway","Petaling","B","Michelle Yap"],
+  ["o14","Kedai Wangian Sri Petaling","Sri Petaling","Klang Valley South","B","Kamarul Zaman"],
+  ["o15","Aroma Klasik Gombak","Gombak","Gombak & North","C","Siti Aishah"],
+  ["o16","Scent Lab Mont Kiara","Mont Kiara","Central KL","A","Daniel Cheah"],
+  ["o17","Wangi Selalu Rawang","Rawang","Gombak & North","C","Faridah Ahmad"],
+  ["o18","Perfume Hub Klang","Klang","Klang & West","B","Ganesh Raj"]
+].map(([id,name,area,zone,tier,owner])=>({
+  id,name,area,zone,tier,owner,
+  phone:"01"+between(1,9)+"-"+between(200,999)+" "+between(1000,9999),
+  creditTerm:tier==="A"?30:tier==="B"?14:7,
+  since:dAgo(between(400,1400))
+}));
+
+// zone → salesman
+const zoneOwner = {};
+DB.salesmen.forEach(s=>zoneOwner[s.zone]=s.id);
+DB.outlets.forEach(o=>{ o.salesmanId = zoneOwner[o.zone] || "s1"; });
+DB.assignments = DB.outlets.map(o=>({outletId:o.id,salesmanId:o.salesmanId,from:o.since}));
+
+// ---- 90 days of trading history ----
+let oN=0, iN=0;
+DB.outlets.forEach(o=>{
+  const n = o.tier==="A"?between(11,15):o.tier==="B"?between(6,10):between(3,5);
+  const gap = Math.floor(90/n);
+  for(let k=0;k<n;k++){
+    const days = 90 - k*gap - between(0,3);
+    if(days<1) continue;
+    const date = dAgo(days);
+    const lineN = o.tier==="A"?between(3,5):between(2,3);
+    const used=new Set(), lines=[];
+    for(let j=0;j<lineN;j++){
+      const p = pick(DB.products);
+      if(used.has(p.id)) continue; used.add(p.id);
+      const qty = o.tier==="A"?between(6,20):o.tier==="B"?between(3,12):between(2,6);
+      const disc = R()<0.28 ? (1 - (between(3,9)/100)) : 1;
+      lines.push({productId:p.id, qty, unitPrice:Math.round(p.price*disc*100)/100});
+    }
+    if(!lines.length) continue;
+    const total = lines.reduce((s,l)=>s+l.qty*l.unitPrice,0);
+    const oid = "ORD-"+String(++oN).padStart(4,"0");
+    DB.orders.push({id:oid,outletId:o.id,salesmanId:o.salesmanId,date,lines,total,status:"invoiced"});
+    const due = new Date(date.getTime()+o.creditTerm*DAY);
+    const iid = "INV-2026-"+String(++iN).padStart(4,"0");
+    // older invoices mostly settled; recent ones partly open
+    const settled = days>o.creditTerm+8 ? R()<0.9 : R()<0.42;
+    const inv = {id:iid,orderId:oid,outletId:o.id,salesmanId:o.salesmanId,issued:date,due,total,paid:0,status:"open"};
+    DB.invoices.push(inv);
+    if(settled){
+      inv.paid=total; inv.status="paid";
+      DB.payments.push({id:"PAY-"+String(DB.payments.length+1).padStart(4,"0"),invoiceId:iid,outletId:o.id,
+        date:new Date(date.getTime()+between(1,o.creditTerm)*DAY),amount:total,method:pick(["Cash","Bank Transfer","Cheque"])});
+    } else if(R()<0.3){
+      const part=Math.round(total*(between(30,60)/100));
+      inv.paid=part; inv.status="partial";
+      DB.payments.push({id:"PAY-"+String(DB.payments.length+1).padStart(4,"0"),invoiceId:iid,outletId:o.id,
+        date:new Date(date.getTime()+between(2,o.creditTerm)*DAY),amount:part,method:pick(["Cash","Bank Transfer"])});
+    }
+  }
+});
+DB.seq.order=oN; DB.seq.invoice=iN;
+
+// ---- today's beat plan ----
+DB.salesmen.forEach(s=>{
+  const mine = DB.outlets.filter(o=>o.salesmanId===s.id);
+  const plan = mine.slice(0, Math.min(mine.length, between(4,6)));
+  // Ahmad Razif (the demo salesman) keeps live work to do
+  const doneCount = s.id==="s1" ? 2 : between(1, Math.max(1,plan.length-1));
+  plan.forEach((o,i)=>{
+    const visited = i<doneCount;
+    DB.visits.push({
+      id:"V-"+s.id+"-"+o.id, salesmanId:s.id, outletId:o.id, date:TODAY,
+      status: visited?"visited":"planned",
+      checkInAt: visited ? new Date(TODAY.getTime()+(9+i)*36e5+between(0,55)*6e4) : null,
+      geo: visited ? {lat:(3.05+R()*0.22).toFixed(5), lng:(101.58+R()*0.28).toFixed(5)} : null
+    });
+  });
+});
+
+// today's sales (seeded, so the dashboard is never empty at pitch time)
+DB.salesmen.forEach(s=>{
+  const vs = DB.visits.filter(v=>v.salesmanId===s.id && v.status==="visited");
+  vs.forEach(v=>{
+    const o = byId(DB.outlets,v.outletId); if(!o) return;
+    const lines=[]; const used=new Set();
+    for(let j=0;j<between(2,4);j++){ const p=pick(DB.products); if(used.has(p.id))continue; used.add(p.id);
+      lines.push({productId:p.id,qty:between(3,14),unitPrice:p.price}); }
+    const total=lines.reduce((a,l)=>a+l.qty*l.unitPrice,0);
+    const oid="ORD-"+String(++DB.seq.order).padStart(4,"0");
+    DB.orders.push({id:oid,outletId:o.id,salesmanId:s.id,date:v.checkInAt||TODAY,lines,total,status:"invoiced"});
+    const iid="INV-2026-"+String(++DB.seq.invoice).padStart(4,"0");
+    const inv={id:iid,orderId:oid,outletId:o.id,salesmanId:s.id,issued:TODAY,
+      due:new Date(TODAY.getTime()+o.creditTerm*DAY),total,paid:0,status:"open"};
+    DB.invoices.push(inv);
+    if(R()<0.55){ inv.paid=total; inv.status="paid";
+      DB.payments.push({id:"PAY-"+String(DB.payments.length+1).padStart(4,"0"),invoiceId:iid,outletId:o.id,date:TODAY,amount:total,method:pick(["Cash","Bank Transfer"])}); }
+  });
+});
+
+function byId(arr,id){return arr.find(x=>x.id===id)}
+
+/* ===========================================================
+   3. DERIVED SELECTORS
+   =========================================================== */
+const S = {
+  outlet:id=>byId(DB.outlets,id), sm:id=>byId(DB.salesmen,id), prod:id=>byId(DB.products,id),
+  isToday:d=>d && new Date(d).toDateString()===TODAY.toDateString(),
+  ordersToday:()=>DB.orders.filter(o=>S.isToday(o.date)),
+  salesToday:sid=>S.ordersToday().filter(o=>!sid||o.salesmanId===sid).reduce((a,o)=>a+o.total,0),
+  collectedToday:()=>DB.payments.filter(p=>S.isToday(p.date)).reduce((a,p)=>a+p.amount,0),
+  invoicedToday:()=>DB.invoices.filter(i=>S.isToday(i.issued)).reduce((a,i)=>a+i.total,0),
+  visits:sid=>DB.visits.filter(v=>!sid||v.salesmanId===sid),
+  outstanding:oid=>DB.invoices.filter(i=>(!oid||i.outletId===oid)&&i.status!=="paid").reduce((a,i)=>a+(i.total-i.paid),0),
+  overdue:oid=>DB.invoices.filter(i=>(!oid||i.outletId===oid)&&i.status!=="paid"&&i.due<TODAY).reduce((a,i)=>a+(i.total-i.paid),0),
+  outletOrders:oid=>DB.orders.filter(o=>o.outletId===oid).sort((a,b)=>b.date-a.date),
+  lastVisit:oid=>{const os=S.outletOrders(oid); return os.length?os[0].date:null},
+  avgOrder:oid=>{const os=S.outletOrders(oid); return os.length? os.reduce((a,o)=>a+o.total,0)/os.length : 0},
+  mtdSales:()=>DB.orders.filter(o=>o.date.getMonth()===TODAY.getMonth()&&o.date.getFullYear()===TODAY.getFullYear()).reduce((a,o)=>a+o.total,0),
+  // 90-day average unit price actually paid at this outlet, for the anomaly check
+  avgUnitPrice:(oid,pid)=>{
+    let q=0,v=0;
+    S.outletOrders(oid).forEach(o=>o.lines.forEach(l=>{ if(l.productId===pid){q+=l.qty;v+=l.qty*l.unitPrice} }));
+    return q? v/q : null;
+  },
+  daysSinceProduct:(oid,pid)=>{
+    const os=S.outletOrders(oid);
+    for(const o of os){ if(o.lines.some(l=>l.productId===pid)) return daysBetween(o.date,TODAY); }
+    return null;
+  },
+  // One definition of "behind plan", shared by the table and the AI briefing so
+  // the two can never contradict each other on screen.
+  expectedPace:()=>Math.min(1,(11-8)/9),           // 11:00 through an 08:00-17:00 day
+  pace:s=>{
+    const r = s.planned ? s.visits/s.planned : 0, e = S.expectedPace();
+    if(r >= e)        return {k:"c-ok",  t:"On track",   behind:false};
+    if(r >= e*0.72)   return {k:"c-warn",t:"Mid-plan",   behind:false};
+    return                   {k:"c-bad", t:"Behind plan",behind:true};
+  },
+  ranking:()=>DB.salesmen.filter(s=>s.active).map(s=>{
+      const v=S.visits(s.id);
+      return {...s, sales:S.salesToday(s.id), visits:v.filter(x=>x.status==="visited").length, planned:v.length,
+              collected:DB.payments.filter(p=>S.isToday(p.date)&&DB.invoices.some(i=>i.id===p.invoiceId&&i.salesmanId===s.id)).reduce((a,p)=>a+p.amount,0)};
+    }).sort((a,b)=>b.sales-a.sales)
+};
+
+/* ===========================================================
+   4. AI LAYER — rule-based but genuinely data-driven.
+      Every number below is computed from DB, never hardcoded.
+   =========================================================== */
+const AI = {
+  /* Smart Jadual Harian: score each stop, expose the rationale */
+  routeScore(outletId){
+    const o=S.outlet(outletId);
+    const overdue=S.overdue(outletId);
+    const last=S.lastVisit(outletId);
+    const since=last?daysBetween(last,TODAY):120;
+    const avg=S.avgOrder(outletId);
+    const tierW={A:14,B:8,C:4}[o.tier];
+    const score = (overdue/1000)*3.2 + (avg/1000)*2.1 + (since/7)*1.6 + tierW;
+    const why=[];
+    if(overdue>0) why.push({t:`Overdue ${RM(overdue)}`,k:"bad"});
+    if(since>=21) why.push({t:`${since} days since last order`,k:"warn"});
+    else if(since<=6) why.push({t:`Visited ${since}d ago`,k:"mut"});
+    if(avg>=2500) why.push({t:`High value · avg ${RM(avg)}`,k:"ok"});
+    if(o.tier==="A") why.push({t:"Tier A outlet",k:"ok"});
+    if(!why.length) why.push({t:"Routine coverage",k:"mut"});
+    return {score,why,overdue,since,avg};
+  },
+  orderedPlan(salesmanId){
+    return S.visits(salesmanId).map(v=>({v,...AI.routeScore(v.outletId)}))
+      .sort((a,b)=>{
+        if(a.v.status!==b.v.status) return a.v.status==="visited"?1:-1; // done sink to bottom
+        return b.score-a.score;
+      });
+  },
+
+  /* Manager morning briefing — one paragraph, all live numbers */
+  briefing(){
+    const rank=S.ranking();
+    const behind=rank.filter(s=>S.pace(s).behind);
+    const atRisk=S.overdue();
+    const mtd=S.mtdSales(), tgt=DB.company.monthTarget;
+    const pct=Math.round(mtd/tgt*100);
+    const top=rank[0];
+    const totV=rank.reduce((a,s)=>a+s.visits,0), totP=rank.reduce((a,s)=>a+s.planned,0);
+    const collect=S.invoicedToday()>0?Math.round(S.collectedToday()/S.invoicedToday()*100):0;
+
+    let p=`Team is <b>${totV} of ${totP} outlets</b> covered so far today, worth <b>${RM(S.salesToday())}</b> in orders. `;
+    p += behind.length
+      ? `<b>${behind.length} salesm${behind.length>1?"en are":"an is"} behind plan</b> — ${behind.map(s=>esc(s.name.split(" ")[0])+" ("+s.visits+"/"+s.planned+")").join(", ")}. `
+      : `Everyone is tracking on or ahead of plan. `;
+    p += `<b>${RM(atRisk)}</b> is sitting overdue across ${DB.invoices.filter(i=>i.status!=="paid"&&i.due<TODAY).length} invoices — that is the number to chase before month end. `;
+    p += `Top mover is <b>${esc(top.name)}</b> at ${RM(top.sales)} from ${top.visits} visit${top.visits===1?"":"s"}. `;
+    p += `Month to date <b>${RM(mtd)}</b>, ${pct}% of the ${RM(tgt)} target.`;
+    return {html:p, chips:[
+      {t:`Collection rate today ${collect}%`,k:collect>=60?"ok":"warn"},
+      {t:`${behind.length} behind plan`,k:behind.length?"bad":"ok"},
+      {t:`${RM(atRisk)} at risk`,k:atRisk>0?"warn":"ok"},
+      {t:`${pct}% to target`,k:pct>=70?"ok":"warn"}
+    ]};
+  },
+
+  /* Coaching nudge after an order is logged */
+  coach(outletId, order){
+    const o=S.outlet(outletId);
+    const bought=new Set(order.lines.map(l=>l.productId));
+    // product the outlet historically buys but did not order now, longest gap first
+    let best=null;
+    DB.products.forEach(p=>{
+      if(bought.has(p.id)) return;
+      const d=S.daysSinceProduct(outletId,p.id);
+      if(d!==null && d>=30 && (!best||d>best.d)) best={p,d};
+    });
+    if(best) return `<b>${esc(o.name)}</b> has not ordered <b>${esc(best.p.name)}</b> in <b>${best.d} days</b> — they used to carry it. Mention it on the next visit, it is usually a ${RM(Math.round(best.p.price*8))} add-on.`;
+    const avg=S.avgOrder(outletId);
+    if(avg && order.total < avg*0.75)
+      return `This order is <b>${Math.round((1-order.total/avg)*100)}% below</b> ${esc(o.name)}'s usual ${RM(avg)}. Worth asking what changed before you leave the shop.`;
+    return `Solid order — <b>${Math.round(order.total/(avg||order.total)*100)}%</b> of ${esc(o.name)}'s average. Confirm the next delivery date while you are still in the shop.`;
+  },
+
+  /* Price anomaly, checked before the order is confirmed */
+  anomaly(outletId, lines){
+    const flags=[];
+    lines.forEach(l=>{
+      if(!l.qty) return;
+      const p=S.prod(l.productId);
+      const hist=S.avgUnitPrice(outletId,l.productId);
+      if(l.unitPrice < p.floor)
+        flags.push(`<b>${esc(p.name)}</b> at ${RM2(l.unitPrice)} is below the ${RM2(p.floor)} floor price.`);
+      else if(hist && l.unitPrice < hist*0.88)
+        flags.push(`<b>${esc(p.name)}</b> at ${RM2(l.unitPrice)} is <b>${Math.round((1-l.unitPrice/hist)*100)}% below</b> this outlet's 90-day average of ${RM2(hist)}.`);
+    });
+    return flags;
+  }
+};
+
+/* ===========================================================
+   5. STATE + ROUTER  (hash routing — real URLs, real back button)
+   =========================================================== */
+const ST = { role:"manager", salesmanId:"s1", draft:null, lastOrder:null, feed:[], resigned:false };
+
+function seedFeed(){
+  const ev=[];
+  DB.visits.filter(v=>v.status==="visited").slice(0,7).forEach(v=>{
+    ev.push({t:v.checkInAt,c:HUE.jade,h:`<b>${esc(S.sm(v.salesmanId).name.split(" ")[0])}</b> checked in at <b>${esc(S.outlet(v.outletId).name)}</b>`});
+  });
+  DB.payments.filter(p=>S.isToday(p.date)).slice(0,5).forEach(p=>{
+    ev.push({t:new Date(TODAY.getTime()+between(9,16)*36e5),c:HUE.peri,h:`Payment <b>${RM(p.amount)}</b> collected from <b>${esc(S.outlet(p.outletId).name)}</b>`});
+  });
+  ST.feed = ev.sort((a,b)=>b.t-a.t);
+}
+seedFeed();
+const pushFeed = (h,c) => { ST.feed.unshift({t:new Date(TODAY.getTime()+11.5*36e5),c:c||HUE.jade,h}); };
+
+function go(h){ location.hash = h; }
+function route(){
+  const raw = location.hash.replace(/^#\/?/,"") || (ST.role==="manager"?"manager/dashboard":"salesman/jadual");
+  return raw.split("/").filter(Boolean);
+}
+addEventListener("hashchange",render);
+
+/* ===========================================================
+   6. VIEWS — MANAGER
+   =========================================================== */
+function chipsHTML(list){ return list.map(c=>`<span class="chip c-${c.k}">${c.t}</span>`).join(""); }
+
+function topbar(){
+  const sm=S.sm(ST.salesmanId);
+  return `<div class="topbar">
+    <div class="brand">
+      <span class="mk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#04150F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13l5 5L20 6"/></svg></span>
+      <span>Winning Salesman<small>KOBIS Berhad</small></span>
+    </div>
+    <span class="live"><span class="dot"></span>Live</span>
+    <div class="spacer"></div>
+    ${ST.role==="salesman"?`<div class="who"><span class="av" style="background:${sm.color}">${initials(sm.name)}</span>
+      <select data-act="pick-sm" aria-label="Choose salesman">${DB.salesmen.filter(s=>s.active).map(s=>`<option value="${s.id}"${s.id===ST.salesmanId?" selected":""}>${esc(s.name)}</option>`).join("")}</select></div>`:""}
+    <div class="toggle" role="group" aria-label="Switch role">
+      <button data-act="role" data-v="manager" aria-pressed="${ST.role==="manager"}">Manager</button>
+      <button data-act="role" data-v="salesman" aria-pressed="${ST.role==="salesman"}">Salesman</button>
+    </div>
+  </div>`;
+}
+
+function railHTML(active){
+  const items=[["dashboard","Dashboard",ICON.dash],["ranking","Sales Ranking",ICON.rank],
+               ["clients","Client Data",ICON.book],["roadmap","Full Build",ICON.road]];
+  return `<nav class="rail">
+    <span class="lbl">Control room</span>
+    ${items.map(([k,l,i])=>`<a href="#/manager/${k}" class="${active===k?"on":""}">${i}${l}</a>`).join("")}
+    <div class="foot"><b style="color:var(--muted)">${esc(DB.company.name)}</b><br>${esc(DB.company.trade)}<br>${DB.outlets.length} outlets · ${DB.salesmen.filter(s=>s.active).length} salesmen</div>
+  </nav>`;
+}
+
+function vDashboard(){
+  const b=AI.briefing(), rank=S.ranking();
+  const totV=rank.reduce((a,s)=>a+s.visits,0), totP=rank.reduce((a,s)=>a+s.planned,0);
+  const inv=S.invoicedToday(), col=S.collectedToday();
+  const rate=inv?Math.round(col/inv*100):0;
+  const mtd=S.mtdSales(), pct=Math.round(mtd/DB.company.monthTarget*100);
+
+  const kpi=(k,v,s,bar,barc)=>`<div class="kpi"><div class="k">${k}</div><div class="v num" data-count="${v.n}" data-pre="${v.pre||""}" data-suf="${v.suf||""}">${v.pre||""}0${v.suf||""}</div><div class="s">${s}</div>${bar!=null?`<div class="bar"><i style="width:0" data-w="${bar}%" ${barc?`data-c="${barc}"`:""}></i></div>`:""}</div>`;
+
+  return `<div class="layout">${railHTML("dashboard")}<main class="main">
+    <div class="head"><div><h1>Good morning, Coach Aril</h1>
+      <p>${TODAY.toLocaleDateString("en-MY",{weekday:"long",day:"numeric",month:"long",year:"numeric"})} · ${esc(DB.company.name)}</p></div></div>
+
+    <div class="grid kpis">
+      ${kpi("Active today",{n:rank.filter(s=>s.visits>0).length},`of ${DB.salesmen.filter(s=>s.active).length} salesmen on the road`)}
+      ${kpi("Outlets covered",{n:totV},`${totP} planned · ${totP-totV} remaining`,Math.round(totV/totP*100))}
+      ${kpi("Today's sales",{n:S.salesToday(),pre:"RM "},`${S.ordersToday().length} orders logged`)}
+      ${kpi("Collection rate",{n:rate,suf:"%"},`${RM(col)} collected of ${RM(inv)} invoiced`,rate,rate>=60?HUE.jade:HUE.gold)}
+    </div>
+
+    <div class="ai mg">
+      <div class="hd">${SPARK}<b>AI morning briefing</b><span class="ts">generated ${TODAY.toLocaleDateString("en-MY",{day:"2-digit",month:"short"})} 08:00</span></div>
+      <p>${b.html}</p>
+      <div class="why">${chipsHTML(b.chips)}</div>
+    </div>
+
+    <div class="grid split mg">
+      <div class="card">
+        <div class="ch"><h3>Beat coverage</h3><span class="chip c-mut">live</span>
+          <div class="spacer"></div><a href="#/manager/ranking" class="chip c-ok">Full ranking →</a></div>
+        <div class="tw"><table>
+          <thead><tr><th>Salesman</th><th>Zone</th><th class="r">Visits</th><th class="r">Sales today</th><th class="r">Collected</th><th>Status</th></tr></thead>
+          <tbody>${rank.map(s=>{
+            const st=S.pace(s);
+            return `<tr><td><div style="display:flex;align-items:center;gap:9px"><span class="av" style="background:${s.color}">${initials(s.name)}</span><b>${esc(s.name)}</b></div></td>
+              <td style="color:var(--muted)">${esc(s.zone)}</td>
+              <td class="r num">${s.visits}<span style="color:var(--dim)">/${s.planned}</span></td>
+              <td class="r num" style="font-weight:700">${RM(s.sales)}</td>
+              <td class="r num" style="color:var(--muted)">${RM(s.collected)}</td>
+              <td><span class="chip ${st.k}">${st.t}</span></td></tr>`;
+          }).join("")}</tbody></table></div>
+      </div>
+
+      <div class="stk">
+        <div class="card"><div class="ch"><h3>Month to target</h3></div><div class="cb">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px">
+            <span style="font-family:var(--dp);font-size:25px;font-weight:700" class="num">${RM(mtd)}</span>
+            <span style="color:var(--muted);font-size:12.5px">of ${RM(DB.company.monthTarget)}</span></div>
+          <div class="tgt"><i style="width:0;background:var(--jade)" data-w="${Math.min(100,pct)}%"></i></div>
+          <div style="display:flex;justify-content:space-between;margin-top:9px;font-size:12px;color:var(--muted)">
+            <span><b style="color:var(--jade)">${pct}%</b> achieved</span><span>${new Date(TODAY.getFullYear(),TODAY.getMonth()+1,0).getDate()-TODAY.getDate()} days left</span></div>
+        </div></div>
+
+        <div class="card"><div class="ch"><h3>Live activity</h3><span class="dot"></span></div>
+          <div class="cb"><div class="tick">${ST.feed.slice(0,9).map(e=>`<div class="tk"><span class="td" style="background:${e.c}"></span>
+            <span class="tt">${e.h}</span><time>${e.t.toLocaleTimeString("en-MY",{hour:"2-digit",minute:"2-digit",hour12:false})}</time></div>`).join("")}</div></div></div>
+      </div>
+    </div>
+
+    ${roadStrip()}
+  </main></div>`;
+}
+
+function roadStrip(){
+  const items=["Sales Order (SO)","Return & Credit Note","Refer & Earn","Running Number Config","Stock Control",
+               "Multi-Warehouse","Commission Engine","GPS Route Optimisation","LHDN e-Invoice","Offline Mode"];
+  return `<div class="road mg">
+    <h3>Coming in the full build</h3>
+    <p>Not in this demo — deliberately. These slot onto the same data model without a rebuild.</p>
+    <div class="items">${items.map(i=>`<span class="it">${esc(i)}</span>`).join("")}</div>
+  </div>`;
+}
+
+function vRanking(){
+  const rank=S.ranking(), tot=rank.reduce((a,s)=>a+s.sales,0);
+  return `<div class="layout">${railHTML("ranking")}<main class="main">
+    <div class="head"><div><h1>Sales ranking</h1><p>Live, today. Positions move the moment a payment lands.</p></div></div>
+    <div class="grid split">
+      <div class="card"><div class="ch"><h3>Today's leaderboard</h3><span class="chip c-mut">by sales value</span></div>
+        <div class="cb"><div class="rank" id="rank">${rank.map((s,i)=>rowHTML(s,i,tot)).join("")}</div></div></div>
+      <div class="card"><div class="ch"><h3>Contribution to company target</h3></div><div class="cb stk">
+        ${rank.map(s=>{const c=s.sales/DB.company.monthTarget*100;return `<div>
+          <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px">
+            <b>${esc(s.name)}</b><span class="num" style="color:var(--muted)">${c.toFixed(2)}%</span></div>
+          <div class="tgt"><i style="width:0;background:${s.color}" data-w="${Math.min(100,c*8)}%"></i></div></div>`}).join("")}
+        <div class="note">Bars are scaled 8× so daily contribution stays readable against a monthly target of ${RM(DB.company.monthTarget)}.</div>
+      </div></div>
+    </div>
+  </main></div>`;
+}
+function rowHTML(s,i,tot){
+  const share=tot?Math.round(s.sales/tot*100):0;
+  return `<div class="row${s.id===ST.salesmanId&&ST.role==="salesman"?" me":""}" data-id="${s.id}">
+    <span class="pos">${i+1}</span>
+    <span class="av" style="background:${s.color}">${initials(s.name)}</span>
+    <span class="nm"><b>${esc(s.name)}</b><span>${s.visits}/${s.planned} visits · ${esc(s.zone)}</span></span>
+    <span class="vl"><b>${RM(s.sales)}</b><span>${share}% of today</span></span></div>`;
+}
+
+function vClients(){
+  const gone=ST.resigned;
+  return `<div class="layout">${railHTML("clients")}<main class="main">
+    <div class="head"><div><h1>Company-owned client data</h1>
+      <p>Every outlet, order and payment belongs to ${esc(DB.company.name)} — not to the salesman who logged it.</p></div></div>
+
+    <div class="banner ${gone?"b-ok":"b-warn"}">
+      ${gone?`<span class="chip c-ok">Proven</span><span><b>Ahmad Razif has left the company.</b> His login is revoked. Every outlet he handled, and all ${DB.orders.filter(o=>o.salesmanId==="s1").length} orders and ${DB.payments.length} payment records, stayed with the company and are now handled by Kavitha Rani. <b>Zero records lost.</b></span>`
+            :`<span class="chip c-bad">The risk</span><span>When a salesman leaves with the customer list in his own phone, the company loses the relationship. Run the simulation to see what happens here instead.</span>`}
+      <div class="spacer"></div>
+      <button class="btn ${gone?"btn-g":"btn-p"}" data-act="${gone?"restore":"resign"}">${gone?"Reset demo":"Simulate: Ahmad Razif resigns"}</button>
+    </div>
+
+    <div class="card mg"><div class="ch"><h3>Outlet register</h3><span class="chip c-mut">${DB.outlets.length} outlets</span></div>
+      <div class="tw"><table>
+        <thead><tr><th>Outlet</th><th>Area</th><th>Tier</th><th>Handled by</th><th class="r">Orders</th><th class="r">Lifetime value</th><th class="r">Outstanding</th><th></th></tr></thead>
+        <tbody>${DB.outlets.map(o=>{
+          const os=S.outletOrders(o.id), lv=os.reduce((a,x)=>a+x.total,0), out=S.outstanding(o.id);
+          const sm=S.sm(o.salesmanId);
+          return `<tr><td><b>${esc(o.name)}</b></td><td style="color:var(--muted)">${esc(o.area)}</td>
+            <td><span class="chip ${o.tier==="A"?"c-ok":o.tier==="B"?"c-mut":"c-mut"}">Tier ${o.tier}</span></td>
+            <td><div style="display:flex;align-items:center;gap:8px"><span class="av" style="background:${sm.color};width:21px;height:21px;font-size:9px">${initials(sm.name)}</span>${esc(sm.name)}</div></td>
+            <td class="r num">${os.length}</td><td class="r num">${RM(lv)}</td>
+            <td class="r num" style="color:${out>0?"var(--gold)":"var(--dim)"}">${out>0?RM(out):"—"}</td>
+            <td class="r"><a href="#/manager/client/${o.id}" class="chip c-ok">Open →</a></td></tr>`;
+        }).join("")}</tbody></table></div></div>
+  </main></div>`;
+}
+
+function vClient(id){
+  const o=S.outlet(id); if(!o) return vClients();
+  const os=S.outletOrders(id), lv=os.reduce((a,x)=>a+x.total,0);
+  const invs=DB.invoices.filter(i=>i.outletId===id).sort((a,b)=>b.issued-a.issued);
+  const sm=S.sm(o.salesmanId);
+  return `<div class="layout">${railHTML("clients")}<main class="main">
+    <div class="head"><div><a href="#/manager/clients" style="color:var(--muted);font-size:12.5px">← Client data</a>
+      <h1 style="margin-top:6px">${esc(o.name)}</h1>
+      <p>${esc(o.area)} · Tier ${o.tier} · Owner ${esc(o.owner)} · ${esc(o.phone)} · Customer since ${fmtD(o.since)}</p></div></div>
+
+    <div class="grid kpis">
+      <div class="kpi"><div class="k">Lifetime value</div><div class="v num">${RM(lv)}</div><div class="s">${os.length} orders on record</div></div>
+      <div class="kpi"><div class="k">Average order</div><div class="v num">${RM(S.avgOrder(id))}</div><div class="s">Credit term ${o.creditTerm} days</div></div>
+      <div class="kpi"><div class="k">Outstanding</div><div class="v num" style="color:${S.outstanding(id)>0?"var(--gold)":"var(--jade)"}">${RM(S.outstanding(id))}</div><div class="s">${S.overdue(id)>0?RM(S.overdue(id))+" overdue":"Nothing overdue"}</div></div>
+      <div class="kpi"><div class="k">Last order</div><div class="v num" style="font-size:22px">${S.lastVisit(id)?fmtD(S.lastVisit(id)):"—"}</div><div class="s">${S.lastVisit(id)?daysBetween(S.lastVisit(id),TODAY)+" days ago":""}</div></div>
+    </div>
+
+    <div class="grid split mg">
+      <div class="card"><div class="ch"><h3>Order history</h3><span class="chip c-mut">company record</span></div>
+        <div class="cb"><div class="hist">${os.slice(0,14).map(x=>`<div class="hv">
+          <span class="hd2">${fmtDS(x.date)}</span>
+          <span style="flex:1"><b class="mono" style="font-size:11px;color:var(--dim)">${x.id}</b> · ${x.lines.length} lines · logged by ${esc(S.sm(x.salesmanId).name)}</span>
+          <span class="num" style="font-weight:700">${RM(x.total)}</span></div>`).join("")}</div>
+          ${os.length>14?`<div class="note mg">Showing 14 of ${os.length}. Full history is retained indefinitely.</div>`:""}</div></div>
+
+      <div class="stk">
+        <div class="card"><div class="ch"><h3>Handled by</h3></div><div class="cb">
+          <div style="display:flex;align-items:center;gap:11px;margin-bottom:12px">
+            <span class="av" style="background:${sm.color};width:34px;height:34px;font-size:12px">${initials(sm.name)}</span>
+            <span><b style="display:block">${esc(sm.name)}</b><span style="font-size:12px;color:var(--muted)">${esc(sm.zone)}</span></span></div>
+          <div class="note">${ST.resigned&&o.salesmanId==="s2"?"Reassigned automatically when the previous salesman left. History below is unchanged.":"Assignment is a company setting. Changing it moves the route, never the records."}</div>
+        </div></div>
+        <div class="card"><div class="ch"><h3>Invoices</h3></div><div class="cb"><div class="hist">
+          ${invs.slice(0,8).map(i=>{
+            const bal=i.total-i.paid, od=i.status!=="paid"&&i.due<TODAY;
+            return `<div class="hv"><span class="hd2">${fmtDS(i.issued)}</span>
+              <span style="flex:1"><b class="mono" style="font-size:11px">${i.id}</b><br><span class="chip ${i.status==="paid"?"c-ok":od?"c-bad":"c-warn"}" style="margin-top:4px">${i.status==="paid"?"Paid":od?"Overdue":"Open"}</span></span>
+              <span class="num" style="font-weight:700;text-align:right">${RM(i.total)}${bal>0?`<br><span style="font-size:11px;color:var(--gold);font-weight:600">${RM(bal)} due</span>`:""}</span></div>`;
+          }).join("")}</div></div></div>
+      </div>
+    </div>
+  </main></div>`;
+}
+
+function vRoadmap(){
+  const built=[["Manager Dashboard","Live coverage, sales, collection rate, AI briefing"],
+    ["Jadual Harian","AI-ordered beat plan with check-in and location tag"],
+    ["Order → Invoice → Payment","Controlled price tweak, anomaly flag, digital receipt"],
+    ["Sales Ranking","Live leaderboard and contribution to company target"],
+    ["Company-Owned Client Data","Outlet register that survives any salesman leaving"],
+    ["AI Copilot","Route priority, coaching nudge, morning briefing, anomaly flag"]];
+  const next=[["Sales Order (SO)","Quote and confirm before delivery, with approval flow"],
+    ["Return & Credit Note","Handle returns against the original invoice"],
+    ["Refer & Earn","Outlet referral tracking with payout rules"],
+    ["Running Number Config","Per-company document numbering series"],
+    ["Stock Control","Van stock, warehouse balance, reorder points"],
+    ["Multi-Warehouse","Stock split across branches"],
+    ["Commission Engine","Tiered commission by product, margin and collection"],
+    ["GPS Route Optimisation","Real travel-time routing on top of the AI priority score"],
+    ["LHDN e-Invoice","MyInvois submission and validation"],
+    ["Offline Mode","Full capture with no signal, syncs on reconnect"]];
+  return `<div class="layout">${railHTML("roadmap")}<main class="main">
+    <div class="head"><div><h1>What is built, what is next</h1><p>Honest scope. This demo proves the core loop end to end; the rest is scheduled, not hidden.</p></div></div>
+    <div class="grid split">
+      <div class="card"><div class="ch"><span class="chip c-ok">In this demo</span><h3 style="margin-left:4px">6 modules, working</h3></div>
+        <div class="cb stk">${built.map(([t,d])=>`<div style="display:flex;gap:11px;align-items:flex-start">
+          <span class="chip c-ok" style="margin-top:2px">✓</span><span><b style="display:block;font-size:13.5px">${esc(t)}</b><span style="font-size:12.5px;color:var(--muted)">${esc(d)}</span></span></div>`).join("")}</div></div>
+      <div class="card"><div class="ch"><span class="chip c-mut">Full build</span><h3 style="margin-left:4px">10 modules, scoped</h3></div>
+        <div class="cb stk">${next.map(([t,d])=>`<div style="display:flex;gap:11px;align-items:flex-start">
+          <span class="chip c-mut" style="margin-top:2px">→</span><span><b style="display:block;font-size:13.5px">${esc(t)}</b><span style="font-size:12.5px;color:var(--muted)">${esc(d)}</span></span></div>`).join("")}</div></div>
+    </div>
+  </main></div>`;
+}
+
+/* ===========================================================
+   7. VIEWS — SALESMAN (phone)
+   =========================================================== */
+function phone(inner, tab){
+  const tabs=[["jadual","Jadual",ICON.cal],["ranking","Ranking",ICON.rank],["clients","Outlets",ICON.book]];
+  return `<div class="stage">
+    <div class="phone"><div class="screen">
+      <div class="notch"><span>11:24</span><span>KOBIS · 5G</span></div>
+      <div class="sv">${inner}</div>
+      <nav class="tabs">${tabs.map(([k,l,i])=>`<a href="#/salesman/${k}" class="${tab===k?"on":""}">${i}${l}</a>`).join("")}</nav>
+    </div></div>
+    <aside class="side stk">
+      <div class="card"><div class="cb">
+        <h3 style="font-size:14px;margin-bottom:7px">Salesman view</h3>
+        <p style="font-size:12.5px;color:var(--muted);line-height:1.6">Mobile-first on purpose. Big tap targets, almost no typing — this gets used standing up in a shop, one-handed, with a customer waiting.</p>
+      </div></div>
+      ${roadStrip()}
+    </aside>
+  </div>`;
+}
+
+function vJadual(){
+  const sm=S.sm(ST.salesmanId), plan=AI.orderedPlan(ST.salesmanId);
+  const done=plan.filter(p=>p.v.status==="visited").length;
+  const next=plan.find(p=>p.v.status==="planned");
+  return phone(`
+    <div class="sh"><h2>Jadual Harian</h2><p>${TODAY.toLocaleDateString("en-MY",{weekday:"long",day:"numeric",month:"long"})} · ${esc(sm.zone)}</p></div>
+    <div class="grid" style="grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px">
+      <div class="kpi" style="padding:13px"><div class="k">Covered</div><div class="v num" style="font-size:23px">${done}<span style="color:var(--dim);font-size:15px">/${plan.length}</span></div></div>
+      <div class="kpi" style="padding:13px"><div class="k">Sales today</div><div class="v num" style="font-size:23px">${RM(S.salesToday(ST.salesmanId))}</div></div>
+    </div>
+
+    ${next?`<div class="ai" style="padding:15px;margin-bottom:14px">
+      <div class="hd">${SPARK}<b>AI suggested next stop</b></div>
+      <p style="font-size:14px"><b>${esc(S.outlet(next.v.outletId).name)}</b> — ${esc(S.outlet(next.v.outletId).area)}</p>
+      <div class="why" style="margin-top:10px;padding-top:10px">${chipsHTML(next.why)}</div>
+    </div>`:`<div class="banner b-ok" style="margin-bottom:14px"><span class="chip c-ok">Done</span><span>Every planned outlet is covered. Nice work.</span></div>`}
+
+    <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:700;margin:4px 0 9px">Route order · AI prioritised</div>
+    ${plan.map((p,i)=>{
+      const o=S.outlet(p.v.outletId), v=p.v;
+      return `<a class="stop${v.status==="visited"?" done":""}" href="#/salesman/outlet/${o.id}">
+        <span class="sq">${v.status==="visited"?"✓":i+1}</span>
+        <span class="in"><b>${esc(o.name)}</b><span>${esc(o.area)} · ${v.status==="visited"?"Checked in "+v.checkInAt.toLocaleTimeString("en-MY",{hour:"2-digit",minute:"2-digit",hour12:false}):p.overdue>0?RM(p.overdue)+" overdue":p.since+" days since order"}</span></span>
+        <span class="chip ${v.status==="visited"?"c-ok":p.overdue>0?"c-bad":"c-mut"}">${v.status==="visited"?"Visited":p.overdue>0?"Chase":"Planned"}</span></a>`;
+    }).join("")}
+  `,"jadual");
+}
+
+function vOutlet(id){
+  const o=S.outlet(id); if(!o) return vJadual();
+  const v=DB.visits.find(x=>x.outletId===id&&x.salesmanId===ST.salesmanId);
+  const sc=AI.routeScore(id), os=S.outletOrders(id), out=S.outstanding(id);
+  return phone(`
+    <div class="sh"><a href="#/salesman/jadual" style="color:var(--muted);font-size:12.5px">← Jadual</a>
+      <h2 style="margin-top:6px">${esc(o.name)}</h2><p>${esc(o.area)} · Tier ${o.tier} · ${esc(o.owner)}</p></div>
+
+    ${v&&v.status==="visited"
+      ? `<div class="banner b-ok" style="margin-bottom:13px"><span class="chip c-ok">Checked in</span>
+          <span>${v.checkInAt.toLocaleTimeString("en-MY",{hour:"2-digit",minute:"2-digit",hour12:false})} · GPS ${v.geo.lat}, ${v.geo.lng}</span></div>`
+      : `<button class="btn btn-p btn-lg" data-act="checkin" data-id="${id}" style="margin-bottom:13px">${ICON.pin} Check in at this outlet</button>`}
+
+    <div class="grid" style="grid-template-columns:1fr 1fr;gap:9px;margin-bottom:13px">
+      <div class="kpi" style="padding:13px"><div class="k">Outstanding</div><div class="v num" style="font-size:20px;color:${out>0?"var(--gold)":"var(--jade)"}">${RM(out)}</div><div class="s" style="font-size:11px">${sc.overdue>0?RM(sc.overdue)+" overdue":"On terms"}</div></div>
+      <div class="kpi" style="padding:13px"><div class="k">Avg order</div><div class="v num" style="font-size:20px">${RM(S.avgOrder(id))}</div><div class="s" style="font-size:11px">${os.length} on record</div></div>
+    </div>
+
+    <div class="ai" style="padding:15px;margin-bottom:13px">
+      <div class="hd">${SPARK}<b>Why this outlet today</b></div>
+      <div class="why" style="margin-top:0;padding-top:0;border:none">${chipsHTML(sc.why)}</div>
+    </div>
+
+    ${v&&v.status==="visited"?`<button class="btn btn-p btn-lg" data-act="new-order" data-id="${id}">${ICON.cart} Take order</button>`
+      :`<button class="btn btn-lg" disabled>Check in first to take an order</button>`}
+
+    <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:700;margin:20px 0 8px">Recent orders</div>
+    ${os.length?os.slice(0,5).map(x=>`<div class="hv"><span class="hd2">${fmtDS(x.date)}</span>
+      <span style="flex:1;font-size:12px" class="mono">${x.id}</span><span class="num" style="font-weight:700">${RM(x.total)}</span></div>`).join("")
+      :`<div class="empty"><b>No orders yet</b>This outlet is new to the register.</div>`}
+  `,"jadual");
+}
+
+function vOrder(id){
+  const o=S.outlet(id); if(!o) return vJadual();
+  if(!ST.draft || ST.draft.outletId!==id)
+    ST.draft={outletId:id, lines:DB.products.map(p=>({productId:p.id,qty:0,unitPrice:p.price}))};
+  const d=ST.draft;
+  const total=d.lines.reduce((a,l)=>a+l.qty*l.unitPrice,0);
+  const flags=AI.anomaly(id,d.lines);
+  const any=d.lines.some(l=>l.qty>0);
+  return phone(`
+    <div class="sh"><a href="#/salesman/outlet/${id}" style="color:var(--muted);font-size:12.5px">← ${esc(o.name)}</a>
+      <h2 style="margin-top:6px">Take order</h2><p>Tap quantity. Tweak price only if you must.</p></div>
+
+    ${d.lines.map(l=>{const p=S.prod(l.productId);const hist=S.avgUnitPrice(id,l.productId);
+      const low=l.unitPrice<p.floor||(hist&&l.unitPrice<hist*0.88);
+      return `<div class="line">
+        <span class="pn"><b>${esc(p.name)}</b><span>${p.sku} · list ${RM2(p.price)}</span></span>
+        <span class="step"><button data-act="qty" data-p="${p.id}" data-d="-1" aria-label="Less">−</button>
+          <span class="q num">${l.qty}</span>
+          <button data-act="qty" data-p="${p.id}" data-d="1" aria-label="More">+</button></span>
+      </div>
+      ${l.qty>0?`<div style="display:flex;align-items:center;gap:9px;padding:0 0 11px;margin-top:-4px">
+        <span style="font-size:11px;color:var(--dim);flex:1">Unit price</span>
+        <input type="text" inputmode="decimal" value="${l.unitPrice.toFixed(2)}" data-act="price" data-p="${p.id}"
+          class="${low?"bad":""}" style="width:104px;padding:7px 10px;background:var(--s2);border:1px solid ${low?"var(--gold)":"var(--line)"};border-radius:var(--r-s);font-size:13px;font-weight:700;text-align:right" aria-label="Unit price for ${esc(p.name)}">
+        <span class="num" style="width:82px;text-align:right;font-weight:800;font-size:13.5px">${RM2(l.qty*l.unitPrice)}</span>
+      </div>`:""}`}).join("")}
+
+    <div class="tot"><span style="color:var(--muted);font-weight:600">Order total</span><b class="num">${RM2(total)}</b></div>
+
+    ${flags.length?`<div class="flag" style="margin-bottom:13px">${SPARK}
+      <span class="tx"><b style="color:var(--gold)">AI flagged this price</b><br>${flags.join("<br>")}<br>
+      <span style="opacity:.85">Manager approval will be required before this order is released.</span></span></div>`:""}
+
+    <button class="btn btn-p btn-lg" data-act="confirm-order" data-id="${id}" ${any?"":"disabled"}>Confirm order${any?` · ${RM2(total)}`:""}</button>
+  `,"jadual");
+}
+
+function vInvoice(invId){
+  const inv=byId(DB.invoices,invId); if(!inv) return vJadual();
+  const o=S.outlet(inv.outletId), ord=byId(DB.orders,inv.orderId);
+  return phone(`
+    <div class="sh"><h2>Invoice ready</h2><p>Generated from the order. Nothing retyped.</p></div>
+    ${ST.lastOrder&&ST.lastOrder.nudge?`<div class="nudge" style="margin-bottom:14px">${SPARK}
+      <span class="tx"><b style="color:var(--peri)">AI coaching</b><br>${ST.lastOrder.nudge}</span></div>`:""}
+    ${docHTML(inv,ord,o,"INVOICE")}
+    <button class="btn btn-p btn-lg" style="margin-top:15px" data-act="to-pay" data-id="${inv.id}">Record payment</button>
+    <a class="btn btn-g btn-lg" style="margin-top:9px" href="#/salesman/jadual">Back to Jadual</a>
+  `,"jadual");
+}
+
+function docHTML(inv,ord,o,kind,pay){
+  const sm=S.sm(inv.salesmanId);
+  return `<div class="paper">
+    <div class="ph"><b>${esc(DB.company.name)}</b><span>${esc(DB.company.trade)}<br>Co. Reg ${esc(DB.company.reg)}</span></div>
+    <div class="sec">
+      <div class="rw"><span>${kind} NO</span><b>${esc(kind==="RECEIPT"?pay.id:inv.id)}</b></div>
+      <div class="rw"><span>DATE</span><b>${fmtD(kind==="RECEIPT"?pay.date:inv.issued)}</b></div>
+      ${kind==="INVOICE"?`<div class="rw"><span>TERMS</span><b>${o.creditTerm} days · due ${fmtD(inv.due)}</b></div>`:""}
+      <div class="rw"><span>SALESMAN</span><b>${esc(sm.name)}</b></div>
+    </div>
+    <div class="sec"><div class="rw"><span>BILL TO</span><b style="text-align:right">${esc(o.name)}<br><span style="font-weight:400">${esc(o.area)}</span></b></div></div>
+    <div class="sec">${ord.lines.filter(l=>l.qty>0).map(l=>{const p=S.prod(l.productId);
+      return `<div class="rw"><span style="flex:1">${esc(p.name)}<br>${l.qty} × ${RM2(l.unitPrice)}</span><b>${RM2(l.qty*l.unitPrice)}</b></div>`}).join("")}</div>
+    ${kind==="RECEIPT"?`<div class="sec">
+        <div class="rw"><span>INVOICE TOTAL</span><b>${RM2(inv.total)}</b></div>
+        <div class="rw"><span>PAID (${esc(pay.method)})</span><b>${RM2(pay.amount)}</b></div>
+        <div class="rw"><span>BALANCE</span><b>${RM2(inv.total-inv.paid)}</b></div></div>
+      <div class="gt"><span>RECEIVED</span><span>${RM2(pay.amount)}</span></div>
+      <div class="stamp">${inv.status==="paid"?"PAID IN FULL":"PART PAYMENT RECEIVED"}</div>`
+    :`<div class="gt"><span>TOTAL</span><span>${RM2(inv.total)}</span></div>`}
+    <div class="ft">Generated by Winning Salesman · KOBIS Berhad<br>This is a computer-generated document.</div>
+  </div>`;
+}
+
+function vPay(invId){
+  const inv=byId(DB.invoices,invId); if(!inv) return vJadual();
+  const o=S.outlet(inv.outletId), bal=inv.total-inv.paid;
+  return phone(`
+    <div class="sh"><h2>Record payment</h2><p>${esc(o.name)} · ${inv.id}</p></div>
+    <div class="card" style="margin-bottom:15px"><div class="cb">
+      <div style="display:flex;justify-content:space-between;margin-bottom:7px"><span style="color:var(--muted)">Invoice total</span><b class="num">${RM2(inv.total)}</b></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Balance due</span><b class="num" style="color:var(--gold)">${RM2(bal)}</b></div>
+    </div></div>
+    <div class="fld"><label for="amt">Amount collected</label>
+      <input id="amt" type="number" step="0.01" value="${bal.toFixed(2)}"></div>
+    <div class="fld"><label for="mth">Method</label>
+      <select id="mth"><option>Cash</option><option>Bank Transfer</option><option>DuitNow QR</option><option>Cheque</option></select></div>
+    <button class="btn btn-p btn-lg" data-act="confirm-pay" data-id="${inv.id}">Confirm payment</button>
+  `,"jadual");
+}
+
+function vReceipt(payId){
+  const pay=byId(DB.payments,payId); if(!pay) return vJadual();
+  const inv=byId(DB.invoices,pay.invoiceId), ord=byId(DB.orders,inv.orderId), o=S.outlet(inv.outletId);
+  return phone(`
+    <div class="sh"><h2>Payment received</h2><p>Digital receipt issued to ${esc(o.name)}.</p></div>
+    <div class="banner b-ok" style="margin-bottom:14px"><span class="chip c-ok">✓</span>
+      <span>${RM2(pay.amount)} recorded. Ranking and dashboard updated live.</span></div>
+    ${docHTML(inv,ord,o,"RECEIPT",pay)}
+    <button class="btn btn-p btn-lg" style="margin-top:15px" data-act="wa" data-id="${pay.id}">Send via WhatsApp</button>
+    <a class="btn btn-g btn-lg" style="margin-top:9px" href="#/salesman/ranking">See my ranking →</a>
+  `,"jadual");
+}
+
+function vSRanking(){
+  const rank=S.ranking(), tot=rank.reduce((a,s)=>a+s.sales,0);
+  const me=rank.findIndex(s=>s.id===ST.salesmanId);
+  return phone(`
+    <div class="sh"><h2>Ranking</h2><p>Live, today. You are #${me+1} of ${rank.length}.</p></div>
+    <div class="rank" id="rank">${rank.map((s,i)=>rowHTML(s,i,tot)).join("")}</div>
+    <div class="note" style="margin-top:14px">Ranking moves the moment a payment is recorded — no end-of-day report, no waiting for HQ.</div>
+  `,"ranking");
+}
+
+function vSOutlets(){
+  const mine=DB.outlets.filter(o=>o.salesmanId===ST.salesmanId);
+  return phone(`
+    <div class="sh"><h2>My outlets</h2><p>${mine.length} outlets · company register</p></div>
+    ${mine.map(o=>{const out=S.outstanding(o.id);
+      return `<a class="stop" href="#/salesman/outlet/${o.id}">
+        <span class="sq">${o.tier}</span>
+        <span class="in"><b>${esc(o.name)}</b><span>${esc(o.area)} · ${S.outletOrders(o.id).length} orders</span></span>
+        ${out>0?`<span class="chip c-warn">${RM(out)}</span>`:`<span class="chip c-mut">Clear</span>`}</a>`}).join("")}
+    <div class="note" style="margin-top:12px">These records belong to ${esc(DB.company.name)}. If you leave, they stay — and if you join, you inherit the full history instead of starting cold.</div>
+  `,"clients");
+}
+
+/* ===========================================================
+   8. ACTIONS
+   =========================================================== */
+function modal(html){ $("#modal").innerHTML = `<div class="mask" data-act="close-modal"><div class="sheet" data-stop>${html}</div></div>`; }
+function closeModal(){ $("#modal").innerHTML=""; }
+
+const ACTIONS = {
+  role(el){ ST.role=el.dataset.v; go(ST.role==="manager"?"/manager/dashboard":"/salesman/jadual"); },
+  "pick-sm"(el){ ST.salesmanId=el.value; go("/salesman/jadual"); },
+
+  checkin(el){
+    const v=DB.visits.find(x=>x.outletId===el.dataset.id&&x.salesmanId===ST.salesmanId);
+    if(v){ v.status="visited"; v.checkInAt=new Date(TODAY.getTime()+11.4*36e5);
+      v.geo={lat:(3.05+R()*0.22).toFixed(5),lng:(101.58+R()*0.28).toFixed(5)};
+      pushFeed(`<b>${esc(S.sm(ST.salesmanId).name.split(" ")[0])}</b> checked in at <b>${esc(S.outlet(el.dataset.id).name)}</b>`);
+    }
+    render();
+  },
+  "new-order"(el){ ST.draft=null; go("/salesman/order/"+el.dataset.id); },
+  qty(el){
+    const l=ST.draft.lines.find(x=>x.productId===el.dataset.p);
+    l.qty=Math.max(0,l.qty+Number(el.dataset.d)); render();
+  },
+  "confirm-order"(el){
+    const id=el.dataset.id, o=S.outlet(id);
+    const lines=ST.draft.lines.filter(l=>l.qty>0).map(l=>({...l}));
+    const total=lines.reduce((a,l)=>a+l.qty*l.unitPrice,0);
+    const oid="ORD-"+String(++DB.seq.order).padStart(4,"0");
+    const ord={id:oid,outletId:id,salesmanId:ST.salesmanId,date:new Date(TODAY.getTime()+11.5*36e5),lines,total,status:"invoiced"};
+    DB.orders.push(ord);
+    const iid="INV-2026-"+String(++DB.seq.invoice).padStart(4,"0");
+    DB.invoices.push({id:iid,orderId:oid,outletId:id,salesmanId:ST.salesmanId,issued:TODAY,
+      due:new Date(TODAY.getTime()+o.creditTerm*DAY),total,paid:0,status:"open"});
+    ST.lastOrder={orderId:oid,nudge:AI.coach(id,ord)};
+    ST.draft=null;
+    pushFeed(`<b>${esc(S.sm(ST.salesmanId).name.split(" ")[0])}</b> logged <b>${RM(total)}</b> at <b>${esc(o.name)}</b>`,HUE.gold);
+    go("/salesman/invoice/"+iid);
+  },
+  price(el){
+    const l=ST.draft.lines.find(x=>x.productId===el.dataset.p);
+    const v=parseFloat(el.value);
+    if(isNaN(v)||v<=0) return;              // mid-typing ("", "1.") — leave state alone
+    l.unitPrice=v;
+    const caret=el.selectionStart, raw=el.value;
+    render();
+    const f=$(`[data-act="price"][data-p="${el.dataset.p}"]`);
+    if(f){ f.value=raw; f.focus(); try{ f.setSelectionRange(caret,caret); }catch(_){} }
+  },
+  "to-pay"(el){ go("/salesman/payment/"+el.dataset.id); },
+  "confirm-pay"(el){
+    const inv=byId(DB.invoices,el.dataset.id);
+    const amt=Math.min(parseFloat($("#amt").value)||0, inv.total-inv.paid);
+    if(amt<=0) return;
+    inv.paid+=amt; inv.status = inv.paid>=inv.total-0.01 ? "paid" : "partial";
+    const pid="PAY-"+String(DB.payments.length+1).padStart(4,"0");
+    DB.payments.push({id:pid,invoiceId:inv.id,outletId:inv.outletId,date:TODAY,amount:amt,method:$("#mth").value});
+    pushFeed(`Payment <b>${RM(amt)}</b> collected from <b>${esc(S.outlet(inv.outletId).name)}</b>`,HUE.peri);
+    go("/salesman/receipt/"+pid);
+  },
+  wa(el){
+    const pay=byId(DB.payments,el.dataset.id), o=S.outlet(pay.outletId);
+    const link=`kobis.my/r/${pay.id.toLowerCase()}`;
+    modal(`<h3 style="font-size:16px;margin-bottom:4px">Send digital receipt</h3>
+      <p style="color:var(--muted);font-size:12.5px;margin-bottom:15px">To ${esc(o.owner)} · ${esc(o.phone)}</p>
+      <div class="wa"><div class="bub">Terima kasih ${esc(o.owner.split(" ")[0])}! Payment of <b>${RM2(pay.amount)}</b> received for ${esc(o.name)}.
+        <span class="lk">https://${link}</span><span class="tm">11:31 ✓✓</span></div></div>
+      <div class="note" style="margin-top:14px">Simulated. In the full build this opens the WhatsApp Business API with the receipt link attached.</div>
+      <button class="btn btn-p btn-lg" style="margin-top:15px" data-act="close-modal">Done</button>`);
+  },
+  "close-modal"(){ closeModal(); },
+
+  resign(){
+    const s=S.sm("s1"); s.active=false;
+    DB.outlets.filter(o=>o.salesmanId==="s1").forEach(o=>{ o.salesmanId="s2"; });
+    DB.visits.filter(v=>v.salesmanId==="s1").forEach(v=>{ v.salesmanId="s2"; });
+    ST.resigned=true; if(ST.salesmanId==="s1") ST.salesmanId="s2";
+    render();
+  },
+  restore(){
+    const s=S.sm("s1"); s.active=true;
+    DB.outlets.forEach(o=>{ o.salesmanId = zoneOwner[o.zone]||o.salesmanId; });
+    DB.visits.forEach(v=>{ const o=S.outlet(v.outletId); if(o&&v.id.startsWith("V-s1")) v.salesmanId="s1"; });
+    ST.resigned=false; render();
+  }
+};
+
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-act]");
+  if(!el) return;
+  if(el.dataset.act==="close-modal" && e.target.closest("[data-stop]") && e.target.dataset.act!=="close-modal") return;
+  if(el.tagName!=="SELECT" && el.tagName!=="INPUT"){ e.preventDefault(); ACTIONS[el.dataset.act]?.(el); }
+});
+document.addEventListener("change",e=>{
+  const el=e.target.closest("[data-act]"); if(!el) return;
+  if(el.tagName==="SELECT") ACTIONS[el.dataset.act]?.(el);
+});
+// Price edits update live as they are typed, so the AI flag appears while the
+// salesman is still standing at the counter — not after the field loses focus.
+document.addEventListener("input",e=>{
+  const el=e.target.closest('[data-act="price"]');
+  if(el) ACTIONS.price(el);
+});
+
+/* ===========================================================
+   9. RENDER + MOTION
+   =========================================================== */
+function positions(){
+  const m=new Map(); document.querySelectorAll("#rank .row").forEach(r=>m.set(r.dataset.id,r.getBoundingClientRect().top)); return m;
+}
+function flip(prev){
+  if(REDUCED||!prev.size) return;
+  document.querySelectorAll("#rank .row").forEach(r=>{
+    const was=prev.get(r.dataset.id); if(was==null) return;
+    const d=was-r.getBoundingClientRect().top;
+    if(!d) return;
+    r.animate([{transform:`translateY(${d}px)`},{transform:"translateY(0)"}],{duration:620,easing:"cubic-bezier(.2,.8,.2,1)"});
+  });
+}
+function countUp(){
+  document.querySelectorAll("[data-count]").forEach(el=>{
+    const target=Number(el.dataset.count)||0, pre=el.dataset.pre||"", suf=el.dataset.suf||"";
+    const fmt=n=>(pre==="RM "?RM(n):Math.round(n).toLocaleString("en-MY"))+suf;
+    if(REDUCED){ el.textContent=fmt(target); return; }
+    const t0=performance.now(), dur=900;
+    (function step(t){
+      const p=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-p,3);
+      el.textContent=fmt(target*e);
+      if(p<1) requestAnimationFrame(step);
+    })(t0);
+  });
+  requestAnimationFrame(()=>document.querySelectorAll("[data-w]").forEach(i=>{ i.style.width=i.dataset.w; if(i.dataset.c) i.style.background=i.dataset.c; }));
+}
+
+function render(){
+  const prev=positions();
+  const p=route();
+  let html;
+  if(p[0]==="salesman"){
+    ST.role="salesman";
+    html = p[1]==="outlet" ? vOutlet(p[2])
+         : p[1]==="order" ? vOrder(p[2])
+         : p[1]==="invoice"? vInvoice(p[2])
+         : p[1]==="payment"? vPay(p[2])
+         : p[1]==="receipt"? vReceipt(p[2])
+         : p[1]==="ranking"? vSRanking()
+         : p[1]==="clients"? vSOutlets()
+         : vJadual();
+  } else {
+    ST.role="manager";
+    html = p[1]==="ranking" ? vRanking()
+         : p[1]==="clients" ? vClients()
+         : p[1]==="client"  ? vClient(p[2])
+         : p[1]==="roadmap" ? vRoadmap()
+         : vDashboard();
+  }
+  $("#app").innerHTML = topbar()+html;
+  countUp(); flip(prev);
+}
+render();
+</script>
