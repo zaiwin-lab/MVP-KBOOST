@@ -4,6 +4,9 @@ A clickable demo of the Winning Salesman Platform, a retail field-sales manageme
 app for **KOBIS Berhad**. Built for Coach Aril to pitch to companies running field
 sales teams.
 
+It ships with **four client companies** across four industries, switchable from the
+top bar, to show the same system is plug-and-play for any field-sales business.
+
 It proves one loop, end to end:
 
 **plan the day → visit the outlet → take the order → generate invoice → collect
@@ -18,6 +21,47 @@ Open `index.html` in any browser. That is the whole setup.
 No install, no build, no server, no login, no internet required. One file. It works
 from a USB stick, an email attachment, or a laptop with no signal in a client's
 meeting room.
+
+## Multi-tenant: four clients, one system
+
+Switch client company from the dropdown in the top bar. Nothing about the app changes
+except the configuration:
+
+| Client | Industry | Calls a customer a | Monthly target |
+|---|---|---|---|
+| Aroma Prestige Sdn Bhd | Perfume & fragrance distribution | Outlet | RM 850,000 |
+| Bekal Segar Sdn Bhd | FMCG & grocery distribution | Store | RM 1,200,000 |
+| FarmaLink Distributors Sdn Bhd | Pharmacy & clinic supply | Pharmacy | RM 980,000 |
+| Gerak Auto Parts Sdn Bhd | Automotive parts distribution | Workshop | RM 720,000 |
+
+Each carries its own catalogue, salesmen, territories, credit terms, volume profile
+and document numbering. Data is fully isolated — every record carries a `companyId`
+and `DB` is a live view of the selected tenant only, so no query can reach across
+companies.
+
+The volume profiles are deliberately different so each industry feels like itself:
+FMCG moves cartons (high quantity, low unit price), auto parts moves few high-value
+units, pharmacy sits between the two on 45-day credit terms.
+
+## Adding a new client company
+
+One config entry in the `TENANTS` array in `index.html`. No code changes:
+
+```js
+{
+  id:"c5", name:"Client Sdn Bhd", trade:"What they distribute",
+  reg:"SSM number", target:1000000,
+  word:{s:"Outlet",p:"Outlets"},        // what they call a customer
+  terms:{A:30,B:14,C:7},                 // credit days by tier
+  qty:{A:[6,20],B:[3,12],C:[2,6]},       // order volume profile
+  products:[["Name","SKU",price], ...],
+  salesmen:[["Name","Territory"], ...],
+  outlets:[["Name","Area","Territory","Tier","Owner"], ...]
+}
+```
+
+Everything else — the loop, the AI, every screen, the ranking, the documents —
+is shared and needs no per-client work.
 
 ## What is in the demo
 
@@ -72,9 +116,10 @@ Swapping in a real model later does not change the data model.
   price and that outlet's real 90-day average unit price.
 
 ### Simulated — clearly fake, by design
-- **The dataset.** 1 company, 6 salesmen, 18 outlets, 8 products and about 90 days of
-  trading history are generated from a fixed seed. The figures are realistic but
-  invented. The seed is fixed so the demo is identical every run — no surprises mid-pitch.
+- **The dataset.** 4 companies, 19 salesmen, 51 customer sites, 32 products and about
+  90 days of trading history each, generated from a fixed seed. The figures are
+  realistic but invented. The seed is fixed so the demo is identical every run — no
+  surprises mid-pitch.
 - **"Today" is pinned to 19 August 2026**, so the numbers never drift.
 - **GPS check-in** produces a plausible Klang Valley coordinate. It does not read the
   device location.
@@ -105,7 +150,17 @@ with normalised IDs throughout. The ten roadmap modules attach to these same ent
 without a rewrite — stock control hangs off `products`, commission off `orders` and
 `payments`, returns off `invoices`.
 
-Two deliberate choices worth keeping when this becomes the real build:
+**Tenant isolation.** `ST.companyId` selects the active tenant and `DB` is defined as
+a getter onto `WORLD[ST.companyId]`. Every selector and view was already written
+against `DB`, so tenant scoping needed no changes to them and no query can leak across
+companies. Records still carry `companyId` so the shape matches what a real backend
+does with row-level scoping.
+
+**Per-company document numbering.** Invoice and order sequences live on the tenant, so
+`INV-2026-0001` restarts for each client rather than running as one global series.
+That is the "Running Number Config" roadmap module in its simplest form.
+
+Three deliberate choices worth keeping when this becomes the real build:
 
 - **Hash routing with real URLs** (`#/salesman/order/o7`). Every screen is
   addressable and the browser back button works. Do not replace this with a
@@ -117,3 +172,15 @@ Two deliberate choices worth keeping when this becomes the real build:
 
 Motion respects `prefers-reduced-motion`. Layout is genuinely responsive down to
 390px with no horizontal overflow.
+
+
+## Visual design
+
+Bright, professional light surface with soft ambient colour washes. One accent
+(jade) carries brand and primary actions; periwinkle is reserved entirely for the AI
+layer so AI output has its own voice on the page; gold and coral are semantic only
+(attention, overdue). Invoices and receipts render as warm paper against the cool UI,
+so a document reads as a document.
+
+The theme is deliberately committed to light — every colour is painted explicitly, so
+the page stays bright regardless of the viewer's system theme.

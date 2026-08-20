@@ -1,0 +1,4 @@
+[2026-08-20T17:40:57.066Z] GET http://127.0.0.1:8911/index.html?v=20892 → 200 (12ms, 85201B)
+[2026-08-20T17:40:57.092Z] GET https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap → pending (?ms, ?B)
+[2026-08-20T17:44:18.868Z] GET http://127.0.0.1:8911/index.html?v=13752 → 200 (3ms, 85378B)
+[2026-08-20T17:44:18.875Z] GET https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap → pending (?ms, ?B)

@@ -9,29 +9,31 @@
 <style>
 /* ============================================================
    Winning Salesman — KOBIS Berhad field-sales demo
-   Single-file, zero-setup. Committed dark surface, warm paper
-   documents. Every colour painted explicitly.
+   Bright, professional light surface. Committed single theme:
+   every colour painted explicitly so the page stays bright on
+   any host background.
    ============================================================ */
 :root{
-  --page:#0A0D14; --s1:#10141D; --s2:#161C28; --s3:#1E2534; --s4:#28313F;
-  --rail:#0C0F17;
-  --text:#E6EAF2; --muted:#8B96AC; --dim:#5A6580;
-  --line:rgba(255,255,255,.075); --line-2:rgba(255,255,255,.14);
+  --page:#F1F5FA; --s1:#FFFFFF; --s2:#F7FAFD; --s3:#EDF2F8; --s4:#E1E9F2;
+  --rail:#FFFFFF;
+  --text:#121A2B; --muted:#5A6880; --dim:#8B98AE;
+  --line:#E4EBF3; --line-2:#CFD9E6;
 
-  --jade:#2FB89B; --jade-lo:rgba(47,184,155,.13); --jade-hi:#4FD9BB;
-  --peri:#7C8CF8; --peri-lo:rgba(124,140,248,.13);
-  --gold:#E0A83C; --gold-lo:rgba(224,168,60,.13);
-  --coral:#E05C4B; --coral-lo:rgba(224,92,75,.13);
+  --jade:#0D9B7C; --jade-lo:#E1F5F0; --jade-hi:#0A7A61;
+  --peri:#4B5DD8; --peri-lo:#ECEEFD;
+  --gold:#B27812; --gold-lo:#FBF2DE;
+  --coral:#CE4033; --coral-lo:#FDEBE9;
 
-  --paper:#F7F5F0; --paper-2:#EDE9E1; --paper-ink:#1A1814; --paper-dim:#6B6459;
+  --paper:#FDFBF6; --paper-2:#F2EEE4; --paper-ink:#1E1A14; --paper-dim:#6E6559;
 
   --ui:"Manrope",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   --dp:"Familjen Grotesk","Manrope",-apple-system,"Segoe UI",sans-serif;
   --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
 
-  --r-s:7px; --r:11px; --r-l:16px; --r-pill:100px;
+  --r-s:8px; --r:12px; --r-l:16px; --r-pill:100px;
   --pad:22px; --gap:16px;
-  --sh:0 1px 0 rgba(255,255,255,.04) inset, 0 8px 28px rgba(0,0,6,.5);
+  --sh:0 1px 2px rgba(18,26,43,.05), 0 6px 20px rgba(18,26,43,.06);
+  --sh-lift:0 2px 4px rgba(18,26,43,.06), 0 14px 34px rgba(18,26,43,.10);
   --rail-w:228px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -39,9 +41,19 @@ html{-webkit-text-size-adjust:100%}
 body{
   background:var(--page); color:var(--text);
   font-family:var(--ui); font-size:14px; line-height:1.5;
-  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden; position:relative; min-height:100vh;
 }
-h1,h2,h3,h4{font-family:var(--dp);font-weight:600;line-height:1.15;text-wrap:balance;letter-spacing:-.015em}
+/* Ambient tone washes — soft colour in the corners so the page reads
+   considered rather than flat white. */
+body::before{
+  content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background:
+    radial-gradient(900px 520px at 8% -8%,  rgba(13,155,124,.10), transparent 62%),
+    radial-gradient(760px 460px at 96% 2%,  rgba(75,93,216,.09),  transparent 60%),
+    radial-gradient(820px 500px at 50% 108%,rgba(178,120,18,.07), transparent 62%),
+    var(--page);
+}
+h1,h2,h3,h4{font-family:var(--dp);font-weight:600;line-height:1.15;text-wrap:balance;letter-spacing:-.015em;color:var(--text)}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer;border:none;background:none}
 a{color:inherit;text-decoration:none}
@@ -52,44 +64,44 @@ a{color:inherit;text-decoration:none}
 /* ---------- shell ---------- */
 #app{min-height:100vh}
 .topbar{
-  position:sticky;top:0;z-index:60;height:56px;
+  position:sticky;top:0;z-index:60;height:58px;
   display:flex;align-items:center;gap:14px;padding:0 20px;
-  background:rgba(10,13,20,.88);backdrop-filter:blur(14px);
+  background:rgba(255,255,255,.86);backdrop-filter:blur(14px);
   border-bottom:1px solid var(--line);
 }
 .brand{display:flex;align-items:center;gap:10px;font-family:var(--dp);font-weight:700;letter-spacing:-.02em;font-size:15px}
-.brand .mk{width:22px;height:22px;border-radius:6px;background:linear-gradient(140deg,var(--jade),#1C8A74);display:grid;place-items:center;flex:none}
-.brand small{display:block;font-family:var(--ui);font-weight:500;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);line-height:1}
-.live{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--jade)}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--jade);box-shadow:0 0 0 0 var(--jade-lo);animation:pulse 2.4s infinite}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,184,155,.55)}70%{box-shadow:0 0 0 9px rgba(47,184,155,0)}100%{box-shadow:0 0 0 0 rgba(47,184,155,0)}}
+.brand .mk{width:23px;height:23px;border-radius:7px;background:linear-gradient(140deg,#14B891,#0A7A61);display:grid;place-items:center;flex:none;box-shadow:0 2px 6px rgba(13,155,124,.35)}
+.brand small{display:block;font-family:var(--ui);font-weight:600;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);line-height:1}
+.live{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--jade)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--jade);animation:pulse 2.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(13,155,124,.45)}70%{box-shadow:0 0 0 9px rgba(13,155,124,0)}100%{box-shadow:0 0 0 0 rgba(13,155,124,0)}}
 .spacer{flex:1}
 
-.toggle{display:flex;background:var(--s2);border:1px solid var(--line);border-radius:var(--r-pill);padding:3px;gap:2px}
+/* client-company switcher */
+.co{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--s2);border:1px solid var(--line-2);border-radius:var(--r-pill)}
+.co .cod{width:8px;height:8px;border-radius:2px;background:linear-gradient(140deg,#14B891,#4B5DD8);flex:none}
+.co select{background:none;border:none;font-size:12.5px;font-weight:700;cursor:pointer;max-width:210px}
+
+.toggle{display:flex;background:var(--s3);border:1px solid var(--line);border-radius:var(--r-pill);padding:3px;gap:2px}
 .toggle button{padding:6px 15px;border-radius:var(--r-pill);font-size:12.5px;font-weight:700;color:var(--muted);transition:.18s}
-.toggle button[aria-pressed="true"]{background:var(--jade);color:#04150F}
+.toggle button[aria-pressed="true"]{background:var(--jade);color:#fff;box-shadow:0 2px 6px rgba(13,155,124,.32)}
 .toggle button:hover:not([aria-pressed="true"]){color:var(--text)}
 
-.who{display:flex;align-items:center;gap:9px;padding:5px 12px 5px 5px;background:var(--s2);border:1px solid var(--line);border-radius:var(--r-pill)}
+.who{display:flex;align-items:center;gap:9px;padding:5px 12px 5px 5px;background:var(--s2);border:1px solid var(--line-2);border-radius:var(--r-pill)}
 .who select{background:none;border:none;font-size:12.5px;font-weight:700;cursor:pointer}
-.who select option{background:var(--s2)}
-.av{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:800;color:#04150F;flex:none;font-family:var(--ui)}
+.av{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:800;color:#fff;flex:none;font-family:var(--ui)}
 
-.layout{display:flex;min-height:calc(100vh - 56px)}
-.rail{width:var(--rail-w);flex:none;border-right:1px solid var(--line);background:var(--rail);padding:18px 12px;display:flex;flex-direction:column;gap:3px;position:sticky;top:56px;height:calc(100vh - 56px)}
-.rail .lbl{font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);font-weight:700;padding:12px 10px 6px}
+.layout{display:flex;min-height:calc(100vh - 58px)}
+.rail{width:var(--rail-w);flex:none;border-right:1px solid var(--line);background:var(--rail);padding:18px 12px;display:flex;flex-direction:column;gap:3px;position:sticky;top:58px;height:calc(100vh - 58px)}
+.rail .lbl{font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);font-weight:800;padding:12px 10px 6px}
 .rail a{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:var(--r-s);color:var(--muted);font-weight:600;font-size:13.5px;transition:.15s}
-.rail a:hover{background:var(--s2);color:var(--text)}
+.rail a:hover{background:var(--s3);color:var(--text)}
 .rail a.on{background:var(--jade-lo);color:var(--jade-hi)}
-.ic{width:17px;height:17px;flex:none}
-.rail a .ic{opacity:.85}
-.tabs a .ic{width:20px;height:20px}
-.btn .ic{width:16px;height:16px}
 .rail .foot{margin-top:auto;padding:12px 10px;border-top:1px solid var(--line);font-size:11px;color:var(--dim);line-height:1.6}
 
 .main{flex:1;min-width:0;padding:26px 28px 60px;max-width:1440px}
 .head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:22px}
-.head h1{font-size:26px}
+.head h1{font-size:27px}
 .head p{color:var(--muted);font-size:13.5px;margin-top:5px}
 
 /* ---------- primitives ---------- */
@@ -102,12 +114,12 @@ a{color:inherit;text-decoration:none}
 .split{grid-template-columns:1.35fr 1fr;align-items:start}
 @media(max-width:1080px){.split{grid-template-columns:1fr}}
 
-.kpi{background:var(--s1);border:1px solid var(--line);border-radius:var(--r-l);padding:17px 18px;position:relative;overflow:hidden}
-.kpi .k{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);font-weight:700}
+.kpi{background:var(--s1);border:1px solid var(--line);border-radius:var(--r-l);padding:17px 18px;box-shadow:var(--sh);position:relative;overflow:hidden}
+.kpi .k{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);font-weight:800}
 .kpi .v{font-family:var(--dp);font-size:29px;font-weight:700;margin-top:9px;letter-spacing:-.025em}
 .kpi .s{font-size:12px;color:var(--muted);margin-top:5px;display:flex;align-items:center;gap:6px}
-.kpi .bar{height:3px;background:var(--s3);border-radius:2px;margin-top:12px;overflow:hidden}
-.kpi .bar i{display:block;height:100%;border-radius:2px;background:var(--jade);transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.kpi .bar{height:4px;background:var(--s3);border-radius:3px;margin-top:12px;overflow:hidden}
+.kpi .bar i{display:block;height:100%;border-radius:3px;background:var(--jade);transition:width .9s cubic-bezier(.2,.8,.2,1)}
 
 .chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:var(--r-pill);font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap;transition:.25s}
 .c-ok{background:var(--jade-lo);color:var(--jade-hi)}
@@ -116,153 +128,153 @@ a{color:inherit;text-decoration:none}
 .c-mut{background:var(--s3);color:var(--muted)}
 .c-ai{background:var(--peri-lo);color:var(--peri)}
 
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 17px;border-radius:var(--r-s);font-weight:700;font-size:13.5px;background:var(--s3);color:var(--text);border:1px solid var(--line-2);transition:.16s}
-.btn:hover{background:var(--s4)}
-.btn-p{background:var(--jade);color:#04150F;border-color:transparent}
-.btn-p:hover{background:var(--jade-hi)}
-.btn-g{background:transparent;border-color:var(--line-2);color:var(--muted)}
-.btn-g:hover{color:var(--text);border-color:var(--text)}
-.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 17px;border-radius:var(--r-s);font-weight:700;font-size:13.5px;background:var(--s1);color:var(--text);border:1px solid var(--line-2);box-shadow:0 1px 2px rgba(18,26,43,.05);transition:.16s}
+.btn:hover{background:var(--s2);border-color:var(--dim)}
+.btn-p{background:var(--jade);color:#fff;border-color:transparent;box-shadow:0 2px 8px rgba(13,155,124,.3)}
+.btn-p:hover{background:var(--jade-hi);border-color:transparent}
+.btn-g{background:transparent;border-color:var(--line-2);color:var(--muted);box-shadow:none}
+.btn-g:hover{color:var(--text);border-color:var(--dim)}
+.btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
 .btn-lg{width:100%;padding:15px;font-size:15px;border-radius:var(--r)}
 
 table{width:100%;border-collapse:collapse;font-size:13px}
 .tw{overflow-x:auto}
-th{text-align:left;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);font-weight:700;padding:0 12px 9px;white-space:nowrap}
+th{text-align:left;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);font-weight:800;padding:0 12px 9px;white-space:nowrap}
 td{padding:11px 12px;border-top:1px solid var(--line);vertical-align:middle}
 tbody tr{transition:background .15s}
 tbody tr:hover{background:var(--s2)}
 .r{text-align:right}
 
 /* ---------- AI layer: periwinkle voice ---------- */
-.ai{background:linear-gradient(150deg,rgba(124,140,248,.10),rgba(124,140,248,.02) 55%),var(--s1);border:1px solid rgba(124,140,248,.24);border-radius:var(--r-l);padding:19px 21px}
+.ai{background:linear-gradient(150deg,#F3F5FE 0%,#FBFCFF 60%);border:1px solid #D6DBFA;border-radius:var(--r-l);padding:19px 21px;box-shadow:var(--sh)}
 .ai .hd{display:flex;align-items:center;gap:9px;margin-bottom:11px}
 .ai .hd b{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--peri);font-weight:800}
 .ai .hd .ts{margin-left:auto;font-size:11px;color:var(--dim);font-family:var(--mono)}
-.ai p{font-size:14.5px;line-height:1.68;color:#DCE1F5}
-.ai p b{color:#fff;font-weight:700}
-.ai .why{margin-top:13px;padding-top:12px;border-top:1px solid rgba(124,140,248,.18);display:flex;flex-wrap:wrap;gap:7px}
+.ai p{font-size:14.5px;line-height:1.68;color:#26304D}
+.ai p b{color:#0F1730;font-weight:800}
+.ai .why{margin-top:13px;padding-top:12px;border-top:1px solid #DFE3FB;display:flex;flex-wrap:wrap;gap:7px}
 .spark{width:15px;height:15px;flex:none}
 
-.nudge{background:var(--peri-lo);border:1px solid rgba(124,140,248,.3);border-radius:var(--r);padding:13px 15px;display:flex;gap:11px;align-items:flex-start}
-.nudge .tx{font-size:13.5px;line-height:1.55;color:#DCE1F5}
-
-.flag{background:var(--gold-lo);border:1px solid rgba(224,168,60,.35);border-radius:var(--r);padding:13px 15px;display:flex;gap:11px;align-items:flex-start}
-.flag .tx{font-size:13px;line-height:1.55;color:#F2DCB0}
+.nudge{background:var(--peri-lo);border:1px solid #D6DBFA;border-radius:var(--r);padding:13px 15px;display:flex;gap:11px;align-items:flex-start}
+.nudge .tx{font-size:13.5px;line-height:1.55;color:#26304D}
+.flag{background:var(--gold-lo);border:1px solid #EFD9A6;border-radius:var(--r);padding:13px 15px;display:flex;gap:11px;align-items:flex-start}
+.flag .tx{font-size:13px;line-height:1.55;color:#5C3F07}
 
 /* ---------- ranking ---------- */
 .rank{display:flex;flex-direction:column;gap:7px}
 .row{display:flex;align-items:center;gap:13px;padding:11px 13px;background:var(--s2);border:1px solid var(--line);border-radius:var(--r);will-change:transform}
 .row.me{border-color:var(--jade);background:var(--jade-lo)}
-.pos{width:25px;height:25px;border-radius:var(--r-s);background:var(--s3);display:grid;place-items:center;font-size:12px;font-weight:800;flex:none;font-variant-numeric:tabular-nums}
-.row:nth-child(1) .pos{background:linear-gradient(140deg,#E0A83C,#B8842A);color:#241800}
-.row:nth-child(2) .pos{background:linear-gradient(140deg,#C3CCDB,#8E99AB);color:#1A1D24}
-.row:nth-child(3) .pos{background:linear-gradient(140deg,#C08553,#8A5E39);color:#1E1206}
+.pos{width:25px;height:25px;border-radius:var(--r-s);background:var(--s4);color:var(--muted);display:grid;place-items:center;font-size:12px;font-weight:800;flex:none;font-variant-numeric:tabular-nums}
+.row:nth-child(1) .pos{background:linear-gradient(140deg,#E8B33F,#C08A16);color:#fff}
+.row:nth-child(2) .pos{background:linear-gradient(140deg,#B9C4D4,#8E9BAF);color:#fff}
+.row:nth-child(3) .pos{background:linear-gradient(140deg,#C4885A,#9A6437);color:#fff}
 .row .nm{flex:1;min-width:0}
 .row .nm b{display:block;font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row .nm span{font-size:11.5px;color:var(--muted)}
 .row .vl{text-align:right;flex:none}
 .row .vl b{display:block;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
 .row .vl span{font-size:11px;color:var(--dim)}
-.mv{font-size:10.5px;font-weight:800;padding:2px 6px;border-radius:4px}
-.mv-up{background:var(--jade-lo);color:var(--jade-hi)}
-.mv-dn{background:var(--coral-lo);color:var(--coral)}
-
-.tgt{height:7px;background:var(--s3);border-radius:4px;overflow:hidden;display:flex}
+.tgt{height:8px;background:var(--s3);border-radius:4px;overflow:hidden;display:flex}
 .tgt i{display:block;height:100%;transition:width 1s cubic-bezier(.2,.8,.2,1)}
 
 /* ---------- roadmap ---------- */
-.road{background:repeating-linear-gradient(135deg,var(--s1) 0 12px,#0E121A 12px 24px);border:1px dashed var(--line-2);border-radius:var(--r-l);padding:19px 21px}
+.road{background:linear-gradient(150deg,#FFFFFF,#F4F8FC);border:1px dashed var(--line-2);border-radius:var(--r-l);padding:19px 21px}
 .road h3{font-size:14px;margin-bottom:4px}
 .road p{font-size:12.5px;color:var(--muted);margin-bottom:14px}
 .road .items{display:flex;flex-wrap:wrap;gap:8px}
-.road .it{padding:7px 13px;background:var(--s2);border:1px solid var(--line);border-radius:var(--r-pill);font-size:12.5px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:7px}
-.road .it::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--dim)}
+.road .it{padding:7px 13px;background:var(--s1);border:1px solid var(--line);border-radius:var(--r-pill);font-size:12.5px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:7px}
+.road .it::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--line-2)}
 
 /* ---------- phone ---------- */
 .stage{display:flex;justify-content:center;padding:30px 20px 70px;gap:34px;align-items:flex-start}
-.phone{width:392px;flex:none;background:var(--s1);border:1px solid var(--line-2);border-radius:34px;padding:11px;box-shadow:0 40px 90px rgba(0,0,6,.7),0 0 0 1px rgba(255,255,255,.04) inset;position:sticky;top:82px}
-.screen{background:var(--page);border-radius:25px;overflow:hidden;height:748px;display:flex;flex-direction:column;position:relative}
+.phone{width:392px;flex:none;background:#FFFFFF;border:1px solid var(--line-2);border-radius:36px;padding:11px;box-shadow:0 30px 70px rgba(18,26,43,.16),0 4px 12px rgba(18,26,43,.06);position:sticky;top:84px}
+.screen{background:var(--page);border-radius:27px;overflow:hidden;height:748px;display:flex;flex-direction:column;position:relative;border:1px solid var(--line)}
 .notch{height:26px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-size:10.5px;color:var(--dim);font-family:var(--mono);flex:none}
 .sv{flex:1;overflow-y:auto;overflow-x:hidden;padding:4px 16px 16px;scrollbar-width:thin}
 .sv::-webkit-scrollbar{width:4px}
-.sv::-webkit-scrollbar-thumb{background:var(--s4);border-radius:2px}
+.sv::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:2px}
 .tabs{flex:none;display:flex;border-top:1px solid var(--line);background:var(--s1);padding:7px 6px 9px}
 .tabs a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px;border-radius:var(--r-s);font-size:10.5px;font-weight:700;color:var(--dim)}
 .tabs a.on{color:var(--jade)}
-.side{width:320px;flex:none;position:sticky;top:82px}
-@media(max-width:900px){.stage{padding:0;display:block}.phone{width:100%;border:none;border-radius:0;padding:0;position:static;box-shadow:none}.screen{border-radius:0;height:auto;min-height:calc(100vh - 56px)}.notch{display:none}.stage .side{display:none}.tabs{position:sticky;bottom:0}}
+.side{width:320px;flex:none;position:sticky;top:84px}
+@media(max-width:900px){.stage{padding:0;display:block}.phone{width:100%;border:none;border-radius:0;padding:0;position:static;box-shadow:none}.screen{border-radius:0;border:none;height:auto;min-height:calc(100vh - 58px)}.notch{display:none}.stage .side{display:none}.tabs{position:sticky;bottom:0}}
 
 .sh{padding:14px 2px 12px}
 .sh h2{font-size:21px}
 .sh p{font-size:12.5px;color:var(--muted);margin-top:3px}
-.stop{display:flex;gap:11px;align-items:center;padding:13px;background:var(--s1);border:1px solid var(--line);border-radius:var(--r);margin-bottom:9px;width:100%;text-align:left;transition:.16s}
-.stop:hover{border-color:var(--line-2);transform:translateY(-1px)}
-.stop.done{opacity:.55}
-.stop .sq{width:30px;height:30px;border-radius:9px;background:var(--s3);display:grid;place-items:center;font-size:12px;font-weight:800;flex:none;font-variant-numeric:tabular-nums}
+.stop{display:flex;gap:11px;align-items:center;padding:13px;background:var(--s1);border:1px solid var(--line);border-radius:var(--r);margin-bottom:9px;width:100%;text-align:left;box-shadow:var(--sh);transition:.16s}
+.stop:hover{border-color:var(--line-2);transform:translateY(-1px);box-shadow:var(--sh-lift)}
+.stop.done{opacity:.62;box-shadow:none}
+.stop .sq{width:30px;height:30px;border-radius:9px;background:var(--s3);color:var(--muted);display:grid;place-items:center;font-size:12px;font-weight:800;flex:none;font-variant-numeric:tabular-nums}
 .stop.done .sq{background:var(--jade-lo);color:var(--jade)}
 .stop .in{flex:1;min-width:0}
 .stop .in b{display:block;font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stop .in span{font-size:11.5px;color:var(--muted)}
 
 .fld{margin-bottom:14px}
-.fld label{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-weight:700;margin-bottom:6px}
-.fld input,.fld select{width:100%;padding:12px 13px;background:var(--s2);border:1px solid var(--line);border-radius:var(--r-s);font-size:14px;font-weight:600;transition:.15s}
-.fld input:focus,.fld select:focus{border-color:var(--jade);outline:none}
+.fld label{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-weight:800;margin-bottom:6px}
+.fld input,.fld select{width:100%;padding:12px 13px;background:var(--s1);border:1px solid var(--line-2);border-radius:var(--r-s);font-size:14px;font-weight:600;transition:.15s}
+.fld input:focus,.fld select:focus{border-color:var(--jade);outline:none;box-shadow:0 0 0 3px var(--jade-lo)}
 .fld input.bad{border-color:var(--gold)}
 
 .line{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)}
 .line .pn{flex:1;min-width:0}
 .line .pn b{display:block;font-size:13px;font-weight:700}
 .line .pn span{font-size:11px;color:var(--dim);font-family:var(--mono)}
-.step{display:flex;align-items:center;gap:2px;background:var(--s2);border:1px solid var(--line);border-radius:var(--r-s);flex:none}
+.step{display:flex;align-items:center;gap:2px;background:var(--s1);border:1px solid var(--line-2);border-radius:var(--r-s);flex:none}
 .step button{width:29px;height:29px;display:grid;place-items:center;font-size:16px;font-weight:700;color:var(--muted)}
 .step button:hover{color:var(--jade)}
 .step .q{width:28px;text-align:center;font-size:13.5px;font-weight:800;font-variant-numeric:tabular-nums}
 
-.tot{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0;border-top:1px solid var(--line-2);margin-top:6px}
+.tot{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0;border-top:2px solid var(--line-2);margin-top:6px}
 .tot b{font-family:var(--dp);font-size:25px;font-weight:700;font-variant-numeric:tabular-nums}
 
 /* ---------- paper documents ---------- */
-.paper{background:var(--paper);color:var(--paper-ink);border-radius:var(--r);padding:24px 22px;font-family:var(--mono);font-size:12px;line-height:1.65;box-shadow:0 20px 50px rgba(0,0,6,.6)}
+.paper{background:var(--paper);color:var(--paper-ink);border:1px solid var(--paper-2);border-radius:var(--r);padding:24px 22px;font-family:var(--mono);font-size:12px;line-height:1.65;box-shadow:0 12px 34px rgba(18,26,43,.12)}
 .paper .ph{text-align:center;padding-bottom:14px;border-bottom:1.5px solid var(--paper-ink)}
 .paper .ph b{font-family:var(--dp);font-size:17px;letter-spacing:-.01em;display:block}
 .paper .ph span{font-size:10.5px;color:var(--paper-dim);letter-spacing:.05em}
 .paper .rw{display:flex;justify-content:space-between;gap:12px;padding:3px 0}
 .paper .rw span{color:var(--paper-dim)}
-.paper .sec{padding:12px 0;border-bottom:1px dashed rgba(26,24,20,.28)}
+.paper .sec{padding:12px 0;border-bottom:1px dashed rgba(30,26,20,.24)}
 .paper .gt{display:flex;justify-content:space-between;padding:12px 0 0;font-size:15px;font-weight:700;border-top:1.5px solid var(--paper-ink);margin-top:10px}
-.paper .stamp{margin-top:16px;text-align:center;font-size:11px;letter-spacing:.16em;font-weight:700;padding:9px;border:2px solid var(--jade);color:#12705C;border-radius:6px;transform:rotate(-1.2deg)}
+.paper .stamp{margin-top:16px;text-align:center;font-size:11px;letter-spacing:.16em;font-weight:700;padding:9px;border:2px solid var(--jade);color:var(--jade-hi);border-radius:6px;transform:rotate(-1.2deg)}
 .paper .ft{text-align:center;font-size:10px;color:var(--paper-dim);margin-top:14px;line-height:1.6}
 
 /* ---------- misc ---------- */
-.mask{position:fixed;inset:0;background:rgba(4,6,11,.78);backdrop-filter:blur(5px);z-index:100;display:grid;place-items:center;padding:20px;animation:fade .2s}
+.mask{position:fixed;inset:0;background:rgba(18,26,43,.42);backdrop-filter:blur(5px);z-index:100;display:grid;place-items:center;padding:20px;animation:fade .2s}
 @keyframes fade{from{opacity:0}}
-.sheet{background:var(--s1);border:1px solid var(--line-2);border-radius:var(--r-l);padding:24px;max-width:400px;width:100%;box-shadow:0 30px 80px rgba(0,0,6,.75);animation:rise .28s cubic-bezier(.2,.8,.2,1)}
+.sheet{background:var(--s1);border:1px solid var(--line);border-radius:var(--r-l);padding:24px;max-width:400px;width:100%;box-shadow:0 30px 80px rgba(18,26,43,.28);animation:rise .28s cubic-bezier(.2,.8,.2,1)}
 @keyframes rise{from{transform:translateY(14px) scale(.98);opacity:0}}
-.wa{background:#0B141A;border-radius:var(--r);padding:15px;border:1px solid rgba(255,255,255,.08)}
-.bub{background:#005C4B;border-radius:9px 9px 2px 9px;padding:10px 12px;font-size:13px;line-height:1.55;margin-left:auto;max-width:88%;color:#E9EDEF}
-.bub .lk{color:#9AD5F0;word-break:break-all;font-size:12px;display:block;margin-top:6px}
-.bub .tm{font-size:10px;color:rgba(233,237,239,.6);text-align:right;margin-top:4px}
+.wa{background:#ECE5DD;border-radius:var(--r);padding:15px;border:1px solid #DED5CB}
+.bub{background:#D9FDD3;border-radius:9px 9px 2px 9px;padding:10px 12px;font-size:13px;line-height:1.55;margin-left:auto;max-width:88%;color:#111B21;box-shadow:0 1px 1px rgba(0,0,0,.1)}
+.bub .lk{color:#027EB5;word-break:break-all;font-size:12px;display:block;margin-top:6px}
+.bub .tm{font-size:10px;color:rgba(17,27,33,.5);text-align:right;margin-top:4px}
 
 .tick{display:flex;flex-direction:column;gap:9px;max-height:262px;overflow-y:auto}
 .tk{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;padding-bottom:9px;border-bottom:1px solid var(--line)}
 .tk:last-child{border:none}
-.tk .td{width:5px;height:5px;border-radius:50%;margin-top:6px;flex:none}
+.tk .td{width:6px;height:6px;border-radius:50%;margin-top:6px;flex:none}
 .tk .tt{flex:1;color:var(--muted);line-height:1.5}
 .tk .tt b{color:var(--text);font-weight:700}
 .tk time{font-size:10.5px;color:var(--dim);font-family:var(--mono);flex:none}
 
-.note{background:var(--s2);border-left:2px solid var(--jade);border-radius:0 var(--r-s) var(--r-s) 0;padding:12px 14px;font-size:12.5px;color:var(--muted);line-height:1.6}
+.note{background:var(--s2);border-left:3px solid var(--jade);border-radius:0 var(--r-s) var(--r-s) 0;padding:12px 14px;font-size:12.5px;color:var(--muted);line-height:1.6}
 .empty{text-align:center;padding:38px 20px;color:var(--dim)}
 .empty b{display:block;font-family:var(--dp);font-size:15px;color:var(--muted);margin-bottom:5px}
 .hist{display:flex;flex-direction:column;gap:0}
 .hv{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:12.5px}
 .hv .hd2{width:74px;flex:none;color:var(--dim);font-family:var(--mono);font-size:11px}
 .banner{border-radius:var(--r);padding:15px 17px;display:flex;gap:12px;align-items:center;font-size:13.5px;line-height:1.55}
-.b-ok{background:var(--jade-lo);border:1px solid rgba(47,184,155,.32);color:#BFF0E4}
-.b-warn{background:var(--coral-lo);border:1px solid rgba(224,92,75,.32);color:#F5CFC9}
+.b-ok{background:var(--jade-lo);border:1px solid #A9E3D4;color:#0A5F4C}
+.b-warn{background:var(--coral-lo);border:1px solid #F3C0BA;color:#8C2A20}
 .mg{margin-top:var(--gap)}
 .stk{display:flex;flex-direction:column;gap:var(--gap)}
+
+.ic{width:17px;height:17px;flex:none}
+.rail a .ic{opacity:.85}
+.tabs a .ic{width:20px;height:20px}
+.btn .ic{width:16px;height:16px}
 
 /* Small screens: the top bar must never force the page wider than the viewport. */
 @media(max-width:560px){
@@ -270,16 +282,15 @@ tbody tr:hover{background:var(--s2)}
   .brand span:not(.mk){font-size:13.5px;white-space:nowrap}
   .brand small{font-size:9px}
   .live{display:none}
+  .co{padding:5px 9px}
+  .co select{max-width:104px;text-overflow:ellipsis}
   .who{padding:4px 9px 4px 4px;min-width:0}
-  .who select{max-width:96px;text-overflow:ellipsis}
+  .who select{max-width:88px;text-overflow:ellipsis}
   .toggle button{padding:6px 11px;font-size:12px}
   .sv{padding:4px 13px 16px}
   .sh h2{font-size:19px}
 }
-@media(max-width:900px){
-  .stage{overflow-x:hidden}
-  .screen{max-width:100vw}
-}
+@media(max-width:900px){.stage{overflow-x:hidden}.screen{max-width:100vw}}
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
@@ -298,7 +309,10 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const RM = n => "RM " + Math.round(n).toLocaleString("en-MY");
 const RM2 = n => "RM " + n.toLocaleString("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2});
-const initials = n => n.split(" ").slice(0,2).map(w=>w[0]).join("").toUpperCase();
+const HON=/^(Dr|Ph|Prof|Mr|Ms|Mrs|Encik|Puan|Tuan|Tan Sri|Datuk|Dato'?)\.?\s+/i;
+const bare = n => n.replace(HON,"");
+const firstName = n => bare(n).split(" ")[0];
+const initials = n => bare(n).split(" ").slice(0,2).map(w=>w[0]).join("").toUpperCase();
 const REDUCED = matchMedia("(prefers-reduced-motion:reduce)").matches;
 
 // Deterministic RNG — a pitch demo must never surprise the presenter.
@@ -313,7 +327,7 @@ const dAgo = n => new Date(TODAY.getTime() - n*DAY);
 const fmtD = d => d.toLocaleDateString("en-MY",{day:"2-digit",month:"short",year:"numeric"});
 const fmtDS = d => d.toLocaleDateString("en-MY",{day:"2-digit",month:"short"});
 const daysBetween = (a,b) => Math.round((b-a)/DAY);
-const HUE = {jade:"#2FB89B",peri:"#7C8CF8",gold:"#E0A83C",coral:"#E05C4B",dim:"#5A6580"};
+const HUE = {jade:"#0D9B7C",peri:"#4B5DD8",gold:"#B27812",coral:"#CE4033",dim:"#8B98AE"};
 
 const SPARK = `<svg class="spark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3.2"/></svg>`;
 const ic = p => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
@@ -328,143 +342,243 @@ const ICON = {
 };
 
 /* ===========================================================
-   2. DATA MODEL  (clean + extensible — the 10 roadmap modules
-      slot onto these same entities without a rebuild)
+   2. TENANTS
+   Everything that differs between client companies lives in
+   TENANTS below. Adding a new client is a config entry, not
+   code: identity, catalogue, territories, credit terms, the
+   word they use for a customer, and their volume profile.
+   The loop, the AI and every screen stay exactly the same.
    =========================================================== */
-const DB = {
-  company:{ id:"c1", name:"Aroma Prestige Sdn Bhd", trade:"Perfume & fragrance distribution",
-            monthTarget:850000, reg:"202301004471 (1498221-K)" },
-  otherCompany:{ id:"c2", name:"Bekal Segar Sdn Bhd", trade:"FMCG distribution", monthTarget:1200000 },
-  manager:{ id:"m1", name:"Coach Aril", role:"Sales Manager" },
-  salesmen:[], outlets:[], products:[], orders:[], invoices:[], payments:[], visits:[], assignments:[],
-  seq:{ order:0, invoice:0, receipt:0 }
-};
+const PAL = ["#0D9B7C","#4B5DD8","#C08A16","#CE4033","#0E8C9E","#8A5CD6","#3D7DC4","#C4633C"];
 
-DB.products = [
-  ["p1","Oud Royale 50ml","OUD-R50",189],["p2","Musk Al-Haramain 30ml","MSK-H30",95],
-  ["p3","Rose Damascena 50ml","ROS-D50",145],["p4","Amber Nights 100ml","AMB-N100",235],
-  ["p5","Citrus Fresh 30ml","CIT-F30",65],["p6","Jasmine Dew 50ml","JAS-D50",120],
-  ["p7","Sandalwood Classic 100ml","SND-C100",210],["p8","Vanilla Oud 30ml","VAN-O30",88]
-].map(([id,name,sku,price])=>({id,name,sku,price,floor:Math.round(price*0.82)}));
+const TENANTS = [
+{
+  id:"c1", name:"Aroma Prestige Sdn Bhd", trade:"Perfume & fragrance distribution",
+  reg:"202301004471 (1498221-K)", target:850000, word:{s:"Outlet",p:"Outlets"},
+  terms:{A:30,B:14,C:7}, qty:{A:[6,20],B:[3,12],C:[2,6]},
+  products:[["Oud Royale 50ml","OUD-R50",189],["Musk Al-Haramain 30ml","MSK-H30",95],
+            ["Rose Damascena 50ml","ROS-D50",145],["Amber Nights 100ml","AMB-N100",235],
+            ["Citrus Fresh 30ml","CIT-F30",65],["Jasmine Dew 50ml","JAS-D50",120],
+            ["Sandalwood Classic 100ml","SND-C100",210],["Vanilla Oud 30ml","VAN-O30",88]],
+  salesmen:[["Ahmad Razif","Central KL"],["Kavitha Rani","Petaling"],["Wong Jia Hui","Klang Valley South"],
+            ["Nurul Aina","Gombak & North"],["Syafiq Hakim","Cheras & East"],["Devan Kumar","Klang & West"]],
+  outlets:[["Scentz Boutique KLCC","KLCC","Central KL","A","Lim Wei Sheng"],
+    ["Haruman Klasik Shah Alam","Shah Alam","Petaling","A","Rosnah Abdullah"],
+    ["Perfume Gallery Mid Valley","Mid Valley","Central KL","A","Tan Mei Ling"],
+    ["Kedai Wangian Ampang","Ampang","Central KL","B","Hafiz Ismail"],
+    ["Aroma House Subang Jaya","Subang Jaya","Petaling","A","Jessica Ong"],
+    ["Bau Wangi Cheras","Cheras","Cheras & East","B","Zulkifli Hassan"],
+    ["Elegance Scents Bangsar","Bangsar","Central KL","A","Priya Menon"],
+    ["Wangian Murni Kajang","Kajang","Cheras & East","B","Norliza Yusof"],
+    ["Scent Story Puchong","Puchong","Klang Valley South","B","Chong Ka Fai"],
+    ["Minyak Wangi Setapak","Setapak","Gombak & North","C","Amirul Faiz"],
+    ["Luxe Parfum Damansara","Damansara","Petaling","A","Sarah Lau"],
+    ["Haruman Desa Petaling","Desa Petaling","Klang Valley South","C","Rahim Osman"],
+    ["Fragrance Point Sunway","Sunway","Petaling","B","Michelle Yap"],
+    ["Kedai Wangian Sri Petaling","Sri Petaling","Klang Valley South","B","Kamarul Zaman"],
+    ["Aroma Klasik Gombak","Gombak","Gombak & North","C","Siti Aishah"],
+    ["Scent Lab Mont Kiara","Mont Kiara","Central KL","A","Daniel Cheah"],
+    ["Wangi Selalu Rawang","Rawang","Gombak & North","C","Faridah Ahmad"],
+    ["Perfume Hub Klang","Klang","Klang & West","B","Ganesh Raj"]]
+},
+{
+  id:"c2", name:"Bekal Segar Sdn Bhd", trade:"FMCG & grocery distribution",
+  reg:"201901009832 (1324556-P)", target:1200000, word:{s:"Store",p:"Stores"},
+  terms:{A:21,B:14,C:7}, qty:{A:[40,120],B:[20,60],C:[10,30]},
+  products:[["Minyak Masak 5kg (ctn)","MYK-5K",42],["Beras Wangi 10kg","BRS-W10",38],
+            ["Gula Halus 1kg (ctn 12)","GUL-H12",29],["Susu Tin 390g (ctn 24)","SUS-T24",45],
+            ["Mi Segera (ctn 40)","MIE-S40",26],["Air Mineral 1.5L (ctn 12)","AIR-M12",11],
+            ["Kicap Manis 1L (ctn 12)","KIC-M12",33],["Biskut Kotak (ctn 24)","BIS-K24",19]],
+  salesmen:[["Faizal Omar","Kuala Lumpur"],["Lee Chun Meng","Petaling"],["Suriani Mokhtar","Klang"],
+            ["Raj Kumaran","Selangor North"],["Nadia Hisham","Selangor South"]],
+  outlets:[["Kedai Runcit Pak Mat","Setapak","Kuala Lumpur","A","Mat Zin Ibrahim"],
+    ["Pasar Mini Harmoni","Cheras","Kuala Lumpur","A","Goh Peng Soon"],
+    ["Minimarket Sri Damai","Damansara","Petaling","B","Halimah Yaakob"],
+    ["Kedai Borong Segar Jaya","Klang","Klang","A","Tan Ah Seng"],
+    ["Pasar Mini Desa Aman","Rawang","Selangor North","B","Zainal Arifin"],
+    ["Kedai Runcit Bahagia","Kajang","Selangor South","C","Lim Kok Wah"],
+    ["Minimarket Taman Melati","Gombak","Selangor North","B","Rosli Hamid"],
+    ["Pasar Mini Sentosa","Puchong","Selangor South","A","Devi Krishnan"],
+    ["Kedai Runcit Maju","Ampang","Kuala Lumpur","C","Osman Talib"],
+    ["Borong Murah Shah Alam","Shah Alam","Petaling","A","Chong Mei Fong"],
+    ["Kedai Serbaneka Kapar","Kapar","Klang","C","Sanusi Daud"],
+    ["Minimarket Bandar Baru","Bangi","Selangor South","B","Farah Idris"]]
+},
+{
+  id:"c3", name:"FarmaLink Distributors Sdn Bhd", trade:"Pharmacy & clinic supply",
+  reg:"202101007265 (1412889-D)", target:980000, word:{s:"Pharmacy",p:"Pharmacies"},
+  terms:{A:45,B:30,C:14}, qty:{A:[10,40],B:[6,20],C:[3,10]},
+  products:[["Paracetamol 500mg (box 100)","PCM-500",28],["Amoxicillin 250mg (box 100)","AMX-250",64],
+            ["Vitamin C 1000mg (btl 60)","VTC-1K",42],["Surgical Mask (box 50)","MSK-S50",18],
+            ["Glucose Test Strips (50)","GTS-50",95],["Blood Pressure Monitor","BPM-01",180],
+            ["Antiseptic Solution 1L","ANT-1L",36],["Wound Dressing Pack","WDP-12",54]],
+  salesmen:[["Dr. Aisyah Rahman","KL Central"],["Vikram Nair","Petaling"],["Ling Chee Keong","Klang Valley"],
+            ["Hafizah Noor","Northern Selangor"]],
+  outlets:[["Farmasi Sihat Bangsar","Bangsar","KL Central","A","Ph. Lim Su Yin"],
+    ["Klinik Mediviva Ampang","Ampang","KL Central","A","Dr. Ravi Chandran"],
+    ["Farmasi Prima Cheras","Cheras","Klang Valley","B","Ph. Nurul Izzah"],
+    ["Farmasi Wellness Subang","Subang Jaya","Petaling","A","Ph. Jason Teoh"],
+    ["Klinik Kesihatan Setia","Setia Alam","Petaling","B","Dr. Sharifah Aini"],
+    ["Farmasi Damai Rawang","Rawang","Northern Selangor","C","Ph. Kamal Hassan"],
+    ["Klinik Famili Kajang","Kajang","Klang Valley","B","Dr. Lee Wai Keong"],
+    ["Farmasi Ceria Puchong","Puchong","Petaling","A","Ph. Anitha Raj"],
+    ["Klinik Mesra Gombak","Gombak","Northern Selangor","C","Dr. Zulhilmi Adnan"],
+    ["Farmasi Utama Mont Kiara","Mont Kiara","KL Central","A","Ph. Grace Wong"],
+    ["Klinik Sejahtera Klang","Klang","Klang Valley","B","Dr. Prakash Menon"]]
+},
+{
+  id:"c4", name:"Gerak Auto Parts Sdn Bhd", trade:"Automotive parts distribution",
+  reg:"201801003914 (1268034-V)", target:720000, word:{s:"Workshop",p:"Workshops"},
+  terms:{A:30,B:14,C:0}, qty:{A:[4,16],B:[2,10],C:[1,5]},
+  products:[["Brake Pad Set (front)","BRK-PF",165],["Engine Oil 4L Semi-Syn","OIL-4S",89],
+            ["Air Filter Standard","AFL-STD",45],["Battery 12V 55Ah","BAT-55",320],
+            ["Timing Belt Kit","TMB-KIT",390],["Wiper Blade Pair","WPR-PR",52],
+            ["Spark Plug (set 4)","SPK-4S",76],["Radiator Coolant 4L","RAD-C4",58]],
+  salesmen:[["Shahrul Nizam","KL & Ampang"],["Ganesan Muthu","Klang"],["Chin Wei Loon","Petaling"],
+            ["Azman Yusri","Selangor East"]],
+  outlets:[["Bengkel Auto Jaya","Sungai Besi","KL & Ampang","A","Encik Jamal Aziz"],
+    ["Speedtech Workshop Puchong","Puchong","Petaling","A","Alex Tan"],
+    ["Kedai Alat Ganti Klang","Klang","Klang","A","Muthu Samy"],
+    ["Bengkel Kereta Setapak","Setapak","KL & Ampang","B","Rahman Yusof"],
+    ["AutoCare Shah Alam","Shah Alam","Petaling","B","Kelvin Lau"],
+    ["Bengkel Murah Kajang","Kajang","Selangor East","C","Sulaiman Bakar"],
+    ["Turbo Motor Ampang","Ampang","KL & Ampang","B","Danny Ooi"],
+    ["Bengkel Jaya Kapar","Kapar","Klang","C","Ismail Hashim"],
+    ["ProAuto Service Bangi","Bangi","Selangor East","B","Vinod Pillai"],
+    ["Bengkel Setia Sentul","Sentul","KL & Ampang","C","Chua Ah Kow"]]
+}];
 
-DB.salesmen = [
-  ["s1","Ahmad Razif","Central KL","#2FB89B"],["s2","Kavitha Rani","Petaling","#7C8CF8"],
-  ["s3","Wong Jia Hui","Klang Valley South","#E0A83C"],["s4","Nurul Aina","Gombak & North","#E05C4B"],
-  ["s5","Syafiq Hakim","Cheras & East","#4FD9BB"],["s6","Devan Kumar","Klang & West","#B48CF0"]
-].map(([id,name,zone,color])=>({id,name,zone,color,active:true,joined:dAgo(between(220,900))}));
+/* ---- one build engine, run once per tenant ---- */
+function buildTenant(cfg){
+  const W = {
+    company:{id:cfg.id,name:cfg.name,trade:cfg.trade,reg:cfg.reg,monthTarget:cfg.target,word:cfg.word},
+    word:cfg.word, products:[], salesmen:[], outlets:[], orders:[], invoices:[], payments:[], visits:[],
+    seq:{order:0,invoice:0}, feed:[], resigned:null, baseAssign:{}, baseVisit:{}
+  };
+  const cid=cfg.id;
 
-DB.outlets = [
-  ["o1","Scentz Boutique KLCC","KLCC","Central KL","A","Lim Wei Sheng"],
-  ["o2","Haruman Klasik Shah Alam","Shah Alam","Petaling","A","Rosnah Abdullah"],
-  ["o3","Perfume Gallery Mid Valley","Mid Valley","Central KL","A","Tan Mei Ling"],
-  ["o4","Kedai Wangian Ampang","Ampang","Central KL","B","Hafiz Ismail"],
-  ["o5","Aroma House Subang Jaya","Subang Jaya","Petaling","A","Jessica Ong"],
-  ["o6","Bau Wangi Cheras","Cheras","Cheras & East","B","Zulkifli Hassan"],
-  ["o7","Elegance Scents Bangsar","Bangsar","Central KL","A","Priya Menon"],
-  ["o8","Wangian Murni Kajang","Kajang","Cheras & East","B","Norliza Yusof"],
-  ["o9","Scent Story Puchong","Puchong","Klang Valley South","B","Chong Ka Fai"],
-  ["o10","Minyak Wangi Setapak","Setapak","Gombak & North","C","Amirul Faiz"],
-  ["o11","Luxe Parfum Damansara","Damansara","Petaling","A","Sarah Lau"],
-  ["o12","Haruman Desa Petaling","Desa Petaling","Klang Valley South","C","Rahim Osman"],
-  ["o13","Fragrance Point Sunway","Sunway","Petaling","B","Michelle Yap"],
-  ["o14","Kedai Wangian Sri Petaling","Sri Petaling","Klang Valley South","B","Kamarul Zaman"],
-  ["o15","Aroma Klasik Gombak","Gombak","Gombak & North","C","Siti Aishah"],
-  ["o16","Scent Lab Mont Kiara","Mont Kiara","Central KL","A","Daniel Cheah"],
-  ["o17","Wangi Selalu Rawang","Rawang","Gombak & North","C","Faridah Ahmad"],
-  ["o18","Perfume Hub Klang","Klang","Klang & West","B","Ganesh Raj"]
-].map(([id,name,area,zone,tier,owner])=>({
-  id,name,area,zone,tier,owner,
-  phone:"01"+between(1,9)+"-"+between(200,999)+" "+between(1000,9999),
-  creditTerm:tier==="A"?30:tier==="B"?14:7,
-  since:dAgo(between(400,1400))
-}));
+  W.products = cfg.products.map(([name,sku,price],i)=>
+    ({id:cid+"p"+(i+1),companyId:cid,name,sku,price,floor:Math.round(price*0.82)}));
 
-// zone → salesman
-const zoneOwner = {};
-DB.salesmen.forEach(s=>zoneOwner[s.zone]=s.id);
-DB.outlets.forEach(o=>{ o.salesmanId = zoneOwner[o.zone] || "s1"; });
-DB.assignments = DB.outlets.map(o=>({outletId:o.id,salesmanId:o.salesmanId,from:o.since}));
+  W.salesmen = cfg.salesmen.map(([name,zone],i)=>
+    ({id:cid+"s"+(i+1),companyId:cid,name,zone,color:PAL[i%PAL.length],active:true,joined:dAgo(between(220,900))}));
 
-// ---- 90 days of trading history ----
-let oN=0, iN=0;
-DB.outlets.forEach(o=>{
-  const n = o.tier==="A"?between(11,15):o.tier==="B"?between(6,10):between(3,5);
-  const gap = Math.floor(90/n);
-  for(let k=0;k<n;k++){
-    const days = 90 - k*gap - between(0,3);
-    if(days<1) continue;
-    const date = dAgo(days);
-    const lineN = o.tier==="A"?between(3,5):between(2,3);
-    const used=new Set(), lines=[];
-    for(let j=0;j<lineN;j++){
-      const p = pick(DB.products);
-      if(used.has(p.id)) continue; used.add(p.id);
-      const qty = o.tier==="A"?between(6,20):o.tier==="B"?between(3,12):between(2,6);
-      const disc = R()<0.28 ? (1 - (between(3,9)/100)) : 1;
-      lines.push({productId:p.id, qty, unitPrice:Math.round(p.price*disc*100)/100});
+  const zoneOwner={};
+  W.salesmen.forEach(s=>zoneOwner[s.zone]=s.id);
+  W.zoneOwner=zoneOwner;
+
+  W.outlets = cfg.outlets.map(([name,area,zone,tier,owner],i)=>({
+    id:cid+"o"+(i+1), companyId:cid, name, area, zone, tier, owner,
+    phone:"01"+between(1,9)+"-"+between(200,999)+" "+between(1000,9999),
+    creditTerm:cfg.terms[tier], since:dAgo(between(400,1400)),
+    salesmanId: zoneOwner[zone] || W.salesmen[0].id
+  }));
+  W.outlets.forEach(o=>W.baseAssign[o.id]=o.salesmanId);
+
+  const inv=(n)=>"INV-2026-"+String(n).padStart(4,"0");
+  const ord=(n)=>"ORD-"+String(n).padStart(4,"0");
+
+  // ---- 90 days of trading history ----
+  W.outlets.forEach(o=>{
+    const n = o.tier==="A"?between(11,15):o.tier==="B"?between(6,10):between(3,5);
+    const gap = Math.floor(90/n);
+    for(let k=0;k<n;k++){
+      const days = 90 - k*gap - between(0,3);
+      if(days<1) continue;
+      const date=dAgo(days), lineN=o.tier==="A"?between(3,5):between(2,3);
+      const used=new Set(), lines=[];
+      for(let j=0;j<lineN;j++){
+        const p=pick(W.products); if(used.has(p.id)) continue; used.add(p.id);
+        const [lo,hi]=cfg.qty[o.tier];
+        const disc = R()<0.28 ? (1-(between(3,9)/100)) : 1;
+        lines.push({productId:p.id,qty:between(lo,hi),unitPrice:Math.round(p.price*disc*100)/100});
+      }
+      if(!lines.length) continue;
+      const total=lines.reduce((s,l)=>s+l.qty*l.unitPrice,0);
+      const oid=ord(++W.seq.order);
+      W.orders.push({id:oid,companyId:cid,outletId:o.id,salesmanId:o.salesmanId,date,lines,total,status:"invoiced"});
+      const iid=inv(++W.seq.invoice), due=new Date(date.getTime()+o.creditTerm*DAY);
+      const rec={id:iid,companyId:cid,orderId:oid,outletId:o.id,salesmanId:o.salesmanId,issued:date,due,total,paid:0,status:"open"};
+      W.invoices.push(rec);
+      const settled = days>o.creditTerm+8 ? R()<0.9 : R()<0.42;
+      if(settled){
+        rec.paid=total; rec.status="paid";
+        W.payments.push({id:"PAY-"+String(W.payments.length+1).padStart(4,"0"),companyId:cid,invoiceId:iid,outletId:o.id,
+          date:new Date(date.getTime()+between(1,Math.max(1,o.creditTerm))*DAY),amount:total,method:pick(["Cash","Bank Transfer","Cheque"])});
+      } else if(R()<0.3){
+        const part=Math.round(total*(between(30,60)/100));
+        rec.paid=part; rec.status="partial";
+        W.payments.push({id:"PAY-"+String(W.payments.length+1).padStart(4,"0"),companyId:cid,invoiceId:iid,outletId:o.id,
+          date:new Date(date.getTime()+between(2,Math.max(2,o.creditTerm))*DAY),amount:part,method:pick(["Cash","Bank Transfer"])});
+      }
     }
-    if(!lines.length) continue;
-    const total = lines.reduce((s,l)=>s+l.qty*l.unitPrice,0);
-    const oid = "ORD-"+String(++oN).padStart(4,"0");
-    DB.orders.push({id:oid,outletId:o.id,salesmanId:o.salesmanId,date,lines,total,status:"invoiced"});
-    const due = new Date(date.getTime()+o.creditTerm*DAY);
-    const iid = "INV-2026-"+String(++iN).padStart(4,"0");
-    // older invoices mostly settled; recent ones partly open
-    const settled = days>o.creditTerm+8 ? R()<0.9 : R()<0.42;
-    const inv = {id:iid,orderId:oid,outletId:o.id,salesmanId:o.salesmanId,issued:date,due,total,paid:0,status:"open"};
-    DB.invoices.push(inv);
-    if(settled){
-      inv.paid=total; inv.status="paid";
-      DB.payments.push({id:"PAY-"+String(DB.payments.length+1).padStart(4,"0"),invoiceId:iid,outletId:o.id,
-        date:new Date(date.getTime()+between(1,o.creditTerm)*DAY),amount:total,method:pick(["Cash","Bank Transfer","Cheque"])});
-    } else if(R()<0.3){
-      const part=Math.round(total*(between(30,60)/100));
-      inv.paid=part; inv.status="partial";
-      DB.payments.push({id:"PAY-"+String(DB.payments.length+1).padStart(4,"0"),invoiceId:iid,outletId:o.id,
-        date:new Date(date.getTime()+between(2,o.creditTerm)*DAY),amount:part,method:pick(["Cash","Bank Transfer"])});
-    }
-  }
-});
-DB.seq.order=oN; DB.seq.invoice=iN;
+  });
 
-// ---- today's beat plan ----
-DB.salesmen.forEach(s=>{
-  const mine = DB.outlets.filter(o=>o.salesmanId===s.id);
-  const plan = mine.slice(0, Math.min(mine.length, between(4,6)));
-  // Ahmad Razif (the demo salesman) keeps live work to do
-  const doneCount = s.id==="s1" ? 2 : between(1, Math.max(1,plan.length-1));
-  plan.forEach((o,i)=>{
-    const visited = i<doneCount;
-    DB.visits.push({
-      id:"V-"+s.id+"-"+o.id, salesmanId:s.id, outletId:o.id, date:TODAY,
-      status: visited?"visited":"planned",
-      checkInAt: visited ? new Date(TODAY.getTime()+(9+i)*36e5+between(0,55)*6e4) : null,
-      geo: visited ? {lat:(3.05+R()*0.22).toFixed(5), lng:(101.58+R()*0.28).toFixed(5)} : null
+  // ---- today's beat plan ----
+  W.salesmen.forEach((s,si)=>{
+    const mine=W.outlets.filter(o=>o.salesmanId===s.id);
+    const plan=mine.slice(0,Math.min(mine.length,between(4,6)));
+    const doneCount = si===0 ? Math.min(2,plan.length) : between(1,Math.max(1,plan.length-1));
+    plan.forEach((o,i)=>{
+      const visited=i<doneCount;
+      W.visits.push({id:"V-"+s.id+"-"+o.id,companyId:cid,salesmanId:s.id,outletId:o.id,date:TODAY,
+        status:visited?"visited":"planned",
+        checkInAt:visited?new Date(TODAY.getTime()+(9+i)*36e5+between(0,55)*6e4):null,
+        geo:visited?{lat:(3.05+R()*0.22).toFixed(5),lng:(101.58+R()*0.28).toFixed(5)}:null});
     });
   });
-});
+  W.visits.forEach(v=>W.baseVisit[v.id]=v.salesmanId);
 
-// today's sales (seeded, so the dashboard is never empty at pitch time)
-DB.salesmen.forEach(s=>{
-  const vs = DB.visits.filter(v=>v.salesmanId===s.id && v.status==="visited");
-  vs.forEach(v=>{
-    const o = byId(DB.outlets,v.outletId); if(!o) return;
-    const lines=[]; const used=new Set();
-    for(let j=0;j<between(2,4);j++){ const p=pick(DB.products); if(used.has(p.id))continue; used.add(p.id);
-      lines.push({productId:p.id,qty:between(3,14),unitPrice:p.price}); }
-    const total=lines.reduce((a,l)=>a+l.qty*l.unitPrice,0);
-    const oid="ORD-"+String(++DB.seq.order).padStart(4,"0");
-    DB.orders.push({id:oid,outletId:o.id,salesmanId:s.id,date:v.checkInAt||TODAY,lines,total,status:"invoiced"});
-    const iid="INV-2026-"+String(++DB.seq.invoice).padStart(4,"0");
-    const inv={id:iid,orderId:oid,outletId:o.id,salesmanId:s.id,issued:TODAY,
-      due:new Date(TODAY.getTime()+o.creditTerm*DAY),total,paid:0,status:"open"};
-    DB.invoices.push(inv);
-    if(R()<0.55){ inv.paid=total; inv.status="paid";
-      DB.payments.push({id:"PAY-"+String(DB.payments.length+1).padStart(4,"0"),invoiceId:iid,outletId:o.id,date:TODAY,amount:total,method:pick(["Cash","Bank Transfer"])}); }
+  // ---- today's sales, so no dashboard is ever empty at pitch time ----
+  W.salesmen.forEach(s=>{
+    W.visits.filter(v=>v.salesmanId===s.id&&v.status==="visited").forEach(v=>{
+      const o=W.outlets.find(x=>x.id===v.outletId); if(!o) return;
+      const used=new Set(), lines=[];
+      for(let j=0;j<between(2,4);j++){
+        const p=pick(W.products); if(used.has(p.id)) continue; used.add(p.id);
+        const [lo,hi]=cfg.qty[o.tier];
+        lines.push({productId:p.id,qty:between(lo,hi),unitPrice:p.price});
+      }
+      if(!lines.length) return;
+      const total=lines.reduce((a,l)=>a+l.qty*l.unitPrice,0);
+      const oid=ord(++W.seq.order);
+      W.orders.push({id:oid,companyId:cid,outletId:o.id,salesmanId:s.id,date:v.checkInAt||TODAY,lines,total,status:"invoiced"});
+      const iid=inv(++W.seq.invoice);
+      const rec={id:iid,companyId:cid,orderId:oid,outletId:o.id,salesmanId:s.id,issued:TODAY,
+        due:new Date(TODAY.getTime()+o.creditTerm*DAY),total,paid:0,status:"open"};
+      W.invoices.push(rec);
+      if(R()<0.55){ rec.paid=total; rec.status="paid";
+        W.payments.push({id:"PAY-"+String(W.payments.length+1).padStart(4,"0"),companyId:cid,invoiceId:iid,
+          outletId:o.id,date:TODAY,amount:total,method:pick(["Cash","Bank Transfer"])}); }
+    });
   });
-});
+
+  // ---- live activity feed ----
+  const ev=[];
+  W.visits.filter(v=>v.status==="visited").slice(0,7).forEach(v=>{
+    const s=W.salesmen.find(x=>x.id===v.salesmanId), o=W.outlets.find(x=>x.id===v.outletId);
+    ev.push({t:v.checkInAt,c:HUE.jade,h:`<b>${esc(firstName(s.name))}</b> checked in at <b>${esc(o.name)}</b>`});
+  });
+  W.payments.filter(p=>p.date.toDateString()===TODAY.toDateString()).slice(0,5).forEach(p=>{
+    const o=W.outlets.find(x=>x.id===p.outletId);
+    ev.push({t:new Date(TODAY.getTime()+between(9,16)*36e5),c:HUE.peri,
+      h:`Payment <b>${"RM "+Math.round(p.amount).toLocaleString("en-MY")}</b> collected from <b>${esc(o.name)}</b>`});
+  });
+  W.feed = ev.sort((a,b)=>b.t-a.t);
+  return W;
+}
+
+/* Active-tenant state. DB is a live view of whichever company is
+   selected, so every selector and view below stays tenant-agnostic
+   and no query can reach across companies. */
+const ST = { role:"manager", companyId:"c1", salesmanId:null, draft:null, lastOrder:null };
+const WORLD = {};
+TENANTS.forEach(c=>{ WORLD[c.id]=buildTenant(c); });
+Object.defineProperty(globalThis,"DB",{get:()=>WORLD[ST.companyId]});
+ST.salesmanId = DB.salesmen[0].id;
 
 function byId(arr,id){return arr.find(x=>x.id===id)}
+
 
 /* ===========================================================
    3. DERIVED SELECTORS
@@ -552,9 +666,9 @@ const AI = {
     const totV=rank.reduce((a,s)=>a+s.visits,0), totP=rank.reduce((a,s)=>a+s.planned,0);
     const collect=S.invoicedToday()>0?Math.round(S.collectedToday()/S.invoicedToday()*100):0;
 
-    let p=`Team is <b>${totV} of ${totP} outlets</b> covered so far today, worth <b>${RM(S.salesToday())}</b> in orders. `;
+    let p=`Team is <b>${totV} of ${totP} ${DB.word.p.toLowerCase()}</b> covered so far today, worth <b>${RM(S.salesToday())}</b> in orders. `;
     p += behind.length
-      ? `<b>${behind.length} salesm${behind.length>1?"en are":"an is"} behind plan</b> — ${behind.map(s=>esc(s.name.split(" ")[0])+" ("+s.visits+"/"+s.planned+")").join(", ")}. `
+      ? `<b>${behind.length} salesm${behind.length>1?"en are":"an is"} behind plan</b> — ${behind.map(s=>esc(firstName(s.name))+" ("+s.visits+"/"+s.planned+")").join(", ")}. `
       : `Everyone is tracking on or ahead of plan. `;
     p += `<b>${RM(atRisk)}</b> is sitting overdue across ${DB.invoices.filter(i=>i.status!=="paid"&&i.due<TODAY).length} invoices — that is the number to chase before month end. `;
     p += `Top mover is <b>${esc(top.name)}</b> at ${RM(top.sales)} from ${top.visits} visit${top.visits===1?"":"s"}. `;
@@ -604,20 +718,7 @@ const AI = {
 /* ===========================================================
    5. STATE + ROUTER  (hash routing — real URLs, real back button)
    =========================================================== */
-const ST = { role:"manager", salesmanId:"s1", draft:null, lastOrder:null, feed:[], resigned:false };
-
-function seedFeed(){
-  const ev=[];
-  DB.visits.filter(v=>v.status==="visited").slice(0,7).forEach(v=>{
-    ev.push({t:v.checkInAt,c:HUE.jade,h:`<b>${esc(S.sm(v.salesmanId).name.split(" ")[0])}</b> checked in at <b>${esc(S.outlet(v.outletId).name)}</b>`});
-  });
-  DB.payments.filter(p=>S.isToday(p.date)).slice(0,5).forEach(p=>{
-    ev.push({t:new Date(TODAY.getTime()+between(9,16)*36e5),c:HUE.peri,h:`Payment <b>${RM(p.amount)}</b> collected from <b>${esc(S.outlet(p.outletId).name)}</b>`});
-  });
-  ST.feed = ev.sort((a,b)=>b.t-a.t);
-}
-seedFeed();
-const pushFeed = (h,c) => { ST.feed.unshift({t:new Date(TODAY.getTime()+11.5*36e5),c:c||HUE.jade,h}); };
+const pushFeed = (h,c) => { DB.feed.unshift({t:new Date(TODAY.getTime()+11.5*36e5),c:c||HUE.jade,h}); };
 
 function go(h){ location.hash = h; }
 function route(){
@@ -635,10 +736,12 @@ function topbar(){
   const sm=S.sm(ST.salesmanId);
   return `<div class="topbar">
     <div class="brand">
-      <span class="mk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#04150F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13l5 5L20 6"/></svg></span>
+      <span class="mk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13l5 5L20 6"/></svg></span>
       <span>Winning Salesman<small>KOBIS Berhad</small></span>
     </div>
     <span class="live"><span class="dot"></span>Live</span>
+    <div class="co"><span class="cod"></span>
+      <select data-act="pick-co" aria-label="Choose client company">${TENANTS.map(c=>`<option value="${c.id}"${c.id===ST.companyId?" selected":""}>${esc(c.name)}</option>`).join("")}</select></div>
     <div class="spacer"></div>
     ${ST.role==="salesman"?`<div class="who"><span class="av" style="background:${sm.color}">${initials(sm.name)}</span>
       <select data-act="pick-sm" aria-label="Choose salesman">${DB.salesmen.filter(s=>s.active).map(s=>`<option value="${s.id}"${s.id===ST.salesmanId?" selected":""}>${esc(s.name)}</option>`).join("")}</select></div>`:""}
@@ -655,7 +758,7 @@ function railHTML(active){
   return `<nav class="rail">
     <span class="lbl">Control room</span>
     ${items.map(([k,l,i])=>`<a href="#/manager/${k}" class="${active===k?"on":""}">${i}${l}</a>`).join("")}
-    <div class="foot"><b style="color:var(--muted)">${esc(DB.company.name)}</b><br>${esc(DB.company.trade)}<br>${DB.outlets.length} outlets · ${DB.salesmen.filter(s=>s.active).length} salesmen</div>
+    <div class="foot"><b style="color:var(--muted)">${esc(DB.company.name)}</b><br>${esc(DB.company.trade)}<br>${DB.outlets.length} ${esc(DB.word.p.toLowerCase())} · ${DB.salesmen.filter(s=>s.active).length} salesmen</div>
   </nav>`;
 }
 
@@ -674,7 +777,7 @@ function vDashboard(){
 
     <div class="grid kpis">
       ${kpi("Active today",{n:rank.filter(s=>s.visits>0).length},`of ${DB.salesmen.filter(s=>s.active).length} salesmen on the road`)}
-      ${kpi("Outlets covered",{n:totV},`${totP} planned · ${totP-totV} remaining`,Math.round(totV/totP*100))}
+      ${kpi(`${DB.word.p} covered`,{n:totV},`${totP} planned · ${totP-totV} remaining`,Math.round(totV/totP*100))}
       ${kpi("Today's sales",{n:S.salesToday(),pre:"RM "},`${S.ordersToday().length} orders logged`)}
       ${kpi("Collection rate",{n:rate,suf:"%"},`${RM(col)} collected of ${RM(inv)} invoiced`,rate,rate>=60?HUE.jade:HUE.gold)}
     </div>
@@ -713,7 +816,7 @@ function vDashboard(){
         </div></div>
 
         <div class="card"><div class="ch"><h3>Live activity</h3><span class="dot"></span></div>
-          <div class="cb"><div class="tick">${ST.feed.slice(0,9).map(e=>`<div class="tk"><span class="td" style="background:${e.c}"></span>
+          <div class="cb"><div class="tick">${DB.feed.slice(0,9).map(e=>`<div class="tk"><span class="td" style="background:${e.c}"></span>
             <span class="tt">${e.h}</span><time>${e.t.toLocaleTimeString("en-MY",{hour:"2-digit",minute:"2-digit",hour12:false})}</time></div>`).join("")}</div></div></div>
       </div>
     </div>
@@ -759,21 +862,21 @@ function rowHTML(s,i,tot){
 }
 
 function vClients(){
-  const gone=ST.resigned;
+  const gone=DB.resigned, W=DB.word;
   return `<div class="layout">${railHTML("clients")}<main class="main">
     <div class="head"><div><h1>Company-owned client data</h1>
-      <p>Every outlet, order and payment belongs to ${esc(DB.company.name)} — not to the salesman who logged it.</p></div></div>
+      <p>Every ${esc(DB.word.s.toLowerCase())}, order and payment belongs to ${esc(DB.company.name)} — not to the salesman who logged it.</p></div></div>
 
     <div class="banner ${gone?"b-ok":"b-warn"}">
-      ${gone?`<span class="chip c-ok">Proven</span><span><b>Ahmad Razif has left the company.</b> His login is revoked. Every outlet he handled, and all ${DB.orders.filter(o=>o.salesmanId==="s1").length} orders and ${DB.payments.length} payment records, stayed with the company and are now handled by Kavitha Rani. <b>Zero records lost.</b></span>`
+      ${gone?`<span class="chip c-ok">Proven</span><span><b>${esc(gone.victim)} has left the company.</b> Their login is revoked. Every ${W.s.toLowerCase()} they handled, and all ${gone.orders} orders and ${gone.payments} payment records, stayed with ${esc(DB.company.name)} and are now handled by ${esc(gone.heir)}. <b>Zero records lost.</b></span>`
             :`<span class="chip c-bad">The risk</span><span>When a salesman leaves with the customer list in his own phone, the company loses the relationship. Run the simulation to see what happens here instead.</span>`}
       <div class="spacer"></div>
       <button class="btn ${gone?"btn-g":"btn-p"}" data-act="${gone?"restore":"resign"}">${gone?"Reset demo":"Simulate: Ahmad Razif resigns"}</button>
     </div>
 
-    <div class="card mg"><div class="ch"><h3>Outlet register</h3><span class="chip c-mut">${DB.outlets.length} outlets</span></div>
+    <div class="card mg"><div class="ch"><h3>${esc(DB.word.s)} register</h3><span class="chip c-mut">${DB.outlets.length} ${esc(DB.word.p.toLowerCase())}</span></div>
       <div class="tw"><table>
-        <thead><tr><th>Outlet</th><th>Area</th><th>Tier</th><th>Handled by</th><th class="r">Orders</th><th class="r">Lifetime value</th><th class="r">Outstanding</th><th></th></tr></thead>
+        <thead><tr><th>${esc(DB.word.s)}</th><th>Area</th><th>Tier</th><th>Handled by</th><th class="r">Orders</th><th class="r">Lifetime value</th><th class="r">Outstanding</th><th></th></tr></thead>
         <tbody>${DB.outlets.map(o=>{
           const os=S.outletOrders(o.id), lv=os.reduce((a,x)=>a+x.total,0), out=S.outstanding(o.id);
           const sm=S.sm(o.salesmanId);
@@ -817,7 +920,7 @@ function vClient(id){
           <div style="display:flex;align-items:center;gap:11px;margin-bottom:12px">
             <span class="av" style="background:${sm.color};width:34px;height:34px;font-size:12px">${initials(sm.name)}</span>
             <span><b style="display:block">${esc(sm.name)}</b><span style="font-size:12px;color:var(--muted)">${esc(sm.zone)}</span></span></div>
-          <div class="note">${ST.resigned&&o.salesmanId==="s2"?"Reassigned automatically when the previous salesman left. History below is unchanged.":"Assignment is a company setting. Changing it moves the route, never the records."}</div>
+          <div class="note">${DB.resigned&&DB.resigned.heirId===o.salesmanId?"Reassigned automatically when the previous salesman left. History below is unchanged.":"Assignment is a company setting. Changing it moves the route, never the records."}</div>
         </div></div>
         <div class="card"><div class="ch"><h3>Invoices</h3></div><div class="cb"><div class="hist">
           ${invs.slice(0,8).map(i=>{
@@ -865,7 +968,7 @@ function vRoadmap(){
    7. VIEWS — SALESMAN (phone)
    =========================================================== */
 function phone(inner, tab){
-  const tabs=[["jadual","Jadual",ICON.cal],["ranking","Ranking",ICON.rank],["clients","Outlets",ICON.book]];
+  const tabs=[["jadual","Jadual",ICON.cal],["ranking","Ranking",ICON.rank],["clients",DB.word.p,ICON.book]];
   return `<div class="stage">
     <div class="phone"><div class="screen">
       <div class="notch"><span>11:24</span><span>KOBIS · 5G</span></div>
@@ -921,7 +1024,7 @@ function vOutlet(id){
     ${v&&v.status==="visited"
       ? `<div class="banner b-ok" style="margin-bottom:13px"><span class="chip c-ok">Checked in</span>
           <span>${v.checkInAt.toLocaleTimeString("en-MY",{hour:"2-digit",minute:"2-digit",hour12:false})} · GPS ${v.geo.lat}, ${v.geo.lng}</span></div>`
-      : `<button class="btn btn-p btn-lg" data-act="checkin" data-id="${id}" style="margin-bottom:13px">${ICON.pin} Check in at this outlet</button>`}
+      : `<button class="btn btn-p btn-lg" data-act="checkin" data-id="${id}" style="margin-bottom:13px">${ICON.pin} Check in at this ${esc(DB.word.s.toLowerCase())}</button>`}
 
     <div class="grid" style="grid-template-columns:1fr 1fr;gap:9px;margin-bottom:13px">
       <div class="kpi" style="padding:13px"><div class="k">Outstanding</div><div class="v num" style="font-size:20px;color:${out>0?"var(--gold)":"var(--jade)"}">${RM(out)}</div><div class="s" style="font-size:11px">${sc.overdue>0?RM(sc.overdue)+" overdue":"On terms"}</div></div>
@@ -929,7 +1032,7 @@ function vOutlet(id){
     </div>
 
     <div class="ai" style="padding:15px;margin-bottom:13px">
-      <div class="hd">${SPARK}<b>Why this outlet today</b></div>
+      <div class="hd">${SPARK}<b>Why this ${esc(DB.word.s.toLowerCase())} today</b></div>
       <div class="why" style="margin-top:0;padding-top:0;border:none">${chipsHTML(sc.why)}</div>
     </div>
 
@@ -939,7 +1042,7 @@ function vOutlet(id){
     <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:700;margin:20px 0 8px">Recent orders</div>
     ${os.length?os.slice(0,5).map(x=>`<div class="hv"><span class="hd2">${fmtDS(x.date)}</span>
       <span style="flex:1;font-size:12px" class="mono">${x.id}</span><span class="num" style="font-weight:700">${RM(x.total)}</span></div>`).join("")
-      :`<div class="empty"><b>No orders yet</b>This outlet is new to the register.</div>`}
+      :`<div class="empty"><b>No orders yet</b>This ${esc(DB.word.s.toLowerCase())} is new to the register.</div>`}
   `,"jadual");
 }
 
@@ -1060,7 +1163,7 @@ function vSRanking(){
 function vSOutlets(){
   const mine=DB.outlets.filter(o=>o.salesmanId===ST.salesmanId);
   return phone(`
-    <div class="sh"><h2>My outlets</h2><p>${mine.length} outlets · company register</p></div>
+    <div class="sh"><h2>My ${esc(DB.word.p.toLowerCase())}</h2><p>${mine.length} ${esc(DB.word.p.toLowerCase())} · company register</p></div>
     ${mine.map(o=>{const out=S.outstanding(o.id);
       return `<a class="stop" href="#/salesman/outlet/${o.id}">
         <span class="sq">${o.tier}</span>
@@ -1084,7 +1187,7 @@ const ACTIONS = {
     const v=DB.visits.find(x=>x.outletId===el.dataset.id&&x.salesmanId===ST.salesmanId);
     if(v){ v.status="visited"; v.checkInAt=new Date(TODAY.getTime()+11.4*36e5);
       v.geo={lat:(3.05+R()*0.22).toFixed(5),lng:(101.58+R()*0.28).toFixed(5)};
-      pushFeed(`<b>${esc(S.sm(ST.salesmanId).name.split(" ")[0])}</b> checked in at <b>${esc(S.outlet(el.dataset.id).name)}</b>`);
+      pushFeed(`<b>${esc(firstName(S.sm(ST.salesmanId).name))}</b> checked in at <b>${esc(S.outlet(el.dataset.id).name)}</b>`);
     }
     render();
   },
@@ -1105,7 +1208,7 @@ const ACTIONS = {
       due:new Date(TODAY.getTime()+o.creditTerm*DAY),total,paid:0,status:"open"});
     ST.lastOrder={orderId:oid,nudge:AI.coach(id,ord)};
     ST.draft=null;
-    pushFeed(`<b>${esc(S.sm(ST.salesmanId).name.split(" ")[0])}</b> logged <b>${RM(total)}</b> at <b>${esc(o.name)}</b>`,HUE.gold);
+    pushFeed(`<b>${esc(firstName(S.sm(ST.salesmanId).name))}</b> logged <b>${RM(total)}</b> at <b>${esc(o.name)}</b>`,HUE.gold);
     go("/salesman/invoice/"+iid);
   },
   price(el){
@@ -1134,7 +1237,7 @@ const ACTIONS = {
     const link=`kobis.my/r/${pay.id.toLowerCase()}`;
     modal(`<h3 style="font-size:16px;margin-bottom:4px">Send digital receipt</h3>
       <p style="color:var(--muted);font-size:12.5px;margin-bottom:15px">To ${esc(o.owner)} · ${esc(o.phone)}</p>
-      <div class="wa"><div class="bub">Terima kasih ${esc(o.owner.split(" ")[0])}! Payment of <b>${RM2(pay.amount)}</b> received for ${esc(o.name)}.
+      <div class="wa"><div class="bub">Terima kasih ${esc(firstName(o.owner))}! Payment of <b>${RM2(pay.amount)}</b> received for ${esc(o.name)}.
         <span class="lk">https://${link}</span><span class="tm">11:31 ✓✓</span></div></div>
       <div class="note" style="margin-top:14px">Simulated. In the full build this opens the WhatsApp Business API with the receipt link attached.</div>
       <button class="btn btn-p btn-lg" style="margin-top:15px" data-act="close-modal">Done</button>`);
@@ -1142,17 +1245,26 @@ const ACTIONS = {
   "close-modal"(){ closeModal(); },
 
   resign(){
-    const s=S.sm("s1"); s.active=false;
-    DB.outlets.filter(o=>o.salesmanId==="s1").forEach(o=>{ o.salesmanId="s2"; });
-    DB.visits.filter(v=>v.salesmanId==="s1").forEach(v=>{ v.salesmanId="s2"; });
-    ST.resigned=true; if(ST.salesmanId==="s1") ST.salesmanId="s2";
+    const D=DB, victim=D.salesmen.find(s=>s.active), heir=D.salesmen.find(s=>s.active&&s.id!==victim.id);
+    if(!victim||!heir) return;
+    const orders=D.orders.filter(o=>o.salesmanId===victim.id).length;
+    victim.active=false;
+    D.outlets.forEach(o=>{ if(o.salesmanId===victim.id) o.salesmanId=heir.id; });
+    D.visits.forEach(v=>{ if(v.salesmanId===victim.id) v.salesmanId=heir.id; });
+    D.resigned={victim:victim.name,heir:heir.name,heirId:heir.id,orders,payments:D.payments.length};
+    if(ST.salesmanId===victim.id) ST.salesmanId=heir.id;
     render();
   },
   restore(){
-    const s=S.sm("s1"); s.active=true;
-    DB.outlets.forEach(o=>{ o.salesmanId = zoneOwner[o.zone]||o.salesmanId; });
-    DB.visits.forEach(v=>{ const o=S.outlet(v.outletId); if(o&&v.id.startsWith("V-s1")) v.salesmanId="s1"; });
-    ST.resigned=false; render();
+    const D=DB;
+    D.salesmen.forEach(s=>s.active=true);
+    D.outlets.forEach(o=>{ o.salesmanId=D.baseAssign[o.id]; });
+    D.visits.forEach(v=>{ v.salesmanId=D.baseVisit[v.id]; });
+    D.resigned=null; render();
+  },
+  "pick-co"(el){
+    ST.companyId=el.value; ST.salesmanId=DB.salesmen[0].id; ST.draft=null; ST.lastOrder=null;
+    go(ST.role==="manager"?"/manager/dashboard":"/salesman/jadual");
   }
 };
 

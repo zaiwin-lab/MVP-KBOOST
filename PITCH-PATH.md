@@ -82,6 +82,23 @@ Click **Reset demo** to run it again for the next prospect.
 
 ---
 
+### The flexibility close — if they ask "but will it fit *my* business?"
+
+Do not answer with words. Use the **company dropdown in the top bar** and switch to
+another industry in front of them:
+
+- **Bekal Segar** — FMCG, sells to *Stores*, moves cartons, RM 1.2m target
+- **FarmaLink** — pharmacy supply, sells to *Pharmacies*, 45-day credit terms
+- **Gerak Auto Parts** — sells to *Workshops*, few units, high value
+
+Same screens, same AI, same loop. Different catalogue, different territories,
+different terms, and the system even changes the word it uses for a customer.
+
+**Say:** *"Your industry is a configuration, not a rebuild. Onboarding you is a
+setup form and your customer list."*
+
+---
+
 ## If they ask "what else does it do?"
 Go to **Full Build** in the sidebar. Six modules working, ten scoped and named.
 That page is the upsell — it shows you have thought past the demo.
