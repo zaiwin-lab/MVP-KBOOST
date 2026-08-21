@@ -12,11 +12,14 @@ It proves one loop, end to end:
 **plan the day → visit the outlet → take the order → generate invoice → collect
 payment → watch the ranking move**
 
+**Live:** https://winning-salesman-kobis.netlify.app
+
 - **[PITCH-PATH.md](PITCH-PATH.md)** — the exact 60-second click sequence for a live pitch.
 
 ## Run it
 
-Open `index.html` in any browser. That is the whole setup.
+Open https://winning-salesman-kobis.netlify.app, or open `index.html` in any browser.
+That is the whole setup.
 
 No install, no build, no server, no login, no internet required. One file. It works
 from a USB stick, an email attachment, or a laptop with no signal in a client's
@@ -173,6 +176,31 @@ Three deliberate choices worth keeping when this becomes the real build:
 Motion respects `prefers-reduced-motion`. Layout is genuinely responsive down to
 390px with no horizontal overflow.
 
+
+## Deployment
+
+Hosted on Netlify (project `winning-salesman-kobis`, team `zaiwin`). Deploys are
+manual via the Netlify MCP/CLI; the site is not wired to the GitHub branch, so a
+push does not redeploy — you must deploy explicitly.
+
+`netlify.toml` copies **only `index.html`** into `_site` and publishes that, so
+`README.md` and `PITCH-PATH.md` are never served — the pitch script is internal.
+A `/*.md` redirect was tried first and silently did nothing: Netlify splats only
+match at the end of a path, and `force = true` does not change that.
+
+To redeploy after a change, **from the repo root** (the CLI uploads the current
+directory, so the working directory matters):
+
+```shell
+npx -y @netlify/mcp@latest --site-id <site-id> --proxy-path <token>
+```
+
+Then verify you shipped what you think you shipped:
+
+```shell
+curl -s https://winning-salesman-kobis.netlify.app/ | grep -c TENANTS   # expect > 0
+curl -so /dev/null -w '%{http_code}' https://winning-salesman-kobis.netlify.app/README.md  # expect 404
+```
 
 ## Visual design
 

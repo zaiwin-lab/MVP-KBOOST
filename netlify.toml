@@ -1,0 +1,17 @@
+# Static single-file demo.
+#
+# The repo keeps index.html at its root alongside README.md and
+# PITCH-PATH.md. The pitch script is internal, so rather than trying to
+# block the docs with redirects (Netlify splats only match at the end of a
+# path, so a "/*.md" rule silently never fires), the build copies just the
+# app into _site and publishes that. Nothing else can leak.
+[build]
+  command = "mkdir -p _site && cp index.html _site/index.html"
+  publish = "_site"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
