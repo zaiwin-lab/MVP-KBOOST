@@ -1,0 +1,1112 @@
+<meta charset="utf-8">
+<title>Salesman Apps</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Retail Sales & Distribution Management App — 16 modules, 3 transaction models: Consignment, Bil to Bil, Cash.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+/* ============================================================
+   SALESMAN APPS — Retail Sales & Distribution Management
+   Built to the KOBIS MASTER FINAL requirement: 16 modules,
+   3 transaction models. Salesman-mobile-first.
+   ============================================================ */
+:root{
+  --blue:#2B5CE6; --blue-d:#1E47C4; --blue-lo:#EAF0FE;
+  --violet:#7C3AED; --violet-lo:#F1EAFE;
+  --green:#0E9F6E; --green-lo:#E3F7EF;
+  --amber:#D97706; --amber-lo:#FDF1E1;
+  --red:#DC2626; --red-lo:#FDECEC;
+  --ink:#0F172A; --mut:#5A6A85; --dim:#94A3B8;
+  --page:#F4F7FC; --card:#FFFFFF; --s2:#F8FAFD; --s3:#EEF3FA;
+  --line:#E3EAF3; --line2:#CFDAE8;
+  --paper:#FEFDFB; --pink:#1A1712;
+  --ui:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --r:12px; --r-s:9px; --r-l:18px; --pill:100px;
+  --sh:0 1px 2px rgba(15,23,42,.05),0 6px 18px rgba(15,23,42,.06);
+  --sh2:0 8px 30px rgba(15,23,42,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--page);color:var(--ink);font-family:var(--ui);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+h1,h2,h3,h4{line-height:1.2;letter-spacing:-.02em;font-weight:700}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:6px}
+.num{font-variant-numeric:tabular-nums}
+.mono{font-family:var(--mono)}
+
+/* shell */
+.wrap{display:flex;justify-content:center;gap:28px;padding:24px 20px 60px;align-items:flex-start}
+.phone{width:404px;flex:none;background:#fff;border:1px solid var(--line2);border-radius:38px;padding:10px;box-shadow:0 30px 70px rgba(15,23,42,.18);position:sticky;top:20px}
+.scr{background:var(--page);border-radius:29px;overflow:hidden;height:788px;display:flex;flex-direction:column;position:relative}
+.sb{height:26px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:10.5px;font-family:var(--mono);color:var(--dim);flex:none;background:#fff}
+.view{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin}
+.view::-webkit-scrollbar{width:4px}.view::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px}
+.side{width:330px;flex:none;position:sticky;top:20px;display:flex;flex-direction:column;gap:14px}
+@media(max-width:920px){.wrap{padding:0;display:block}.phone{width:100%;border:none;border-radius:0;padding:0;box-shadow:none;position:static}.scr{border-radius:0;height:auto;min-height:100vh}.sb{display:none}.side{display:none}}
+
+/* top bar */
+.tb{background:#fff;border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:11px;flex:none;position:sticky;top:0;z-index:20}
+.tb .bk{width:32px;height:32px;border-radius:9px;background:var(--s3);display:grid;place-items:center;flex:none;font-size:17px;color:var(--mut)}
+.tb .ti{flex:1;min-width:0}
+.tb .ti b{display:block;font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb .ti span{font-size:11.5px;color:var(--mut)}
+.tb .av{width:34px;height:34px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:800;font-size:12px;flex:none}
+
+/* bottom nav */
+.nav{flex:none;display:flex;background:#fff;border-top:1px solid var(--line);padding:7px 4px 10px;position:sticky;bottom:0;z-index:20}
+.nav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px;font-size:10px;font-weight:700;color:var(--dim)}
+.nav a.on{color:var(--blue)}
+.nav svg{width:21px;height:21px}
+
+/* blocks */
+.pad{padding:14px 16px}
+.hero{background:linear-gradient(160deg,var(--blue) 0%,#1B44B8 100%);padding:16px 16px 26px;color:#fff}
+.hero .gr{font-size:12.5px;opacity:.85}
+.hero h2{font-size:19px;margin-top:2px}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin:-16px 16px 0;position:relative;z-index:2}
+.st{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:11px 10px;box-shadow:var(--sh)}
+.st .l{font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--dim);font-weight:800;line-height:1.3}
+.st .v{font-size:16px;font-weight:800;margin-top:5px;letter-spacing:-.03em}
+.st.w{grid-column:span 3}
+.qa{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.qa a{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:11px 5px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:10.5px;font-weight:700;color:var(--ink);text-align:center;box-shadow:var(--sh);transition:.15s}
+.qa a:hover{transform:translateY(-2px);box-shadow:var(--sh2)}
+.qa .ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center}
+.qa svg{width:17px;height:17px}
+
+.sec{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--dim);font-weight:800;margin:18px 0 9px;display:flex;align-items:center;gap:8px}
+.sec .mo{margin-left:auto;color:var(--blue);font-size:11px;text-transform:none;letter-spacing:0}
+
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh)}
+.row{display:flex;align-items:center;gap:11px;padding:12px;background:#fff;border:1px solid var(--line);border-radius:var(--r);margin-bottom:8px;box-shadow:var(--sh);width:100%;text-align:left;transition:.15s}
+.row:hover{border-color:var(--line2);transform:translateY(-1px)}
+.row .sq{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-weight:800;font-size:12px;flex:none}
+.row .in{flex:1;min-width:0}
+.row .in b{display:block;font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .in span{font-size:11.5px;color:var(--mut);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .rt{text-align:right;flex:none}
+.row .rt b{display:block;font-size:13px;font-weight:800}
+.row .rt span{font-size:10.5px;color:var(--dim)}
+
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:var(--pill);font-size:10.5px;font-weight:800;white-space:nowrap}
+.k-blue{background:var(--blue-lo);color:var(--blue-d)}
+.k-vio{background:var(--violet-lo);color:var(--violet)}
+.k-grn{background:var(--green-lo);color:var(--green)}
+.k-amb{background:var(--amber-lo);color:var(--amber)}
+.k-red{background:var(--red-lo);color:var(--red)}
+.k-mut{background:var(--s3);color:var(--mut)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 16px;border-radius:var(--r-s);font-weight:700;font-size:14px;background:#fff;border:1px solid var(--line2);color:var(--ink);transition:.15s}
+.btn:hover{background:var(--s2)}
+.btn-p{background:var(--blue);color:#fff;border-color:transparent;box-shadow:0 2px 8px rgba(43,92,230,.3)}
+.btn-p:hover{background:var(--blue-d)}
+.btn-g{background:var(--green);color:#fff;border-color:transparent}
+.btn-w{width:100%;padding:14px;font-size:15px;border-radius:var(--r)}
+.btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.btn svg{width:16px;height:16px}
+
+.f{margin-bottom:13px}
+.f label{display:block;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--dim);font-weight:800;margin-bottom:5px}
+.f input,.f select,.f textarea{width:100%;padding:11px 12px;background:#fff;border:1px solid var(--line2);border-radius:var(--r-s);font-size:14px;font-weight:600}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 3px var(--blue-lo)}
+.f .hint{font-size:11px;color:var(--dim);margin-top:4px}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.search{position:relative;margin-bottom:12px}
+.search input{width:100%;padding:11px 12px 11px 36px;background:#fff;border:1px solid var(--line2);border-radius:var(--pill);font-size:13.5px;font-weight:600}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--dim)}
+
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:4px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{padding:6px 13px;border-radius:var(--pill);font-size:12px;font-weight:700;background:#fff;border:1px solid var(--line);color:var(--mut);white-space:nowrap;flex:none}
+.tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* customer profile command center */
+.cp{background:linear-gradient(160deg,var(--blue),#1B44B8);color:#fff;padding:16px}
+.cp .cc{font-family:var(--mono);font-size:11px;opacity:.8;letter-spacing:.06em}
+.cp h2{font-size:19px;margin:3px 0 6px}
+.cp .meta{font-size:12px;opacity:.9;line-height:1.6}
+.cp .kpi{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:13px}
+.cp .kpi>div{background:rgba(255,255,255,.14);border-radius:10px;padding:9px 11px}
+.cp .kpi .l{font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;opacity:.8;font-weight:800}
+.cp .kpi .v{font-size:15px;font-weight:800;margin-top:2px}
+.cmd{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cmd a{background:#fff;border:1px solid var(--line);border-radius:var(--r-s);padding:10px 3px;display:flex;flex-direction:column;align-items:center;gap:5px;font-size:9.5px;font-weight:800;box-shadow:var(--sh)}
+.cmd a:hover{transform:translateY(-2px)}
+.cmd .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center}
+.cmd svg{width:15px;height:15px}
+
+/* line items */
+.li{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+.li .n{flex:1;min-width:0}
+.li .n b{display:block;font-size:13px;font-weight:700}
+.li .n span{font-size:10.5px;color:var(--dim);font-family:var(--mono)}
+.stp{display:flex;align-items:center;background:var(--s3);border-radius:var(--r-s);flex:none}
+.stp button{width:30px;height:30px;font-size:17px;font-weight:700;color:var(--mut);display:grid;place-items:center}
+.stp .q{width:30px;text-align:center;font-weight:800;font-size:13.5px}
+.tot{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0;border-top:2px solid var(--line2);margin-top:8px}
+.tot b{font-size:24px;font-weight:800}
+
+/* thermal document */
+.thm{background:var(--paper);color:var(--pink);font-family:var(--mono);font-size:11px;line-height:1.6;padding:16px 14px;border-radius:6px;box-shadow:var(--sh2);border:1px solid #E8E2D6;margin:0 auto;max-width:302px}
+.thm.w80{max-width:302px}
+.thm.w58{max-width:220px;font-size:10px}
+.thm .c{text-align:center}
+.thm .hd{text-align:center;padding-bottom:9px;border-bottom:1px dashed #B9B0A0}
+.thm .hd b{font-size:14px;display:block;font-family:var(--ui);font-weight:800}
+.thm .hd span{font-size:9.5px;color:#6B6455}
+.thm .r{display:flex;justify-content:space-between;gap:8px;padding:2px 0}
+.thm .r span{color:#6B6455}
+.thm .sc{padding:9px 0;border-bottom:1px dashed #B9B0A0}
+.thm .gt{display:flex;justify-content:space-between;padding:9px 0 0;font-weight:700;font-size:13px;border-top:1px solid #8C8474;margin-top:8px}
+.thm .st{margin-top:12px;text-align:center;font-weight:700;letter-spacing:.14em;padding:7px;border:2px solid var(--green);color:#0A6E4C;border-radius:5px}
+.thm .ft{text-align:center;font-size:9px;color:#6B6455;margin-top:11px;line-height:1.5}
+.dact{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:13px}
+.dact button{padding:11px 6px;border-radius:var(--r-s);font-size:11.5px;font-weight:800;display:flex;flex-direction:column;align-items:center;gap:5px;border:1px solid var(--line2);background:#fff}
+.dact svg{width:16px;height:16px}
+.wsel{display:flex;gap:6px;justify-content:center;margin-bottom:11px}
+.wsel button{padding:5px 12px;border-radius:var(--pill);font-size:11px;font-weight:800;border:1px solid var(--line2);background:#fff;color:var(--mut)}
+.wsel button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.note{background:var(--blue-lo);border-left:3px solid var(--blue);border-radius:0 var(--r-s) var(--r-s) 0;padding:11px 13px;font-size:12.5px;color:#1A3A8F;line-height:1.55}
+.warn{background:var(--amber-lo);border-left:3px solid var(--amber);border-radius:0 var(--r-s) var(--r-s) 0;padding:11px 13px;font-size:12.5px;color:#7A4A08;line-height:1.55}
+.okbox{background:var(--green-lo);border:1px solid #A7E3CB;border-radius:var(--r);padding:13px;font-size:13px;color:#0A6E4C;display:flex;gap:10px;align-items:center}
+.empty{text-align:center;padding:40px 20px;color:var(--dim)}
+.empty b{display:block;font-size:15px;color:var(--mut);margin-bottom:5px}
+
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(4px);z-index:200;display:grid;place-items:end center;padding:0}
+.sheet{background:#fff;border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:404px;max-height:86vh;overflow-y:auto;animation:up .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes up{from{transform:translateY(100%)}}
+.sheet h3{font-size:17px;margin-bottom:5px}
+.grip{width:38px;height:4px;background:var(--line2);border-radius:2px;margin:0 auto 14px}
+
+.sd{background:#fff;border:1px solid var(--line);border-radius:var(--r-l);padding:17px;box-shadow:var(--sh)}
+.sd h3{font-size:15px;margin-bottom:7px}
+.sd p{font-size:12.5px;color:var(--mut);line-height:1.6}
+.sd .lk{display:block;margin-top:10px;padding:9px 12px;background:var(--s2);border:1px solid var(--line);border-radius:var(--r-s);font-size:12.5px;font-weight:700}
+.sd .lk:hover{border-color:var(--blue);color:var(--blue)}
+.modlist{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.modlist span{font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:var(--pill);background:var(--green-lo);color:var(--green)}
+
+.prog{height:7px;background:var(--s3);border-radius:4px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--blue);border-radius:4px;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.spark{display:flex;align-items:flex-end;gap:3px;height:52px;margin-top:10px}
+.spark i{flex:1;background:var(--blue-lo);border-radius:2px 2px 0 0;position:relative}
+.spark i.hi{background:var(--blue)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+</style>
+
+<div id="app"></div>
+<div id="modal"></div>
+
+<script>
+"use strict";
+/* ---------- utils ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const RM=n=>"RM "+Math.round(n).toLocaleString("en-MY");
+const RM2=n=>"RM "+Number(n).toLocaleString("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2});
+const ini=n=>n.split(" ").slice(0,2).map(w=>w[0]).join("").toUpperCase();
+function rng(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const R=rng(77001122); const pick=a=>a[Math.floor(R()*a.length)]; const bt=(a,b)=>a+Math.floor(R()*(b-a+1));
+const DAY=864e5, TODAY=new Date(2026,7,24);
+const ago=n=>new Date(TODAY.getTime()-n*DAY);
+const fd=d=>d.toLocaleDateString("en-MY",{day:"2-digit",month:"short",year:"numeric"});
+const fds=d=>d.toLocaleDateString("en-MY",{day:"2-digit",month:"short"});
+const ft=d=>d.toLocaleTimeString("en-MY",{hour:"2-digit",minute:"2-digit",hour12:false});
+const dbet=(a,b)=>Math.round((b-a)/DAY);
+const sameDay=(a,b)=>a&&new Date(a).toDateString()===new Date(b).toDateString();
+
+const I={
+  home:'<path d="M3 10.5 12 3l9 7.5V21H3z"/><path d="M9 21v-7h6v7"/>',
+  user:'<circle cx="12" cy="8" r="3.6"/><path d="M4.5 21c0-4 3.4-6.5 7.5-6.5S19.5 17 19.5 21"/>',
+  cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/>',
+  cart:'<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.4 12.4a2 2 0 002 1.6h8.7a2 2 0 002-1.6L22 7H6"/>',
+  more:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
+  doc:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/>',
+  truck:'<rect x="1" y="6" width="14" height="11" rx="1.5"/><path d="M15 9h4l3 3.5V17h-7z"/><circle cx="6" cy="19" r="1.8"/><circle cx="18" cy="19" r="1.8"/>',
+  cash:'<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/>',
+  ret:'<path d="M3 10h12a5 5 0 010 10h-6"/><path d="M7 6l-4 4 4 4"/>',
+  box:'<path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/>',
+  rank:'<path d="M4 20v-6M12 20V5M20 20v-9"/>',
+  gift:'<rect x="3" y="9" width="18" height="12" rx="1.5"/><path d="M3 13h18M12 9v12"/><path d="M12 9S9 3 6.5 5s2 4 5.5 4c3.5 0 8-2 5.5-4S12 9 12 9z"/>',
+  pin:'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1116 0z"/><circle cx="12" cy="10" r="2.5"/>',
+  wa:'<path d="M20 12a8 8 0 01-11.9 7L4 20l1.1-4A8 8 0 1120 12z"/>',
+  srch:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  prn:'<path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="8" rx="1.5"/><path d="M7 17h10v5H7z"/>',
+  pdf:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M9 15h6"/>',
+  chart:'<path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/>'
+};
+const ic=(p,c)=>`<svg viewBox="0 0 24 24" fill="none" stroke="${c||'currentColor'}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+
+/* ---------- DATA ---------- */
+const CO={name:"Syarikat Maju Jaya Sdn Bhd",trade:"Retail Distribution",ssm:"202201009876 (1456789-T)",
+  addr:"No 12, Jalan Perindustrian 3, 40150 Shah Alam, Selangor",phone:"03-5521 8890"};
+const ME={id:"u1",name:"Ahmad Zaki",code:"SM01",phone:"012-345 6789",withStock:true};
+
+const SALESMEN=[["u1","Ahmad Zaki"],["u2","Faiz Rahman"],["u3","Aril Hakim"],["u4","Hafiz Omar"],["u5","Siti Nurhaliza"]]
+  .map(([id,name],i)=>({id,name,code:"SM0"+(i+1)}));
+
+const PRODUCTS=[
+  ["Milo 1kg","MLO-1K",18.00,220],["Nescafe 200g","NES-200",14.60,180],
+  ["Biskut Cream 400g","BIS-C400",7.50,300],["Air Mineral 1.5L","AIR-15",1.60,480],
+  ["Minyak Masak 5kg","MYK-5K",42.00,95],["Beras Wangi 10kg","BRS-10",38.00,60],
+  ["Gula Halus 1kg","GUL-1K",3.20,400],["Susu Tin 390g","SUS-390",4.80,260]
+].map(([name,sku,price,stock],i)=>({id:"p"+(i+1),name,sku,price,floor:+(price*0.85).toFixed(2),van:stock,low:40}));
+
+/* payment term: consign | biltobil | cash */
+const CUSTOMERS=[
+  ["Kedai Maju Sdn Bhd","Ahmad Ismail","Kajang","Selangor","43000","consign",3],
+  ["Pasar Mini Abadi","Rosnah Abdullah","Shah Alam","Selangor","40150","biltobil",2],
+  ["Super Mart Setia","Tan Mei Ling","Setia Alam","Selangor","40170","cash",0],
+  ["Kedai Rahman","Rahman Yusof","Ampang","Selangor","68000","biltobil",1],
+  ["99 Speedmart Cheras","Lim Wei Sheng","Cheras","Selangor","56000","consign",3],
+  ["Mini Market Sri Damai","Halimah Yaakob","Puchong","Selangor","47100","cash",0],
+  ["Kedai Runcit Pak Mat","Mat Zin Ibrahim","Setapak","Kuala Lumpur","53000","biltobil",2],
+  ["Borong Murah Klang","Ganesh Raj","Klang","Selangor","41200","consign",3],
+  ["Pasar Mini Harmoni","Goh Peng Soon","Gombak","Selangor","53100","cash",0],
+  ["Kedai Serbaneka Bangi","Farah Idris","Bangi","Selangor","43650","biltobil",1],
+  ["Mini Market Rawang","Zainal Arifin","Rawang","Selangor","48000","consign",2],
+  ["Kedai Barokah","Osman Talib","Sri Petaling","Kuala Lumpur","57000","cash",0]
+].map(([name,pic,dist,state,pos,term,months],i)=>({
+  id:"c"+(i+1), code:"C"+String(i+1).padStart(4,"0"), name, pic, dist, state, pos, term, months,
+  phone:"01"+bt(1,9)+"-"+bt(200,999)+" "+bt(1000,9999),
+  wa:"01"+bt(1,9)+"-"+bt(200,999)+" "+bt(1000,9999),
+  addr:"No "+bt(1,88)+", Jalan "+pick(["Mawar","Melati","Dahlia","Kenanga","Cempaka"])+" "+bt(1,9)+", "+dist,
+  ssm:"20"+bt(15,23)+"010"+bt(1000,9999)+" ("+bt(100,999)+bt(1000,9999)+"-"+pick(["A","D","K","P","T","V"])+")",
+  type:pick(["Kedai Runcit","Mini Market","Supermarket","Borong"]),
+  lat:(2.98+R()*0.32).toFixed(6), lng:(101.45+R()*0.42).toFixed(6),
+  salesmanId:pick(SALESMEN).id, regAt:ago(bt(120,900)), status:"Active"
+}));
+CUSTOMERS.forEach((c,i)=>{ if(i<7) c.salesmanId=ME.id; });
+
+const DB={orders:[],dos:[],sos:[],invoices:[],payments:[],receipts:[],returns:[],consign:[],stockOrders:[],
+  schedule:[],referrals:[],seq:{ORD:0,DO:0,SO:0,INV:0,RET:0,REC:0}};
+const nn=(k,n)=>k+String(n).padStart(6,"0");
+const cust=id=>CUSTOMERS.find(c=>c.id===id);
+const prod=id=>PRODUCTS.find(p=>p.id===id);
+const sm=id=>SALESMEN.find(s=>s.id===id);
+const TERM={consign:{k:"k-vio",t:"Consignment",s:"CONSIGN"},biltobil:{k:"k-blue",t:"Bil to Bil",s:"BIL-TO-BIL"},cash:{k:"k-grn",t:"Cash",s:"CASH"}};
+
+/* build a full chain: order -> DO -> SO -> invoice (-> payment) */
+function mkChain(c,date,lines,salesmanId,payNow){
+  const total=lines.reduce((a,l)=>a+l.qty*l.price,0);
+  const o={id:nn("ORD",++DB.seq.ORD),customerId:c.id,salesmanId,date,lines,total,remark:""};
+  DB.orders.push(o);
+  const d={id:nn("DO",++DB.seq.DO),orderId:o.id,customerId:c.id,salesmanId,date,lines,total};
+  DB.dos.push(d);
+  const s={id:nn("SO",++DB.seq.SO),doId:d.id,orderId:o.id,customerId:c.id,salesmanId,date,lines,total};
+  DB.sos.push(s);
+  const due=new Date(date.getTime()+(c.term==="cash"?0:c.months*30)*DAY);
+  const inv={id:nn("INV",++DB.seq.INV),soId:s.id,doId:d.id,orderId:o.id,customerId:c.id,salesmanId,
+    date,due,total,paid:0,status:"pending",kind:c.term};
+  DB.invoices.push(inv);
+  if(payNow) payInvoice(inv,total,"Cash",date);
+  return {o,d,s,inv};
+}
+function payInvoice(inv,amt,method,date){
+  inv.paid+=amt;
+  inv.status = inv.paid>=inv.total-0.01?"paid":"partial";
+  const p={id:"PAY"+String(DB.payments.length+1).padStart(4,"0"),invoiceId:inv.id,customerId:inv.customerId,
+    amount:amt,method,date,salesmanId:inv.salesmanId};
+  DB.payments.push(p);
+  const r={id:nn("REC",++DB.seq.REC),paymentId:p.id,invoiceId:inv.id,customerId:inv.customerId,
+    amount:amt,method,date,salesmanId:inv.salesmanId};
+  DB.receipts.push(r);
+  return r;
+}
+/* seed 120 days of trading */
+CUSTOMERS.forEach(c=>{
+  if(c.term==="consign"){
+    // consignment placements
+    for(let k=3;k>=1;k--){
+      const date=ago(k*30+bt(0,4));
+      const p=pick(PRODUCTS), qty=bt(60,140);
+      const cg={id:"CG"+(DB.consign.length+1),customerId:c.id,productId:p.id,qty,price:p.price,date,
+        balance:null,checkedAt:null,sold:0,invoiceId:null,salesmanId:c.salesmanId};
+      DB.consign.push(cg);
+      if(k>1){ // already reconciled
+        const bal=bt(10,Math.floor(qty*0.45));
+        cg.balance=bal; cg.checkedAt=ago((k-1)*30); cg.sold=qty-bal;
+        const {inv}=mkChain(c,cg.checkedAt,[{productId:p.id,qty:cg.sold,price:p.price}],c.salesmanId,false);
+        inv.kind="consign"; cg.invoiceId=inv.id;
+        if(R()<0.7) payInvoice(inv,inv.total,pick(["Cash","Bank Transfer"]),new Date(cg.checkedAt.getTime()+bt(3,20)*DAY));
+      }
+    }
+  } else {
+    const n=bt(3,6);
+    for(let k=n;k>=1;k--){
+      const date=ago(k*bt(14,26)+bt(0,3));
+      const lines=[],used=new Set();
+      for(let j=0;j<bt(2,4);j++){ const p=pick(PRODUCTS); if(used.has(p.id))continue; used.add(p.id);
+        lines.push({productId:p.id,qty:bt(6,40),price:p.price}); }
+      if(!lines.length) continue;
+      const {inv}=mkChain(c,date,lines,c.salesmanId,c.term==="cash");
+      if(c.term==="biltobil"&&R()<0.62&&!sameDay(date,TODAY))
+        payInvoice(inv,inv.total,pick(["Bank Transfer","Cheque","Cash"]),new Date(date.getTime()+bt(10,50)*DAY));
+    }
+  }
+});
+/* Today's trading, so the dashboard is never empty when the app is opened
+   in front of a client. Every salesman gets activity today, which also gives
+   the real-time ranking something to rank. */
+SALESMEN.forEach(s=>{
+  const mine=CUSTOMERS.filter(c=>c.salesmanId===s.id&&c.term!=="consign");
+  const pool=mine.length?mine:CUSTOMERS.filter(c=>c.term!=="consign");
+  pool.slice(0,bt(2,3)).forEach(c=>{
+    const lines=[],used=new Set();
+    for(let j=0;j<bt(2,4);j++){ const p=pick(PRODUCTS); if(used.has(p.id))continue; used.add(p.id);
+      lines.push({productId:p.id,qty:bt(8,45),price:p.price}); }
+    if(!lines.length) return;
+    const {inv}=mkChain(c,new Date(TODAY.getTime()+bt(9,15)*36e5),lines,s.id,c.term==="cash");
+    if(c.term==="biltobil"&&R()<0.4) payInvoice(inv,inv.total,"Bank Transfer",TODAY);
+  });
+});
+
+/* a few returns */
+for(let i=0;i<5;i++){
+  const c=pick(CUSTOMERS), p=pick(PRODUCTS);
+  DB.returns.push({id:nn("RET",++DB.seq.RET),customerId:c.id,productId:p.id,qty:bt(2,12),
+    reason:pick(["Damaged","Expired","Wrong Product","Wrong Quantity","Defective"]),
+    date:ago(bt(3,70)),salesmanId:c.salesmanId,remark:""});
+}
+/* today's schedule (a plain list of shops to visit — NOT attendance) */
+DB.schedule=CUSTOMERS.filter(c=>c.salesmanId===ME.id).slice(0,6).map((c,i)=>({
+  id:"S"+i,customerId:c.id,date:TODAY,order:i,remark:i===0?"Kutip payment overdue":i===2?"Check baki stock consignment":""}));
+/* referrals */
+DB.referrals=[["Kedai Ehsan Jaya","verified",4200],["Mini Market Aman","verified",2800],
+  ["Pasar Mini Setia","pending",0],["Kedai Borong Utara","verified",6500],["Runcit Bahagia","pending",0]]
+  .map(([name,status,val],i)=>({id:"RF"+(i+1),name,status,value:val,date:ago(bt(5,90)),commission:val*0.05}));
+
+/* ---------- SELECTORS ---------- */
+const S={
+  myCust:()=>CUSTOMERS.filter(c=>c.salesmanId===ME.id),
+  invOf:cid=>DB.invoices.filter(i=>i.customerId===cid).sort((a,b)=>b.date-a.date),
+  outstanding:cid=>DB.invoices.filter(i=>(!cid||i.customerId===cid)&&i.status!=="paid").reduce((a,i)=>a+(i.total-i.paid),0),
+  overdue:cid=>DB.invoices.filter(i=>(!cid||i.customerId===cid)&&i.status!=="paid"&&i.due<TODAY).reduce((a,i)=>a+(i.total-i.paid),0),
+  totalSales:cid=>DB.invoices.filter(i=>!cid||i.customerId===cid).reduce((a,i)=>a+i.total,0),
+  inRange:(d,r)=>{
+    const t=TODAY, x=new Date(d);
+    if(r==="today") return sameDay(x,t);
+    if(r==="yest") return sameDay(x,ago(1));
+    if(r==="week") return dbet(x,t)<7&&x<=t;
+    if(r==="lweek") return dbet(x,t)>=7&&dbet(x,t)<14;
+    if(r==="month") return x.getMonth()===t.getMonth()&&x.getFullYear()===t.getFullYear();
+    if(r==="lmonth"){const m=new Date(t.getFullYear(),t.getMonth()-1,1);return x.getMonth()===m.getMonth()&&x.getFullYear()===m.getFullYear();}
+    if(r==="year") return x.getFullYear()===t.getFullYear();
+    return true;
+  },
+  salesIn:(r,uid)=>DB.invoices.filter(i=>S.inRange(i.date,r)&&(!uid||i.salesmanId===uid)).reduce((a,i)=>a+i.total,0),
+  ordersIn:(r,uid)=>DB.orders.filter(o=>S.inRange(o.date,r)&&(!uid||o.salesmanId===uid)).length,
+  qtyIn:(r,uid)=>DB.orders.filter(o=>S.inRange(o.date,r)&&(!uid||o.salesmanId===uid)).reduce((a,o)=>a+o.lines.reduce((x,l)=>x+l.qty,0),0),
+  paidIn:(r,uid)=>DB.payments.filter(p=>S.inRange(p.date,r)&&(!uid||p.salesmanId===uid)).reduce((a,p)=>a+p.amount,0),
+  custIn:(r,uid)=>new Set(DB.orders.filter(o=>S.inRange(o.date,r)&&(!uid||o.salesmanId===uid)).map(o=>o.customerId)).size,
+  ranking:r=>SALESMEN.map(s=>({...s,sales:S.salesIn(r,s.id)})).sort((a,b)=>b.sales-a.sales),
+  openConsign:cid=>DB.consign.filter(c=>c.customerId===cid&&c.balance===null),
+  histOf:cid=>{
+    const h=[];
+    DB.orders.filter(x=>x.customerId===cid).forEach(x=>h.push({t:"Order",id:x.id,d:x.date,amt:x.total,k:"k-mut"}));
+    DB.dos.filter(x=>x.customerId===cid).forEach(x=>h.push({t:"DO",id:x.id,d:x.date,amt:x.total,k:"k-blue"}));
+    DB.sos.filter(x=>x.customerId===cid).forEach(x=>h.push({t:"SO",id:x.id,d:x.date,amt:x.total,k:"k-blue"}));
+    DB.invoices.filter(x=>x.customerId===cid).forEach(x=>h.push({t:"Invoice",id:x.id,d:x.date,amt:x.total,k:"k-amb"}));
+    DB.receipts.filter(x=>x.customerId===cid).forEach(x=>h.push({t:"Receipt",id:x.id,d:x.date,amt:x.amount,k:"k-grn"}));
+    DB.returns.filter(x=>x.customerId===cid).forEach(x=>h.push({t:"Return",id:x.id,d:x.date,amt:0,k:"k-red"}));
+    return h.sort((a,b)=>b.d-a.d);
+  }
+};
+
+/* ---------- STATE + ROUTER ---------- */
+const ST={draft:null,range:"today",rankRange:"month",docTab:"all",histTab:"All",width:"80",q:"",lastDoc:null};
+const go=h=>location.hash=h;
+const parts=()=>location.hash.replace(/^#\/?/,"").split("/").filter(Boolean);
+addEventListener("hashchange",render);
+
+/* ---------- SHELL ---------- */
+function shell(inner,tab,bar){
+  return `<div class="wrap"><div class="phone"><div class="scr">
+    <div class="sb"><span>9:41</span><span>KOBIS 5G ▪ 100%</span></div>
+    ${bar||""}
+    <div class="view">${inner}</div>
+    <nav class="nav">
+      ${[["home","Home",I.home,"#/"],["cust","Customer",I.user,"#/customers"],["jad","Jadual",I.cal,"#/jadual"],
+         ["ord","Order",I.cart,"#/order"],["more","More",I.more,"#/more"]]
+        .map(([k,l,p,h])=>`<a href="${h}" class="${tab===k?"on":""}">${ic(p)}${l}</a>`).join("")}
+    </nav>
+  </div></div>${aside()}</div>`;
+}
+function bar(title,sub,back){
+  return `<div class="tb">${back?`<a class="bk" href="${back}">‹</a>`:`<span class="av">${ini(ME.name)}</span>`}
+    <span class="ti"><b>${esc(title)}</b>${sub?`<span>${esc(sub)}</span>`:""}</span></div>`;
+}
+function aside(){
+  return `<aside class="side">
+    <div class="sd"><h3>Salesman Apps</h3>
+      <p>Retail Sales &amp; Distribution Management. Built to the 16-module requirement, salesman-mobile-first, with all three transaction models.</p>
+      <div class="modlist">${["Register Customer","Senarai Outlet","Jadual Harian","Order + Harga Tweak","DO","SO","Invoice","Payment","Receipt","Product &amp; Stock","Return","Sales Ranking","PDF/WhatsApp/Print","Running Number","Payment &amp; Stock Control","Refer &amp; Earn"].map(m=>`<span>${m}</span>`).join("")}</div>
+    </div>
+    <div class="sd"><h3>Three transaction models</h3>
+      <p><b style="color:var(--violet)">Consignment</b> — hantar stock, check baki, kira terjual, bill barang terjual sahaja.<br>
+      <b style="color:var(--blue)">Bil to Bil</b> — order jadi bil, bayar ikut term 1/2/3 bulan.<br>
+      <b style="color:var(--green)">Cash</b> — order, bayar terus.</p>
+      <a class="lk" href="#/customers">Open a Customer Profile →</a>
+    </div>
+    <div class="sd"><h3>Documents</h3>
+      <p>Every document generates a running number, prints to 58mm or 80mm thermal, exports PDF and shares to WhatsApp.</p>
+      <a class="lk" href="proposal.html">📋 Full proposal &amp; layout</a>
+      <a class="lk" href="gap.html">📊 What changed vs the first demo</a>
+    </div>
+  </aside>`;
+}
+
+/* ---------- SCREENS ---------- */
+const RANGES=[["today","Hari Ini"],["yest","Semalam"],["week","Minggu Ini"],["lweek","Minggu Lepas"],["month","Bulan Ini"],["lmonth","Bulan Lepas"],["all","Semua"]];
+
+function vHome(){
+  const r=ST.range;
+  const s={sales:S.salesIn(r,ME.id),ord:S.ordersIn(r,ME.id),cust:S.custIn(r,ME.id),
+    qty:S.qtyIn(r,ME.id),paid:S.paidIn(r,ME.id),out:S.outstanding()};
+  const acts=[["New Order",I.cart,"var(--blue)","var(--blue-lo)","#/order"],
+    ["Customer",I.user,"var(--green)","var(--green-lo)","#/customers"],
+    ["Return",I.ret,"var(--red)","var(--red-lo)","#/return"],
+    ["Payment",I.cash,"var(--amber)","var(--amber-lo)","#/payment"],
+    ["Jadual",I.cal,"var(--violet)","var(--violet-lo)","#/jadual"],
+    ["Documents",I.doc,"var(--blue)","var(--blue-lo)","#/documents"],
+    ["My Stock",I.box,"var(--green)","var(--green-lo)","#/stock"],
+    ["More",I.more,"var(--mut)","var(--s3)","#/more"]];
+  return shell(`
+    <div class="hero"><div class="gr">Selamat pagi 👋</div><h2>${esc(ME.name)}</h2></div>
+    <div class="stats">
+      <div class="st" style="grid-column:span 3"><div class="l">Total Sales</div><div class="v" style="font-size:25px;color:var(--blue)">${RM(s.sales)}</div></div>
+      <div class="st"><div class="l">Order</div><div class="v num">${s.ord}</div></div>
+      <div class="st"><div class="l">Customer</div><div class="v num">${s.cust}</div></div>
+      <div class="st"><div class="l">Unit Jual</div><div class="v num">${s.qty}</div></div>
+      <div class="st" style="grid-column:span 3;display:flex;justify-content:space-between;align-items:center">
+        <div><div class="l">Payment Collected</div><div class="v" style="color:var(--green)">${RM(s.paid)}</div></div>
+        <div style="text-align:right"><div class="l">Outstanding</div><div class="v" style="color:var(--red)">${RM(s.out)}</div></div></div>
+    </div>
+    <div class="pad">
+      <div class="tabs">${RANGES.map(([k,l])=>`<button data-a="range" data-v="${k}" class="${r===k?"on":""}">${l}</button>`).join("")}</div>
+      <div class="sec">Quick Action</div>
+      <div class="qa">${acts.map(([l,p,c,bg,h])=>`<a href="${h}"><span class="ic" style="background:${bg}">${ic(p,c)}</span>${l}</a>`).join("")}</div>
+      <div class="sec">Jadual Hari Ini<a class="mo" href="#/jadual">Lihat semua</a></div>
+      ${DB.schedule.slice(0,3).map((s,i)=>{const c=cust(s.customerId);
+        return `<a class="row" href="#/customer/${c.id}"><span class="sq" style="background:var(--blue-lo);color:var(--blue)">${i+1}</span>
+          <span class="in"><b>${esc(c.name)}</b><span>${esc(c.code)} · ${esc(c.dist)}</span></span>
+          <span class="chip ${TERM[c.term].k}">${TERM[c.term].t}</span></a>`}).join("")}
+    </div>`,"home");
+}
+
+function vCustomers(){
+  const q=ST.q.toLowerCase();
+  const list=CUSTOMERS.filter(c=>!q||[c.code,c.name,c.pic,c.phone,c.wa].join(" ").toLowerCase().includes(q));
+  return shell(`<div class="pad">
+    <div class="search">${ic(I.srch)}<input placeholder="Cari kod, nama, PIC, telefon…" value="${esc(ST.q)}" data-a="q"></div>
+    <a class="btn btn-p btn-w" href="#/register" style="margin-bottom:14px">${ic(I.plus)} Register Customer Baru</a>
+    <div class="sec">${list.length} Outlet</div>
+    ${list.length?list.map(c=>{const out=S.outstanding(c.id);
+      return `<a class="row" href="#/customer/${c.id}">
+        <span class="sq" style="background:var(--s3);color:var(--mut);font-family:var(--mono);font-size:10px">${esc(c.code)}</span>
+        <span class="in"><b>${esc(c.name)}</b><span>${esc(c.pic)} · ${esc(c.dist)}</span></span>
+        <span class="rt"><b style="color:${out>0?"var(--red)":"var(--green)"}">${out>0?RM(out):"Clear"}</b>
+        <span class="chip ${TERM[c.term].k}" style="margin-top:3px">${TERM[c.term].t}</span></span></a>`}).join("")
+      :`<div class="empty"><b>Tiada padanan</b>Cuba kod atau nama lain.</div>`}
+  </div>`,"cust",bar("Senarai Outlet",CUSTOMERS.length+" customer"));
+}
+
+function vCustomer(id){
+  const c=cust(id); if(!c) return vCustomers();
+  const out=S.outstanding(id), tot=S.totalSales(id), open=S.openConsign(id);
+  const cmds=[["Order",I.cart,"var(--blue)","var(--blue-lo)","#/order/"+id],
+    ["DO",I.truck,"var(--violet)","var(--violet-lo)","#/docs/"+id+"/DO"],
+    ["SO",I.doc,"var(--blue)","var(--blue-lo)","#/docs/"+id+"/SO"],
+    ["Invoice",I.doc,"var(--amber)","var(--amber-lo)","#/docs/"+id+"/INV"],
+    ["Payment",I.cash,"var(--green)","var(--green-lo)","#/payment/"+id],
+    ["Return",I.ret,"var(--red)","var(--red-lo)","#/return/"+id],
+    ["Navigate",I.pin,"var(--mut)","var(--s3)","#/nav/"+id],
+    ["WhatsApp",I.wa,"var(--green)","var(--green-lo)","#/wa/"+id]];
+  const hist=S.histOf(id), tabs=["All","Order","DO","SO","Invoice","Receipt","Return"];
+  const hf=hist.filter(h=>ST.histTab==="All"||h.t===ST.histTab);
+  return shell(`
+    <div class="cp">
+      <div class="cc">${esc(c.code)}</div><h2>${esc(c.name)}</h2>
+      <div class="meta">${esc(c.pic)} · ${esc(c.phone)}<br>${esc(c.addr)}, ${esc(c.pos)} ${esc(c.dist)}<br>
+        SSM ${esc(c.ssm)} · ${esc(c.type)}<br>📍 ${c.lat}, ${c.lng}</div>
+      <div class="kpi">
+        <div><div class="l">Payment Term</div><div class="v">${TERM[c.term].t}${c.term!=="cash"?" · "+c.months+" bulan":""}</div></div>
+        <div><div class="l">Status</div><div class="v">${esc(c.status)}</div></div>
+        <div><div class="l">Total Sales</div><div class="v">${RM(tot)}</div></div>
+        <div><div class="l">Outstanding</div><div class="v">${RM(out)}</div></div>
+      </div>
+    </div>
+    <div class="pad">
+      ${c.term==="consign"&&open.length?`<div class="warn" style="margin-bottom:13px"><b>${open.length} consignment stock belum di-check.</b>
+        Masukkan baki stock untuk kira barang terjual dan generate bill.</div>
+        <a class="btn btn-p btn-w" href="#/consign/${id}" style="margin-bottom:14px">${ic(I.box)} Update Baki Stock Consignment</a>`:""}
+      ${c.term==="consign"&&!open.length?`<a class="btn btn-w" href="#/consign/${id}" style="margin-bottom:14px">${ic(I.box)} Hantar Stock Consignment</a>`:""}
+      <div class="sec">Quick Action</div>
+      <div class="cmd">${cmds.map(([l,p,col,bg,h])=>`<a href="${h}"><span class="ic" style="background:${bg}">${ic(p,col)}</span>${l}</a>`).join("")}</div>
+      <div class="sec">Customer History</div>
+      <div class="tabs">${tabs.map(t=>`<button data-a="hist" data-v="${t}" class="${ST.histTab===t?"on":""}">${t}</button>`).join("")}</div>
+      ${hf.length?hf.slice(0,25).map(h=>`<a class="row" href="#/doc/${h.t}/${h.id}">
+        <span class="sq" style="background:var(--s3);font-size:9px;font-family:var(--mono);color:var(--mut)">${h.t.slice(0,3).toUpperCase()}</span>
+        <span class="in"><b class="mono" style="font-size:12px">${h.id}</b><span>${fd(h.d)}</span></span>
+        <span class="rt"><b>${h.amt?RM(h.amt):"—"}</b><span class="chip ${h.k}">${h.t}</span></span></a>`).join("")
+        :`<div class="empty"><b>Tiada rekod</b>Belum ada transaksi ${esc(ST.histTab)}.</div>`}
+    </div>`,"cust",bar("Customer Profile",c.code,"#/customers"));
+}
+
+function vRegister(){
+  const code="C"+String(CUSTOMERS.length+1).padStart(4,"0");
+  return shell(`<div class="pad">
+    <div class="note" style="margin-bottom:14px"><b>Customer Code auto-generate.</b> 1 kod = 1 customer. Sistem semak duplicate dan guna kod ini dalam semua transaksi &amp; history.</div>
+    <div class="f"><label>Customer Code</label><input value="${code}" readonly style="font-family:var(--mono);background:var(--s3)"><div class="hint">Dijana automatik · tidak boleh diubah</div></div>
+    <div class="f"><label>Nama Outlet *</label><input id="rn" placeholder="Kedai / Mini Market / Borong"></div>
+    <div class="f2"><div class="f"><label>Nama PIC *</label><input id="rp" placeholder="Pemilik"></div>
+      <div class="f"><label>Jenis Outlet</label><select id="rt"><option>Kedai Runcit</option><option>Mini Market</option><option>Supermarket</option><option>Borong</option></select></div></div>
+    <div class="f2"><div class="f"><label>No. Telefon *</label><input id="rph" placeholder="01x-xxx xxxx"></div>
+      <div class="f"><label>No. WhatsApp</label><input id="rw" placeholder="01x-xxx xxxx"></div></div>
+    <div class="f"><label>Alamat Penuh *</label><textarea id="ra" rows="2" placeholder="No, Jalan, Taman"></textarea></div>
+    <div class="f2"><div class="f"><label>Poskod</label><input id="rpo" placeholder="40150"></div>
+      <div class="f"><label>Daerah</label><input id="rd" placeholder="Shah Alam"></div></div>
+    <div class="f2"><div class="f"><label>Negeri</label><select id="rs"><option>Selangor</option><option>Kuala Lumpur</option><option>Johor</option><option>Penang</option><option>Perak</option><option>Negeri Sembilan</option></select></div>
+      <div class="f"><label>No. SSM</label><input id="rssm" placeholder="2023010xxxxx"></div></div>
+    <div class="f"><label>Payment Term *</label>
+      <select id="rterm"><option value="cash">💵 Cash — bayar terus</option><option value="biltobil">📝 Bil to Bil — bil ikut order</option><option value="consign">📦 Consignment — bill barang terjual</option></select>
+      <div class="hint">Menentukan flow transaksi customer ini sepanjang hayat akaun.</div></div>
+    <div class="f"><label>GPS Location</label>
+      <div style="display:flex;gap:9px"><input id="rlat" placeholder="Latitude" value="3.0${bt(10000,99999)}" style="font-family:var(--mono);font-size:12px">
+      <input id="rlng" placeholder="Longitude" value="101.${bt(10000,99999)}" style="font-family:var(--mono);font-size:12px"></div>
+      <div class="hint">Disimpan kekal dalam profile supaya salesman lain mudah cari outlet.</div></div>
+    <div class="f"><label>Gambar Outlet</label>
+      <div style="border:2px dashed var(--line2);border-radius:var(--r);padding:22px;text-align:center;color:var(--dim);font-size:12.5px">📷 Tap untuk ambil gambar</div></div>
+    <button class="btn btn-p btn-w" data-a="save-cust">Simpan Customer</button>
+  </div>`,"cust",bar("Register Customer","Outlet baru","#/customers"));
+}
+
+function vJadual(){
+  return shell(`<div class="pad">
+    <div class="f"><label>Tarikh</label><input type="date" value="2026-08-24"></div>
+    <div class="note" style="margin-bottom:13px">Senarai kedai yang akan dilawati hari ini. Susun ikut turutan perjalanan.</div>
+    <div class="sec">${DB.schedule.length} Kedai<a class="mo" href="#/customers">+ Tambah</a></div>
+    ${DB.schedule.map((s,i)=>{const c=cust(s.customerId);
+      return `<div class="row" style="align-items:flex-start">
+        <span class="sq" style="background:var(--blue-lo);color:var(--blue)">${i+1}</span>
+        <span class="in"><b>${esc(c.name)}</b><span>${esc(c.code)} · ${esc(c.addr)}</span>
+          ${s.remark?`<span style="color:var(--amber);font-weight:700;margin-top:3px">⚑ ${esc(s.remark)}</span>`:""}
+          <span style="display:flex;gap:6px;margin-top:8px">
+            <a class="chip k-blue" href="#/nav/${c.id}">📍 Navigate</a>
+            <a class="chip k-grn" href="#/wa/${c.id}">💬 WhatsApp</a>
+            <a class="chip k-mut" href="#/customer/${c.id}">👤 Profile</a></span></span>
+      </div>`}).join("")}
+    <div class="note" style="margin-top:8px">Jadual ini <b>bukan attendance</b> dan <b>bukan visit tracking</b> — tiada status pending/completed. Ia hanya senarai perjalanan harian.</div>
+  </div>`,"jad",bar("Jadual Harian","Isnin, 24 Ogos 2026"));
+}
+
+function vOrder(cid){
+  if(!cid){
+    return shell(`<div class="pad"><div class="sec">Pilih Customer</div>
+      <div class="search">${ic(I.srch)}<input placeholder="Cari customer…" value="${esc(ST.q)}" data-a="q"></div>
+      ${CUSTOMERS.filter(c=>!ST.q||[c.code,c.name].join(" ").toLowerCase().includes(ST.q.toLowerCase())).map(c=>
+        `<a class="row" href="#/order/${c.id}"><span class="sq" style="background:var(--s3);font-family:var(--mono);font-size:10px;color:var(--mut)">${c.code}</span>
+        <span class="in"><b>${esc(c.name)}</b><span>${esc(c.dist)}</span></span>
+        <span class="chip ${TERM[c.term].k}">${TERM[c.term].t}</span></a>`).join("")}
+    </div>`,"ord",bar("New Order","Pilih customer"));
+  }
+  const c=cust(cid);
+  if(!ST.draft||ST.draft.cid!==cid) ST.draft={cid,lines:PRODUCTS.map(p=>({productId:p.id,qty:0,price:p.price,orig:p.price})),remark:""};
+  const d=ST.draft, total=d.lines.reduce((a,l)=>a+l.qty*l.price,0);
+  const any=d.lines.some(l=>l.qty>0);
+  const tweaked=d.lines.filter(l=>l.qty>0&&l.price!==l.orig);
+  return shell(`<div class="pad">
+    <div class="row" style="margin-bottom:13px"><span class="sq" style="background:var(--blue-lo);color:var(--blue);font-family:var(--mono);font-size:10px">${c.code}</span>
+      <span class="in"><b>${esc(c.name)}</b><span>${esc(c.dist)}</span></span>
+      <span class="chip ${TERM[c.term].k}">${TERM[c.term].t}</span></div>
+    ${d.lines.map(l=>{const p=prod(l.productId);
+      return `<div class="li"><span class="n"><b>${esc(p.name)}</b><span>${p.sku} · ${RM2(p.price)} · stock ${p.van}</span></span>
+        <span class="stp"><button data-a="q-" data-p="${p.id}">−</button><span class="q num">${l.qty}</span><button data-a="q+" data-p="${p.id}">+</button></span></div>
+      ${l.qty>0?`<div style="display:flex;align-items:center;gap:8px;padding:0 0 10px">
+        <span style="font-size:11px;color:var(--dim);flex:1">Harga Tweak</span>
+        <input type="text" inputmode="decimal" value="${l.price.toFixed(2)}" data-a="price" data-p="${p.id}"
+          style="width:96px;padding:6px 9px;border:1px solid ${l.price<p.floor?"var(--red)":"var(--line2)"};border-radius:7px;font-size:12.5px;font-weight:700;text-align:right">
+        <span class="num" style="width:84px;text-align:right;font-weight:800;font-size:13px">${RM2(l.qty*l.price)}</span></div>
+        ${l.price<p.floor?`<div class="warn" style="margin-bottom:9px">Harga ${RM2(l.price)} bawah floor ${RM2(p.floor)}. Perlu kelulusan manager.</div>`:""}`:""}`}).join("")}
+    <div class="tot"><span style="color:var(--mut);font-weight:700">Total</span><b class="num">${RM2(total)}</b></div>
+    ${tweaked.length?`<div class="note" style="margin-bottom:12px"><b>${tweaked.length} harga diubah.</b> Sistem simpan harga asal, harga tweak, staff, tarikh &amp; masa.</div>`:""}
+    <div class="f"><label>Remark</label><input id="orem" placeholder="Nota untuk order ini"></div>
+    <button class="btn btn-p btn-w" data-a="submit-order" data-c="${cid}" ${any?"":"disabled"}>Submit Order${any?" · "+RM2(total):""}</button>
+    <div class="note" style="margin-top:12px">Selepas submit: <b>Order → DO → SO → Invoice</b> dijana automatik dengan running number tersendiri.</div>
+  </div>`,"ord",bar("New Order",c.code,"#/customer/"+cid));
+}
+
+function vConsign(cid){
+  const c=cust(cid); if(!c) return vCustomers();
+  const open=S.openConsign(cid), done=DB.consign.filter(x=>x.customerId===cid&&x.balance!==null);
+  return shell(`<div class="pad">
+    <div class="note" style="margin-bottom:14px"><b>Consignment.</b> Stock dihantar dahulu. Customer hanya dicaj barang yang telah terjual.
+      <br>Hantar Stock → Baki Stock → Kira Terjual → Bill.</div>
+    ${open.length?`<div class="sec">Belum Check (${open.length})</div>
+      ${open.map(g=>{const p=prod(g.productId);
+        return `<div class="card" style="padding:14px;margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+            <div><b style="font-size:14px">${esc(p.name)}</b><div style="font-size:11.5px;color:var(--mut)">Hantar ${fd(g.date)} · ${RM2(g.price)}/unit</div></div>
+            <span class="chip k-vio">${g.qty} unit</span></div>
+          <div class="f" style="margin-bottom:9px"><label>Baki Stock Semasa</label>
+            <input type="number" placeholder="Kira baki di rak" data-a="bal" data-g="${g.id}" value="${g.tmp!=null?g.tmp:""}"></div>
+          ${g.tmp!=null&&g.tmp>=0&&g.tmp<=g.qty?`<div class="okbox" style="margin-bottom:10px">
+            <span>✓</span><span><b>${g.qty} − ${g.tmp} = ${g.qty-g.tmp} unit terjual</b><br>
+            Bill = ${g.qty-g.tmp} × ${RM2(g.price)} = <b>${RM2((g.qty-g.tmp)*g.price)}</b></span></div>
+            <button class="btn btn-p btn-w" data-a="gen-bill" data-g="${g.id}">Generate Bill ${RM2((g.qty-g.tmp)*g.price)}</button>`
+            :`<button class="btn btn-w" disabled>Masukkan baki stock</button>`}
+        </div>`}).join("")}`:""}
+    <div class="sec">Hantar Stock Baru</div>
+    <div class="card" style="padding:14px;margin-bottom:14px">
+      <div class="f"><label>Product</label><select id="cgp">${PRODUCTS.map(p=>`<option value="${p.id}">${esc(p.name)} — ${RM2(p.price)}</option>`).join("")}</select></div>
+      <div class="f"><label>Quantity Dihantar</label><input type="number" id="cgq" placeholder="100"></div>
+      <button class="btn btn-p btn-w" data-a="send-stock" data-c="${cid}">Hantar Stock</button>
+    </div>
+    ${done.length?`<div class="sec">Sudah Selesai (${done.length})</div>
+      ${done.slice(0,6).map(g=>{const p=prod(g.productId);
+        return `<a class="row" href="#/doc/Invoice/${g.invoiceId}"><span class="sq" style="background:var(--violet-lo);color:var(--violet)">${g.sold}</span>
+        <span class="in"><b>${esc(p.name)}</b><span>${g.qty} hantar − ${g.balance} baki · ${fds(g.checkedAt)}</span></span>
+        <span class="rt"><b>${RM(g.sold*g.price)}</b><span>terjual</span></span></a>`}).join("")}`:""}
+  </div>`,"cust",bar("Consignment Stock",c.code,"#/customer/"+cid));
+}
+
+function vDocuments(cid,kind){
+  const all=[
+    ...DB.dos.map(x=>({...x,t:"DO",amt:x.total})),
+    ...DB.sos.map(x=>({...x,t:"SO",amt:x.total})),
+    ...DB.invoices.map(x=>({...x,t:"Invoice",amt:x.total})),
+    ...DB.receipts.map(x=>({...x,t:"Receipt",amt:x.amount})),
+    ...DB.returns.map(x=>({...x,t:"Return",amt:0}))
+  ].filter(x=>!cid||x.customerId===cid).sort((a,b)=>b.date-a.date);
+  const map={DO:"DO",SO:"SO",INV:"Invoice",REC:"Receipt",RET:"Return"};
+  const active=kind?map[kind]:ST.docTab;
+  const list=all.filter(x=>active==="all"||x.t===active);
+  const tabs=[["all","All"],["DO","DO"],["SO","SO"],["Invoice","Invoice"],["Receipt","Receipt"],["Return","Return"]];
+  return shell(`<div class="pad">
+    <div class="tabs">${tabs.map(([k,l])=>`<button data-a="doctab" data-v="${k}" class="${active===k?"on":""}">${l}</button>`).join("")}</div>
+    <div class="sec">${list.length} Dokumen</div>
+    ${list.length?list.slice(0,40).map(x=>{const c=cust(x.customerId);
+      const st=x.t==="Invoice"?(x.status==="paid"?["k-grn","PAID"]:x.due<TODAY?["k-red","OVERDUE"]:["k-amb",x.status.toUpperCase()]):null;
+      return `<a class="row" href="#/doc/${x.t}/${x.id}">
+        <span class="sq" style="background:var(--s3);color:var(--mut);font-size:9px;font-family:var(--mono)">${x.t.slice(0,3).toUpperCase()}</span>
+        <span class="in"><b class="mono" style="font-size:12.5px">${x.id}</b><span>${esc(c.name)} · ${fd(x.date)}</span></span>
+        <span class="rt"><b>${x.amt?RM(x.amt):"—"}</b>${st?`<span class="chip ${st[0]}" style="margin-top:3px">${st[1]}</span>`:""}</span></a>`}).join("")
+      :`<div class="empty"><b>Tiada dokumen</b></div>`}
+  </div>`,"more",bar(cid?"Documents":"Semua Dokumen",cid?cust(cid).code:"DO · SO · Invoice · Receipt · Return",cid?"#/customer/"+cid:"#/more"));
+}
+
+/* thermal document renderer */
+function vDoc(type,id){
+  let rec,lines,title,extra="";
+  if(type==="DO"){rec=DB.dos.find(x=>x.id===id);title="DELIVERY ORDER";lines=rec&&rec.lines;}
+  else if(type==="SO"){rec=DB.sos.find(x=>x.id===id);title="SALES ORDER";lines=rec&&rec.lines;}
+  else if(type==="Invoice"){rec=DB.invoices.find(x=>x.id===id);title="INVOICE";lines=rec&&(DB.sos.find(s=>s.id===rec.soId)||{}).lines;}
+  else if(type==="Receipt"){rec=DB.receipts.find(x=>x.id===id);title="PAYMENT RECEIPT";}
+  else if(type==="Return"){rec=DB.returns.find(x=>x.id===id);title="RETURN NOTE";}
+  else if(type==="Order"){rec=DB.orders.find(x=>x.id===id);title="ORDER";lines=rec&&rec.lines;}
+  if(!rec) return vDocuments();
+  const c=cust(rec.customerId);
+  const w=ST.width;
+  let body="";
+  if(lines) body=lines.filter(l=>l.qty>0).map(l=>{const p=prod(l.productId);
+    return `<div class="r"><span style="flex:1">${esc(p.name)}<br>${l.qty} x ${RM2(l.price)}</span><b>${RM2(l.qty*l.price)}</b></div>`}).join("");
+  if(type==="Receipt"){const inv=DB.invoices.find(i=>i.id===rec.invoiceId);
+    body=`<div class="r"><span>Invoice</span><b>${inv.id}</b></div>
+      <div class="r"><span>Invoice Total</span><b>${RM2(inv.total)}</b></div>
+      <div class="r"><span>Paid (${esc(rec.method)})</span><b>${RM2(rec.amount)}</b></div>
+      <div class="r"><span>Baki</span><b>${RM2(inv.total-inv.paid)}</b></div>`;
+    extra=`<div class="st">${inv.status==="paid"?"PAID IN FULL":"PART PAYMENT"}</div>`;}
+  if(type==="Return"){const p=prod(rec.productId);
+    body=`<div class="r"><span style="flex:1">${esc(p.name)}<br>Qty ${rec.qty}</span></div>
+      <div class="r"><span>Sebab</span><b>${esc(rec.reason)}</b></div>`;}
+  const totalLine=lines?`<div class="gt"><span>TOTAL</span><span>${RM2(rec.total)}</span></div>`:"";
+  return shell(`<div class="pad">
+    <div class="wsel"><button data-a="w" data-v="58" class="${w==="58"?"on":""}">58mm</button>
+      <button data-a="w" data-v="80" class="${w==="80"?"on":""}">80mm</button></div>
+    <div class="thm w${w}">
+      <div class="hd"><b>${esc(CO.name)}</b><span>${esc(CO.addr)}<br>${esc(CO.ssm)} · ${esc(CO.phone)}</span></div>
+      <div class="sc">
+        <div class="r"><span>${title}</span><b>${rec.id}</b></div>
+        <div class="r"><span>TARIKH</span><b>${fd(rec.date)} ${ft(rec.date)}</b></div>
+        <div class="r"><span>CUSTOMER</span><b>${esc(c.code)}</b></div>
+        <div class="r"><span></span><b>${esc(c.name)}</b></div>
+        ${type==="Invoice"?`<div class="r"><span>TERM</span><b>${TERM[c.term].s}${c.months?" "+c.months+" BLN":""}</b></div>
+          <div class="r"><span>DUE</span><b>${fd(rec.due)}</b></div>`:""}
+        <div class="r"><span>SALESMAN</span><b>${esc(sm(rec.salesmanId).name)}</b></div>
+      </div>
+      <div class="sc">${body}</div>
+      ${totalLine}${extra}
+      <div class="ft">Terima kasih.<br>Dokumen dijana oleh Salesman Apps.</div>
+    </div>
+    <div class="dact">
+      <button data-a="pdf">${ic(I.pdf)}PDF</button>
+      <button data-a="wa-doc" data-id="${rec.id}" data-c="${c.id}">${ic(I.wa)}WhatsApp</button>
+      <button data-a="print">${ic(I.prn)}Print</button>
+    </div>
+    <div class="note" style="margin-top:12px">Direct print ke thermal printer <b>58mm</b> atau <b>80mm</b>. Tiada A4/A5.</div>
+    ${type==="Invoice"&&rec.status!=="paid"?`<a class="btn btn-g btn-w" style="margin-top:12px" href="#/payment/${c.id}/${rec.id}">Record Payment</a>`:""}
+  </div>`,"more",bar(title,rec.id,"#/customer/"+c.id));
+}
+
+function vPayment(cid,invId){
+  if(!cid){
+    const open=DB.invoices.filter(i=>i.status!=="paid").sort((a,b)=>a.due-b.due);
+    return shell(`<div class="pad"><div class="sec">${open.length} Invoice Belum Selesai</div>
+      ${open.slice(0,30).map(i=>{const c=cust(i.customerId),od=i.due<TODAY;
+        return `<a class="row" href="#/payment/${c.id}/${i.id}">
+          <span class="sq" style="background:${od?"var(--red-lo)":"var(--amber-lo)"};color:${od?"var(--red)":"var(--amber)"};font-size:9px;font-family:var(--mono)">INV</span>
+          <span class="in"><b>${esc(c.name)}</b><span class="mono" style="font-size:11px">${i.id} · due ${fds(i.due)}</span></span>
+          <span class="rt"><b>${RM(i.total-i.paid)}</b><span class="chip ${od?"k-red":"k-amb"}">${od?"Overdue":"Pending"}</span></span></a>`}).join("")}
+    </div>`,"more",bar("Payment","Pilih invoice","#/more"));
+  }
+  const c=cust(cid);
+  const inv=invId?DB.invoices.find(i=>i.id===invId):null;
+  if(!inv){
+    const open=S.invOf(cid).filter(i=>i.status!=="paid");
+    return shell(`<div class="pad"><div class="sec">Invoice ${esc(c.name)}</div>
+      ${open.length?open.map(i=>`<a class="row" href="#/payment/${cid}/${i.id}">
+        <span class="sq" style="background:var(--amber-lo);color:var(--amber);font-size:9px;font-family:var(--mono)">INV</span>
+        <span class="in"><b class="mono" style="font-size:12.5px">${i.id}</b><span>due ${fd(i.due)}</span></span>
+        <span class="rt"><b>${RM(i.total-i.paid)}</b></span></a>`).join("")
+        :`<div class="empty"><b>Semua sudah dibayar</b>Tiada outstanding.</div>`}
+    </div>`,"more",bar("Payment",c.code,"#/customer/"+cid));
+  }
+  const bal=inv.total-inv.paid;
+  return shell(`<div class="pad">
+    <div class="card" style="padding:15px;margin-bottom:15px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--mut)">Invoice</span><b class="mono">${inv.id}</b></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--mut)">Total</span><b>${RM2(inv.total)}</b></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--mut)">Baki</span><b style="color:var(--red)">${RM2(bal)}</b></div>
+    </div>
+    <div class="f"><label>Pay Amount</label><input type="number" id="pamt" value="${bal.toFixed(2)}" step="0.01"></div>
+    <div class="f"><label>Payment Method</label><select id="pm"><option>Cash</option><option>Bank Transfer</option><option>DuitNow QR</option><option>Cheque</option></select></div>
+    <div class="f"><label>Payment Reference</label><input id="pref" placeholder="No rujukan / cek"></div>
+    <button class="btn btn-p btn-w" data-a="pay" data-i="${inv.id}">Submit Payment</button>
+  </div>`,"more",bar("New Payment",c.code,"#/customer/"+cid));
+}
+
+function vReturn(cid){
+  if(!cid) return shell(`<div class="pad"><div class="sec">Pilih Customer</div>
+    ${CUSTOMERS.slice(0,12).map(c=>`<a class="row" href="#/return/${c.id}">
+      <span class="sq" style="background:var(--red-lo);color:var(--red);font-family:var(--mono);font-size:10px">${c.code}</span>
+      <span class="in"><b>${esc(c.name)}</b><span>${esc(c.dist)}</span></span></a>`).join("")}
+  </div>`,"more",bar("Return","Pilih customer","#/more"));
+  const c=cust(cid);
+  return shell(`<div class="pad">
+    <div class="note" style="margin-bottom:14px">Return ialah transaksi berasingan — <b>tidak melalui DO / SO / Invoice</b>. Ia update stock dan customer history.</div>
+    <div class="f"><label>Product</label><select id="rtp">${PRODUCTS.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("")}</select></div>
+    <div class="f"><label>Quantity</label><input type="number" id="rtq" placeholder="0"></div>
+    <div class="f"><label>Sebab Return</label><select id="rtr">
+      ${["Damaged","Expired","Wrong Product","Wrong Quantity","Defective","Customer Request","Other"].map(r=>`<option>${r}</option>`).join("")}</select></div>
+    <div class="f"><label>Gambar Produk</label>
+      <div style="border:2px dashed var(--line2);border-radius:var(--r);padding:20px;text-align:center;color:var(--dim);font-size:12.5px">📷 Tap untuk ambil gambar</div></div>
+    <div class="f"><label>Remark</label><input id="rtm" placeholder="Nota tambahan"></div>
+    <button class="btn btn-p btn-w" data-a="save-return" data-c="${cid}">Submit Return</button>
+  </div>`,"more",bar("New Return",c.code,"#/customer/"+cid));
+}
+
+function vStock(){
+  const low=PRODUCTS.filter(p=>p.van<p.low&&p.van>0).length, out=PRODUCTS.filter(p=>p.van===0).length;
+  return shell(`<div class="pad">
+    <div class="stats" style="margin:0 0 14px;grid-template-columns:1fr 1fr 1fr">
+      <div class="st"><div class="l">Total Item</div><div class="v num">${PRODUCTS.length}</div></div>
+      <div class="st"><div class="l">Low Stock</div><div class="v num" style="color:var(--amber)">${low}</div></div>
+      <div class="st"><div class="l">Out of Stock</div><div class="v num" style="color:var(--red)">${out}</div></div>
+    </div>
+    <div class="note" style="margin-bottom:13px">Salesman Type: <b>WITH STOCK</b>. Stock dalam van ditolak automatik setiap kali order disubmit.</div>
+    <div class="sec">Stock Dalam Van</div>
+    ${PRODUCTS.map(p=>`<div class="row"><span class="sq" style="background:${p.van===0?"var(--red-lo)":p.van<p.low?"var(--amber-lo)":"var(--green-lo)"};color:${p.van===0?"var(--red)":p.van<p.low?"var(--amber)":"var(--green)"}">${p.van}</span>
+      <span class="in"><b>${esc(p.name)}</b><span class="mono" style="font-size:11px">${p.sku} · ${RM2(p.price)}</span></span>
+      <span class="rt">${p.van===0?`<span class="chip k-red">Habis</span>`:p.van<p.low?`<span class="chip k-amb">Low</span>`:`<span class="chip k-grn">OK</span>`}</span></div>`).join("")}
+    <a class="btn btn-p btn-w" href="#/stockorder" style="margin-top:12px">${ic(I.truck)} Stock Order dari Warehouse</a>
+  </div>`,"more",bar("My Stock","Van "+ME.code,"#/more"));
+}
+function vStockOrder(){
+  return shell(`<div class="pad">
+    <div class="f"><label>Warehouse</label><select><option>Main Warehouse — Shah Alam</option><option>Branch — Klang</option></select></div>
+    <div class="f"><label>Tarikh</label><input type="date" value="2026-08-24"></div>
+    <div class="sec">Request Quantity</div>
+    ${PRODUCTS.map(p=>`<div class="li"><span class="n"><b>${esc(p.name)}</b><span>${p.sku} · van ${p.van}</span></span>
+      <span class="stp"><button data-a="so-" data-p="${p.id}">−</button><span class="q num" id="so-${p.id}">0</span><button data-a="so+" data-p="${p.id}">+</button></span></div>`).join("")}
+    <button class="btn btn-p btn-w" style="margin-top:14px" data-a="submit-so">Submit Stock Order</button>
+  </div>`,"more",bar("Stock Order","Request stock","#/stock"));
+}
+
+function vRanking(){
+  const r=ST.rankRange, rk=S.ranking(r), me=rk.findIndex(s=>s.id===ME.id);
+  const tabs=[["today","Hari Ini"],["week","Minggu Ini"],["month","Bulan Ini"],["year","Tahun Ini"],["all","All Time"]];
+  const medal=["🥇","🥈","🥉"];
+  return shell(`<div class="pad">
+    <div class="tabs">${tabs.map(([k,l])=>`<button data-a="rank" data-v="${k}" class="${r===k?"on":""}">${l}</button>`).join("")}</div>
+    <div class="note" style="margin-bottom:13px">Ranking dikira <b>real-time</b>. Setiap kali sale berlaku, kedudukan dikemaskini serta-merta.</div>
+    ${rk.map((s,i)=>`<div class="row" style="${s.id===ME.id?"border-color:var(--blue);background:var(--blue-lo)":""}">
+      <span class="sq" style="background:${i<3?"transparent":"var(--s3)"};font-size:${i<3?"19px":"13px"};color:var(--mut)">${i<3?medal[i]:i+1}</span>
+      <span class="in"><b>${esc(s.name)}${s.id===ME.id?" (Saya)":""}</b><span class="mono" style="font-size:11px">${s.code}</span></span>
+      <span class="rt"><b style="font-size:14px">${RM(s.sales)}</b></span></div>`).join("")}
+    <div class="okbox" style="margin-top:13px"><span>🏆</span><span>Kedudukan saya: <b>#${me+1}</b> daripada ${rk.length} salesman</span></div>
+  </div>`,"more",bar("Sales Ranking","Semua salesman","#/more"));
+}
+
+function vReport(){
+  const r=ST.range;
+  const days=[...Array(12)].map((_,i)=>S.salesIn("all",ME.id)?DB.invoices.filter(x=>x.salesmanId===ME.id&&dbet(x.date,TODAY)===11-i).reduce((a,x)=>a+x.total,0):0);
+  const mx=Math.max(...days,1);
+  return shell(`<div class="pad">
+    <div class="tabs">${RANGES.map(([k,l])=>`<button data-a="range" data-v="${k}" class="${r===k?"on":""}">${l}</button>`).join("")}</div>
+    <div class="stats" style="margin:0 0 14px">
+      <div class="st" style="grid-column:span 3"><div class="l">Total Sales</div><div class="v" style="font-size:24px;color:var(--blue)">${RM(S.salesIn(r,ME.id))}</div></div>
+      <div class="st"><div class="l">Order</div><div class="v num">${S.ordersIn(r,ME.id)}</div></div>
+      <div class="st"><div class="l">Unit</div><div class="v num">${S.qtyIn(r,ME.id)}</div></div>
+      <div class="st"><div class="l">Customer</div><div class="v num">${S.custIn(r,ME.id)}</div></div>
+      <div class="st" style="grid-column:span 3;display:flex;justify-content:space-between">
+        <div><div class="l">Collected</div><div class="v" style="color:var(--green)">${RM(S.paidIn(r,ME.id))}</div></div>
+        <div style="text-align:right"><div class="l">Outstanding</div><div class="v" style="color:var(--red)">${RM(S.outstanding())}</div></div></div>
+    </div>
+    <div class="card" style="padding:15px"><b style="font-size:13.5px">Trend 12 Hari</b>
+      <div class="spark">${days.map((d,i)=>`<i class="${i===11?"hi":""}" style="height:${Math.max(6,d/mx*100)}%"></i>`).join("")}</div></div>
+    <div class="sec">Filter Report</div>
+    <div class="f"><label>Salesman</label><select><option>Semua</option>${SALESMEN.map(s=>`<option>${esc(s.name)}</option>`).join("")}</select></div>
+    <div class="f2"><div class="f"><label>Kawasan</label><select><option>Semua</option><option>Selangor</option><option>Kuala Lumpur</option></select></div>
+      <div class="f"><label>Product</label><select><option>Semua</option>${PRODUCTS.map(p=>`<option>${esc(p.name)}</option>`).join("")}</select></div></div>
+  </div>`,"more",bar("My Sales Report",ME.code,"#/more"));
+}
+
+function vRefer(){
+  const ok=DB.referrals.filter(r=>r.status==="verified"), pend=DB.referrals.filter(r=>r.status==="pending");
+  const earned=ok.reduce((a,r)=>a+r.commission,0);
+  return shell(`<div class="pad">
+    <div class="hero" style="border-radius:var(--r-l);padding:18px;margin-bottom:14px;background:linear-gradient(150deg,var(--violet),#5B21B6)">
+      <div class="gr">Exclusive Rewards</div><h2 style="font-size:22px">Refer &amp; Earn</h2>
+      <div style="font-size:34px;font-weight:800;margin-top:8px">5%</div>
+      <div style="font-size:12.5px;opacity:.9">Commission setiap referral berjaya</div></div>
+    <div class="stats" style="margin:0 0 14px">
+      <div class="st"><div class="l">Total</div><div class="v num">${DB.referrals.length}</div></div>
+      <div class="st"><div class="l">Berjaya</div><div class="v num" style="color:var(--green)">${ok.length}</div></div>
+      <div class="st"><div class="l">Pending</div><div class="v num" style="color:var(--amber)">${pend.length}</div></div>
+      <div class="st" style="grid-column:span 3"><div class="l">Total Commission</div><div class="v" style="font-size:23px;color:var(--violet)">${RM2(earned)}</div></div>
+    </div>
+    <div class="card" style="padding:15px;margin-bottom:14px">
+      <div class="l" style="font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--dim);font-weight:800">Kod Referral Saya</div>
+      <div class="mono" style="font-size:23px;font-weight:700;letter-spacing:.1em;margin:7px 0;color:var(--violet)">AZ-${ME.code}-2026</div>
+      <div style="font-size:11.5px;color:var(--mut);word-break:break-all">kobis.my/r/AZ-${ME.code}-2026</div>
+      <button class="btn btn-p btn-w" style="margin-top:11px;background:var(--violet)" data-a="share-ref">${ic(I.wa)} Share ke WhatsApp</button>
+    </div>
+    <div class="sec">Referral History</div>
+    ${DB.referrals.map(r=>`<div class="row">
+      <span class="sq" style="background:${r.status==="verified"?"var(--green-lo)":"var(--amber-lo)"};color:${r.status==="verified"?"var(--green)":"var(--amber)"}">${r.status==="verified"?"✓":"…"}</span>
+      <span class="in"><b>${esc(r.name)}</b><span>${fd(r.date)}${r.value?" · transaksi "+RM(r.value):""}</span></span>
+      <span class="rt"><b style="color:${r.commission?"var(--violet)":"var(--dim)"}">${r.commission?RM2(r.commission):"—"}</b>
+        <span class="chip ${r.status==="verified"?"k-grn":"k-amb"}">${r.status}</span></span></div>`).join("")}
+  </div>`,"more",bar("Refer & Earn","5% Commission","#/more"));
+}
+
+function vMore(){
+  const items=[["Documents",I.doc,"#/documents","DO, SO, Invoice, Receipt, Return"],
+    ["Payment",I.cash,"#/payment","Rekod pembayaran invoice"],
+    ["Return",I.ret,"#/return","Barang pulangan"],
+    ["My Stock",I.box,"#/stock","Stock dalam van"],
+    ["Sales Ranking",I.rank,"#/ranking","Ranking semua salesman"],
+    ["My Sales Report",I.chart,"#/report","Report &amp; filter"],
+    ["Refer & Earn",I.gift,"#/refer","5% commission"],
+    ["Register Customer",I.plus,"#/register","Outlet baru"]];
+  return shell(`<div class="pad">
+    <div class="row" style="margin-bottom:15px"><span class="sq" style="background:var(--blue);color:#fff;font-size:14px">${ini(ME.name)}</span>
+      <span class="in"><b>${esc(ME.name)}</b><span>${ME.code} · ${esc(CO.name)}</span></span>
+      <span class="chip k-grn">WITH STOCK</span></div>
+    ${items.map(([l,p,h,d])=>`<a class="row" href="${h}">
+      <span class="sq" style="background:var(--blue-lo)">${ic(p,"var(--blue)")}</span>
+      <span class="in"><b>${l}</b><span>${d}</span></span><span style="color:var(--dim)">›</span></a>`).join("")}
+    <div class="note" style="margin-top:12px">Semua 16 modul requirement tersedia. Lihat <a href="proposal.html" style="font-weight:800;text-decoration:underline">proposal penuh</a>.</div>
+  </div>`,"more",bar("More",ME.name));
+}
+
+/* ---------- ACTIONS ---------- */
+function modal(h){$("#modal").innerHTML=`<div class="mask" data-a="close"><div class="sheet" data-stop><div class="grip"></div>${h}</div></div>`;}
+const A={
+  range(e){ST.range=e.dataset.v;render()},
+  rank(e){ST.rankRange=e.dataset.v;render()},
+  doctab(e){ST.docTab=e.dataset.v;render()},
+  hist(e){ST.histTab=e.dataset.v;render()},
+  w(e){ST.width=e.dataset.v;render()},
+  q(e){ST.q=e.value;render();const i=$('[data-a="q"]');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},
+  "q+"(e){const l=ST.draft.lines.find(x=>x.productId===e.dataset.p);l.qty++;render()},
+  "q-"(e){const l=ST.draft.lines.find(x=>x.productId===e.dataset.p);l.qty=Math.max(0,l.qty-1);render()},
+  price(e){const l=ST.draft.lines.find(x=>x.productId===e.dataset.p);const v=parseFloat(e.value);
+    if(isNaN(v)||v<=0)return; l.price=v; const raw=e.value,car=e.selectionStart; render();
+    const f=document.querySelector(`[data-a="price"][data-p="${e.dataset.p}"]`);
+    if(f){f.value=raw;f.focus();try{f.setSelectionRange(car,car)}catch(_){}}},
+  "submit-order"(e){
+    const c=cust(e.dataset.c), lines=ST.draft.lines.filter(l=>l.qty>0).map(l=>({...l}));
+    lines.forEach(l=>{const p=prod(l.productId);p.van=Math.max(0,p.van-l.qty)});
+    const {inv}=mkChain(c,TODAY,lines,ME.id,c.term==="cash");
+    ST.draft=null;
+    modal(`<h3>Order berjaya</h3><p style="color:var(--mut);font-size:13px;margin-bottom:13px">Rantaian dokumen dijana automatik.</p>
+      <div class="card" style="padding:13px;margin-bottom:13px">
+        ${[["Order",inv.orderId],["DO",inv.doId],["SO",inv.soId],["Invoice",inv.id]].map(([t,n])=>
+          `<div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--mut)">${t}</span><b class="mono" style="font-size:12.5px">${n}</b></div>`).join("")}
+        <div style="display:flex;justify-content:space-between;padding:8px 0 0;border-top:1px solid var(--line);margin-top:6px"><b>Total</b><b>${RM2(inv.total)}</b></div>
+      </div>
+      ${c.term==="cash"?`<div class="okbox" style="margin-bottom:12px"><span>✓</span><span>Cash — payment terus direkod. Receipt sudah dijana.</span></div>`
+        :`<div class="note" style="margin-bottom:12px">${TERM[c.term].t} — payment ikut term ${c.months} bulan. Due ${fd(inv.due)}.</div>`}
+      <a class="btn btn-p btn-w" href="#/doc/Invoice/${inv.id}" data-a="close">Lihat Invoice</a>`);
+  },
+  bal(e){const g=DB.consign.find(x=>x.id===e.dataset.g);const v=parseInt(e.value);
+    g.tmp=isNaN(v)?null:v; const raw=e.value; render();
+    const f=document.querySelector(`[data-a="bal"][data-g="${e.dataset.g}"]`);if(f){f.value=raw;f.focus()}},
+  "gen-bill"(e){
+    const g=DB.consign.find(x=>x.id===e.dataset.g), c=cust(g.customerId), p=prod(g.productId);
+    g.balance=g.tmp; g.sold=g.qty-g.balance; g.checkedAt=TODAY;
+    const {inv}=mkChain(c,TODAY,[{productId:p.id,qty:g.sold,price:g.price}],ME.id,false);
+    inv.kind="consign"; g.invoiceId=inv.id; delete g.tmp;
+    modal(`<h3>Bill dijana</h3>
+      <div class="card" style="padding:13px;margin:12px 0">
+        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">Stock dihantar</span><b>${g.qty} unit</b></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">Baki stock</span><b>${g.balance} unit</b></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line);margin-top:5px"><b>Terjual</b><b style="color:var(--violet)">${g.sold} unit</b></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">${g.sold} × ${RM2(g.price)}</span><b>${RM2(inv.total)}</b></div>
+      </div>
+      <div class="note" style="margin-bottom:12px">Customer dicaj <b>${RM2(inv.total)}</b> — hanya barang yang terjual, bukan ${g.qty} unit yang dihantar.</div>
+      <a class="btn btn-p btn-w" href="#/doc/Invoice/${inv.id}" data-a="close">Lihat Bill</a>`);
+  },
+  "send-stock"(e){
+    const c=cust(e.dataset.c), pid=$("#cgp").value, qty=parseInt($("#cgq").value);
+    if(!qty||qty<1) return;
+    const p=prod(pid);
+    DB.consign.push({id:"CG"+(DB.consign.length+1),customerId:c.id,productId:pid,qty,price:p.price,
+      date:TODAY,balance:null,checkedAt:null,sold:0,invoiceId:null,salesmanId:ME.id});
+    p.van=Math.max(0,p.van-qty);
+    modal(`<h3>Stock dihantar</h3><div class="okbox" style="margin:12px 0"><span>📦</span>
+      <span><b>${qty} unit ${esc(p.name)}</b> direkod sebagai consignment stock di ${esc(c.name)}.<br>
+      Bulan depan masukkan baki untuk kira barang terjual.</span></div>
+      <button class="btn btn-p btn-w" data-a="close">OK</button>`);
+    render();
+  },
+  pay(e){
+    const inv=DB.invoices.find(i=>i.id===e.dataset.i);
+    const amt=Math.min(parseFloat($("#pamt").value)||0,inv.total-inv.paid);
+    if(amt<=0) return;
+    const r=payInvoice(inv,amt,$("#pm").value,TODAY);
+    go("/doc/Receipt/"+r.id);
+  },
+  "save-return"(e){
+    const c=cust(e.dataset.c), pid=$("#rtp").value, qty=parseInt($("#rtq").value);
+    if(!qty||qty<1) return;
+    const r={id:nn("RET",++DB.seq.RET),customerId:c.id,productId:pid,qty,reason:$("#rtr").value,
+      date:TODAY,salesmanId:ME.id,remark:$("#rtm").value};
+    DB.returns.push(r); prod(pid).van+=qty;
+    go("/doc/Return/"+r.id);
+  },
+  "save-cust"(){
+    const n=$("#rn").value.trim();
+    if(!n){ modal(`<h3>Nama outlet diperlukan</h3><p style="color:var(--mut);font-size:13px;margin:10px 0">Sila isi nama outlet sebelum simpan.</p><button class="btn btn-p btn-w" data-a="close">OK</button>`); return; }
+    const c={id:"c"+(CUSTOMERS.length+1),code:"C"+String(CUSTOMERS.length+1).padStart(4,"0"),name:n,
+      pic:$("#rp").value||"—",phone:$("#rph").value||"—",wa:$("#rw").value||"—",addr:$("#ra").value||"—",
+      dist:$("#rd").value||"—",state:$("#rs").value,pos:$("#rpo").value||"—",ssm:$("#rssm").value||"—",
+      type:$("#rt").value,term:$("#rterm").value,months:$("#rterm").value==="cash"?0:2,
+      lat:$("#rlat").value,lng:$("#rlng").value,salesmanId:ME.id,regAt:TODAY,status:"Active"};
+    CUSTOMERS.push(c);
+    go("/customer/"+c.id);
+  },
+  "so+"(e){const el=$("#so-"+e.dataset.p);el.textContent=+el.textContent+10},
+  "so-"(e){const el=$("#so-"+e.dataset.p);el.textContent=Math.max(0,+el.textContent-10)},
+  "submit-so"(){modal(`<h3>Stock Order dihantar</h3><div class="okbox" style="margin:12px 0"><span>🚚</span>
+    <span>Request dihantar ke Main Warehouse. Status boleh disemak di My Stock.</span></div>
+    <button class="btn btn-p btn-w" data-a="close">OK</button>`)},
+  "wa-doc"(e){
+    const c=cust(e.dataset.c);
+    modal(`<h3>Hantar ke WhatsApp</h3><p style="color:var(--mut);font-size:12.5px;margin-bottom:12px">Kepada ${esc(c.pic)} · ${esc(c.wa)}</p>
+      <div style="background:#ECE5DD;border-radius:12px;padding:14px">
+        <div style="background:#D9FDD3;border-radius:9px 9px 2px 9px;padding:11px 13px;font-size:13px;line-height:1.55;margin-left:auto;max-width:88%">
+          Terima kasih ${esc(c.pic.split(" ")[0])}! Dokumen <b>${esc(e.dataset.id)}</b> untuk ${esc(c.name)}.
+          <span style="display:block;color:#027EB5;font-size:12px;margin-top:5px">kobis.my/d/${esc(e.dataset.id.toLowerCase())}.pdf</span>
+          <span style="display:block;font-size:10px;color:rgba(17,27,33,.5);text-align:right;margin-top:4px">09:41 ✓✓</span></div></div>
+      <button class="btn btn-p btn-w" style="margin-top:13px" data-a="close">Tutup</button>`);
+  },
+  pdf(){modal(`<h3>PDF dijana</h3><div class="okbox" style="margin:12px 0"><span>📄</span><span>Dokumen disimpan sebagai PDF, sedia untuk dihantar ke customer.</span></div><button class="btn btn-p btn-w" data-a="close">OK</button>`)},
+  print(){modal(`<h3>Direct Print</h3><p style="color:var(--mut);font-size:13px;margin:10px 0">Menghantar ke thermal printer <b>${ST.width}mm</b> melalui Bluetooth.</p>
+    <div class="okbox" style="margin-bottom:12px"><span>🖨️</span><span>Print job dihantar.</span></div><button class="btn btn-p btn-w" data-a="close">OK</button>`)},
+  "share-ref"(){modal(`<h3>Share Referral</h3><div style="background:#ECE5DD;border-radius:12px;padding:14px;margin:12px 0">
+    <div style="background:#D9FDD3;border-radius:9px 9px 2px 9px;padding:11px 13px;font-size:13px;max-width:90%">
+      Jom daftar outlet anda dengan ${esc(CO.name)}! Guna kod saya:
+      <b>AZ-${ME.code}-2026</b><span style="display:block;color:#027EB5;font-size:12px;margin-top:5px">kobis.my/r/AZ-${ME.code}-2026</span></div></div>
+    <button class="btn btn-p btn-w" data-a="close">Tutup</button>`)},
+  close(){$("#modal").innerHTML=""}
+};
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-a]"); if(!el) return;
+  if(el.dataset.a==="close"&&e.target.closest("[data-stop]")&&e.target.dataset.a!=="close") return;
+  if(el.tagName!=="INPUT"&&el.tagName!=="SELECT"&&el.tagName!=="TEXTAREA"){
+    // Links keep their navigation. A link may also carry data-a="close" so the
+    // sheet dismisses on the way out — preventing default there would swallow
+    // the href and strand the user on the modal.
+    if(el.tagName!=="A") e.preventDefault();
+    A[el.dataset.a]&&A[el.dataset.a](el);
+  }
+});
+document.addEventListener("input",e=>{
+  const el=e.target.closest('[data-a="price"],[data-a="q"],[data-a="bal"]');
+  if(el) A[el.dataset.a](el);
+});
+
+/* nav + wa shortcuts from profile/jadual */
+function vNav(id){const c=cust(id);
+  return shell(`<div class="pad">
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:13px">
+      <div style="height:210px;background:linear-gradient(160deg,#DCE9F7,#C5D9EE);display:grid;place-items:center;position:relative">
+        <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);background-size:26px 26px"></div>
+        <div style="position:relative;text-align:center"><div style="font-size:34px">📍</div>
+          <b style="font-size:13px">${esc(c.name)}</b></div></div>
+      <div style="padding:13px"><div class="mono" style="font-size:12px;color:var(--mut)">${c.lat}, ${c.lng}</div>
+        <div style="font-size:12.5px;margin-top:5px">${esc(c.addr)}, ${esc(c.pos)} ${esc(c.dist)}</div></div></div>
+    <a class="btn btn-p btn-w" href="https://www.google.com/maps/search/?api=1&query=${c.lat},${c.lng}" target="_blank" rel="noopener">${ic(I.pin)} Buka Google Maps</a>
+    <div class="note" style="margin-top:12px">Lokasi GPS disimpan semasa registration, jadi salesman lain boleh terus cari outlet ini.</div>
+  </div>`,"cust",bar("Navigate",c.code,"#/customer/"+id));
+}
+function vWa(id){const c=cust(id);
+  return shell(`<div class="pad">
+    <div style="background:#ECE5DD;border-radius:var(--r);padding:15px;margin-bottom:13px">
+      <div style="background:#D9FDD3;border-radius:9px 9px 2px 9px;padding:11px 13px;font-size:13px;line-height:1.55;margin-left:auto;max-width:88%">
+        Salam ${esc(c.pic.split(" ")[0])}, saya ${esc(ME.name)} dari ${esc(CO.name)}. Boleh saya singgah hari ini?
+        <span style="display:block;font-size:10px;color:rgba(17,27,33,.5);text-align:right;margin-top:4px">09:41 ✓✓</span></div></div>
+    <div class="f"><label>Mesej</label><textarea rows="3">Salam ${esc(c.pic.split(" ")[0])}, saya ${esc(ME.name)} dari ${esc(CO.name)}.</textarea></div>
+    <a class="btn btn-g btn-w" href="https://wa.me/6${c.wa.replace(/[^0-9]/g,"")}" target="_blank" rel="noopener">${ic(I.wa)} Buka WhatsApp</a>
+  </div>`,"cust",bar("WhatsApp",c.name,"#/customer/"+id));
+}
+
+/* ---------- RENDER ---------- */
+function render(){
+  const p=parts(); let h;
+  switch(p[0]){
+    case "customers": h=vCustomers(); break;
+    case "customer": h=vCustomer(p[1]); break;
+    case "register": h=vRegister(); break;
+    case "jadual": h=vJadual(); break;
+    case "order": h=vOrder(p[1]); break;
+    case "consign": h=vConsign(p[1]); break;
+    case "documents": h=vDocuments(); break;
+    case "docs": h=vDocuments(p[1],p[2]); break;
+    case "doc": h=vDoc(p[1],p[2]); break;
+    case "payment": h=vPayment(p[1],p[2]); break;
+    case "return": h=vReturn(p[1]); break;
+    case "stock": h=vStock(); break;
+    case "stockorder": h=vStockOrder(); break;
+    case "ranking": h=vRanking(); break;
+    case "report": h=vReport(); break;
+    case "refer": h=vRefer(); break;
+    case "nav": h=vNav(p[1]); break;
+    case "wa": h=vWa(p[1]); break;
+    case "more": h=vMore(); break;
+    default: h=vHome();
+  }
+  $("#app").innerHTML=h;
+  requestAnimationFrame(()=>document.querySelectorAll("[data-w]").forEach(i=>i.style.width=i.dataset.w));
+}
+render();
+</script>

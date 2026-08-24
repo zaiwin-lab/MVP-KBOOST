@@ -1,0 +1,13 @@
+# Salesman Apps — static, nothing to build.
+# Deployed from this folder as its own Netlify project, completely separate
+# from the earlier demo at the repo root.
+[build]
+  publish = "."
+  command = ""
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
