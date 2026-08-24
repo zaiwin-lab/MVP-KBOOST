@@ -1,4 +1,0 @@
-[2026-08-24T11:23:58.498Z] GET http://127.0.0.1:8921/?v=10088 → 200 (23ms, 79647B)
-[2026-08-24T11:23:58.565Z] GET https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap → pending (?ms, ?B)
-[2026-08-24T11:25:05.593Z] GET http://127.0.0.1:8921/?v=19977 → 200 (3ms, 79834B)
-[2026-08-24T11:25:05.612Z] GET https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap → pending (?ms, ?B)
