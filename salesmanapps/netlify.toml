@@ -1,13 +1,13 @@
-# Salesman Apps — static, nothing to build.
+# KOBIS Sales Portal — static, nothing to build.
 # Its own Netlify project, completely separate from the earlier demo at the
 # repo root.
 #
-# Only the three client-facing pages are published. README.md stays in the
+# Only the two client-facing pages are published. README.md stays in the
 # repository for the engineer and is never served — it documents which parts
-# of the demo are simulated, which is not something to leave at a guessable
+# of the portal are simulated, which is not something to leave at a guessable
 # URL during a pitch.
 [build]
-  command = "mkdir -p _site && cp index.html proposal.html gap.html _site/"
+  command = "mkdir -p _site && cp index.html playbook.html _site/"
   publish = "_site"
 
 [[headers]]
@@ -16,3 +16,9 @@
     X-Frame-Options = "SAMEORIGIN"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+
+# The proposal page was renamed to the playbook; keep the old link alive.
+[[redirects]]
+  from = "/proposal.html"
+  to = "/playbook.html"
+  status = 301

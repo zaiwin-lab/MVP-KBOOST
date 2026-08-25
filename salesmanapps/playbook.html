@@ -1,0 +1,619 @@
+<meta charset="utf-8">
+<title>Operations Playbook</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="KOBIS Sales Portal — Operations Playbook. What the portal changes, the three transaction models, sixteen modules, and how each role uses it effectively.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+Tamil:wght@400;700&display=swap">
+<style>
+:root{
+  --blue:#3B5BFF; --blue-d:#2743D8; --blue-lo:#EDF1FF;
+  --vio:#8B5CF6; --vio-lo:#F3EEFE;
+  --cyan:#22D3EE; --grn:#0E9F6E; --grn-lo:#E3F7EF;
+  --amb:#D97706; --amb-lo:#FDF1E1; --red:#DC2626; --red-lo:#FDECEC;
+  --ink:#0B1224; --mut:#57678A; --dim:#93A0BC;
+  --page:#F5F7FC; --card:#fff; --s2:#FAFBFE; --s3:#EFF3FA;
+  --line:#E4EAF4; --line2:#CDD8EA;
+  --ui:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --pill:100px;
+  --sh:0 1px 2px rgba(11,18,36,.05),0 6px 18px rgba(11,18,36,.06);
+  --sh3:0 24px 60px rgba(11,18,36,.18);
+  --ai:linear-gradient(115deg,#8B5CF6,#3B5BFF 45%,#22D3EE);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{background:var(--page);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.68;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body[data-lang="cn"]{font-family:"Noto Sans SC",var(--ui)}
+body[data-lang="ta"]{font-family:"Noto Sans Tamil",var(--ui)}
+h1,h2,h3,h4{line-height:1.18;letter-spacing:-.028em;font-weight:800;text-wrap:balance}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:6px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes sweep{0%{background-position:200% 50%}100%{background-position:-200% 50%}}
+@keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(3%,-4%) scale(1.08)}66%{transform:translate(-3%,3%) scale(.95)}}
+@keyframes ring{0%{transform:scale(.85);opacity:.7}100%{transform:scale(1.9);opacity:0}}
+
+/* chrome */
+.top{position:sticky;top:0;z-index:80;background:rgba(11,18,36,.74);backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(255,255,255,.1);color:#fff;display:flex;align-items:center;gap:14px;padding:0 22px;height:62px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15.5px;letter-spacing:-.02em;flex:none}
+.brand .mk{width:32px;height:32px;border-radius:9px;background:var(--ai);display:grid;place-items:center;
+  color:#fff;font-size:13px;font-weight:800;box-shadow:0 3px 12px rgba(91,92,246,.4);flex:none}
+.brand small{display:block;font-size:10px;font-weight:700;color:rgba(255,255,255,.55);letter-spacing:.06em;text-transform:uppercase;line-height:1.2}
+.tnav{display:flex;gap:3px;margin-left:12px}
+.tnav a{padding:7px 13px;border-radius:var(--pill);font-size:13px;font-weight:700;color:rgba(255,255,255,.7);white-space:nowrap}
+.tnav a:hover{background:rgba(255,255,255,.12);color:#fff}
+.tnav a.on{background:#fff;color:var(--ink)}
+.tright{margin-left:auto;display:flex;align-items:center;gap:10px;flex:none}
+.lang{display:flex;background:rgba(255,255,255,.12);border-radius:var(--pill);padding:3px;gap:2px;flex:none}
+.lang button{padding:5px 11px;border-radius:var(--pill);font-size:11.5px;font-weight:800;color:rgba(255,255,255,.7);white-space:nowrap}
+.lang button.on{background:#fff;color:var(--ink)}
+
+.hero{position:relative;background:linear-gradient(155deg,#080E1E 0%,#131C3E 42%,#1E1A46 78%,#0C1327 100%);
+  color:#fff;overflow:hidden;padding:66px 22px 78px;margin-top:-62px;padding-top:120px}
+.hero .aur{position:absolute;border-radius:50%;filter:blur(70px);pointer-events:none}
+.hero .a1{width:520px;height:520px;background:radial-gradient(circle,rgba(59,91,255,.48),transparent 66%);top:-170px;left:-110px;animation:drift 16s ease-in-out infinite}
+.hero .a2{width:460px;height:460px;background:radial-gradient(circle,rgba(139,92,246,.42),transparent 66%);top:-60px;right:-120px;animation:drift 19s ease-in-out infinite reverse}
+.hero .grid{position:absolute;inset:0;opacity:.5;
+  background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+  background-size:56px 56px;-webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000,transparent);
+  mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000,transparent)}
+.hero .in{position:relative;z-index:2;max-width:940px;margin:0 auto}
+.hero h1{font-size:clamp(31px,5vw,50px);margin:18px 0 15px}
+.hero p{font-size:clamp(15px,1.7vw,17.5px);color:rgba(255,255,255,.78);max-width:62ch}
+.hero .meta{margin-top:26px;display:flex;flex-wrap:wrap;gap:9px}
+.hero .meta span{background:rgba(255,255,255,.14);padding:6px 13px;border-radius:var(--pill);font-size:12.5px;font-weight:700}
+.ai-pill{display:inline-flex;align-items:center;gap:7px;padding:5px 13px 5px 9px;border-radius:var(--pill);
+  background:var(--ai);color:#fff;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+.dot{width:7px;height:7px;border-radius:50%;background:#fff;position:relative;flex:none}
+.dot::after{content:"";position:absolute;inset:0;border-radius:50%;background:#fff;animation:ring 1.8s ease-out infinite}
+.shine-w{background:linear-gradient(100deg,#fff 20%,#A9BEFF 38%,#7BE9FB 48%,#C6AEFF 58%,#fff 76%);
+  background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:sweep 5.5s linear infinite}
+
+.wrap{max-width:940px;margin:0 auto;padding:0 22px 80px}
+.sec{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-weight:800;margin:52px 0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px;box-shadow:var(--sh);margin-bottom:16px}
+.card h3{font-size:20px;margin-bottom:9px}
+.card p{color:var(--mut);margin-bottom:12px}
+.card p:last-child{margin-bottom:0}
+b,strong{color:var(--ink);font-weight:700}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.g2>*,.g3>*{min-width:0}
+.impact{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+.impact>*{min-width:0}
+.im{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--sh)}
+.im .v{font-size:27px;font-weight:800;letter-spacing:-.035em;background:var(--ai);-webkit-background-clip:text;background-clip:text;color:transparent}
+.im .l{font-size:12.5px;color:var(--mut);margin-top:5px;line-height:1.5}
+
+.model{border-radius:16px;padding:24px;border:1px solid;box-shadow:var(--sh)}
+.m-con{background:linear-gradient(160deg,#FAF6FF,#fff);border-color:#DCC9FA}
+.m-bil{background:linear-gradient(160deg,#F2F6FF,#fff);border-color:#C6D6FA}
+.m-cash{background:linear-gradient(160deg,#F0FBF6,#fff);border-color:#B4E5D0}
+.model .tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:4px 11px;border-radius:var(--pill);margin-bottom:11px}
+.m-con .tag{background:var(--vio-lo);color:var(--vio)}
+.m-bil .tag{background:var(--blue-lo);color:var(--blue-d)}
+.m-cash .tag{background:var(--grn-lo);color:var(--grn)}
+.model h3{font-size:19px;margin-bottom:8px}
+.model p{color:var(--mut);font-size:14px}
+.flow{font-family:var(--mono);font-size:11.5px;line-height:2;background:rgba(255,255,255,.8);border:1px solid var(--line);
+  border-radius:10px;padding:13px 15px;margin-top:13px;color:var(--mut);overflow-x:auto}
+.flow b{color:var(--ink)}
+
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:#fff;box-shadow:var(--sh)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px}
+th{text-align:left;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-weight:800;
+  padding:13px 14px;background:var(--s2);white-space:nowrap;border-bottom:1px solid var(--line)}
+td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--mut)}
+tr:last-child td{border-bottom:none}
+td b{color:var(--ink)}
+.n{font-family:var(--mono);font-size:11.5px;color:var(--dim)}
+.chip{display:inline-block;padding:3px 9px;border-radius:var(--pill);font-size:11px;font-weight:800;white-space:nowrap}
+.k-vio{background:var(--vio-lo);color:var(--vio)}
+.k-blue{background:var(--blue-lo);color:var(--blue-d)}
+.k-grn{background:var(--grn-lo);color:var(--grn)}
+.k-amb{background:var(--amb-lo);color:var(--amb)}
+
+.step{display:flex;gap:15px;padding:15px 0;border-bottom:1px solid var(--line)}
+.step:last-child{border-bottom:none}
+.step .no{width:30px;height:30px;border-radius:10px;background:var(--ink);color:#fff;display:grid;place-items:center;
+  font-weight:800;font-size:12.5px;flex:none}
+.step b{display:block;font-size:15px;margin-bottom:3px}
+.step span{font-size:13.5px;color:var(--mut)}
+.note{background:var(--blue-lo);border-left:3px solid var(--blue);border-radius:0 10px 10px 0;padding:14px 16px;font-size:14px;color:#1A3A8F;margin-bottom:16px}
+.aish{background:linear-gradient(150deg,#080E1E,#141C40 55%,#221B4A);border-radius:18px;padding:34px;color:#fff;position:relative;overflow:hidden;margin-bottom:16px}
+.aish .aur{position:absolute;width:400px;height:400px;border-radius:50%;filter:blur(66px);pointer-events:none;
+  background:radial-gradient(circle,rgba(139,92,246,.42),transparent 68%);top:-140px;right:-80px;animation:drift 15s ease-in-out infinite}
+.aish>*{position:relative;z-index:1}
+.aish h3{font-size:22px;margin:14px 0 11px}
+.aish p{color:rgba(255,255,255,.74);font-size:14.5px}
+.aish ul{list-style:none;margin-top:16px;display:flex;flex-direction:column;gap:11px}
+.aish li{display:flex;gap:11px;font-size:14px;color:rgba(255,255,255,.8)}
+.aish li i{font-style:normal;flex:none;width:24px;height:24px;border-radius:8px;background:rgba(255,255,255,.14);display:grid;place-items:center;font-size:12px}
+.aish li b{color:#fff}
+.cta{display:flex;gap:11px;flex-wrap:wrap;margin-top:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border-radius:11px;
+  font-weight:700;font-size:14px;background:#fff;border:1px solid var(--line2);color:var(--ink)}
+.btn:hover{background:var(--s2)}
+.btn-ai{background:var(--ai);color:#fff;border-color:transparent;box-shadow:0 4px 16px rgba(91,92,246,.36)}
+
+/* bubbles */
+.bub{position:fixed;bottom:22px;z-index:200;display:flex;align-items:center;gap:10px;padding:11px 17px 11px 12px;
+  border-radius:var(--pill);font-size:13px;font-weight:800;box-shadow:var(--sh3);transition:.2s cubic-bezier(.2,.8,.2,1)}
+.bub:hover{transform:translateY(-3px) scale(1.03)}
+.bub .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:14px;flex:none;position:relative}
+.bub .st{display:block;font-size:10px;font-weight:700;opacity:.72;letter-spacing:.03em;line-height:1.25}
+.bub .tx{line-height:1.2}
+.bl{left:22px;background:var(--ai);color:#fff}
+.bl .av{background:rgba(255,255,255,.2)}
+.bl .av::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(255,255,255,.5);animation:ring 2.2s ease-out infinite}
+.br{right:22px;background:#fff;color:var(--ink);border:1px solid var(--line2)}
+.br .av{background:var(--grn-lo);color:var(--grn)}
+.br .lv{width:7px;height:7px;border-radius:50%;background:var(--grn);position:absolute;right:-1px;bottom:-1px;border:2px solid #fff}
+
+/* signature */
+.sig{background:linear-gradient(155deg,#080E1E,#131C3E 60%,#0C1327);color:#fff;padding:46px 22px 30px;position:relative;overflow:hidden}
+.sig .in{position:relative;z-index:1;max-width:940px;margin:0 auto}
+.sig .bot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:12.5px;color:rgba(255,255,255,.55);
+  padding-top:22px;border-top:1px solid rgba(255,255,255,.11);margin-top:22px}
+.sig p{color:rgba(255,255,255,.64);font-size:13.5px;max-width:46ch;margin-top:12px}
+.by{display:inline-flex;align-items:center;gap:9px;font-size:13px;color:rgba(255,255,255,.62)}
+.kobis{position:relative;font-weight:800;padding:3px 2px;display:inline-block;
+  background:linear-gradient(100deg,#fff 26%,#7BE9FB 42%,#A9BEFF 50%,#C6AEFF 58%,#fff 74%);
+  background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;transition:filter .3s}
+.kobis::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1.5px;border-radius:2px;
+  background:var(--ai);transform:scaleX(0);transform-origin:left;transition:transform .34s cubic-bezier(.2,.8,.2,1)}
+.kobis:hover{animation:sweep 1.5s linear infinite;filter:drop-shadow(0 0 12px rgba(139,92,246,.75))}
+.kobis:hover::after{transform:scaleX(1)}
+.kobis .u{font-size:11px;font-weight:700;opacity:.7;margin-left:5px;font-family:var(--mono)}
+
+@media(max-width:860px){
+  .g2,.g3,.impact{grid-template-columns:1fr}
+  .tnav{display:none}
+  .top{padding:0 12px;gap:9px}
+  .brand small{display:none}
+  .lang button{padding:5px 8px;font-size:11px}
+  .bub{padding:11px;bottom:16px}
+  .bub .tx{display:none}
+  .bl{left:16px}.br{right:16px}
+  .aish{padding:24px}
+}
+@media(max-width:520px){.brand>span:not(.mk){display:none}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}html{scroll-behavior:auto}}
+@media print{.top,.bub,.sig{display:none!important}}
+</style>
+
+<header class="top">
+  <a class="brand" href="index.html"><span class="mk">K</span>
+    <span><span data-t="app">Portal Jualan KOBIS</span><small data-t="tag">Pengurusan Jualan &amp; Pengedaran</small></span></a>
+  <nav class="tnav">
+    <a href="index.html" data-t="nOverview">Utama</a>
+    <a href="index.html#/m/dash" data-t="nMgmt">Panel Pengurusan</a>
+    <a href="index.html#/s/home" data-t="nSm">Panel Salesman</a>
+    <a href="playbook.html" class="on" data-t="nPlay">Playbook</a>
+  </nav>
+  <div class="tright">
+    <div class="lang" role="group" aria-label="Language">
+      <button data-l="bm" class="on">BM</button><button data-l="en">EN</button>
+      <button data-l="cn">中文</button><button data-l="ta">தமிழ்</button>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="aur a1"></div><div class="aur a2"></div><div class="grid"></div>
+  <div class="in">
+    <span class="ai-pill"><span class="dot"></span><span data-t="kicker">Operations Playbook</span></span>
+    <h1><span class="shine-w" data-t="h1">Bagaimana portal ini mengubah cara jualan dijalankan</span></h1>
+    <p data-t="lead">Dokumen rujukan untuk KOBIS Berhad: apa yang portal ini ubah pada operasi harian, tiga model transaksi yang disokong sepenuhnya, enam belas modul yang beroperasi, dan cara setiap peranan menggunakannya dengan berkesan.</p>
+    <div class="meta">
+      <span>16 <span data-t="mMod">modul beroperasi</span></span>
+      <span>3 <span data-t="mModel">model transaksi</span></span>
+      <span>3 <span data-t="mPanel">panel akses</span></span>
+      <span>4 <span data-t="mLang">bahasa</span></span>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+
+  <h2 class="sec" data-t="sImpact">Kesan pada operasi</h2>
+  <div class="impact">
+    <div class="im"><div class="v">1</div><div class="l" data-t="i1">Satu skrin untuk setiap outlet. Customer Profile menjadi pusat arahan — semua tindakan bermula di situ.</div></div>
+    <div class="im"><div class="v">4</div><div class="l" data-t="i2">Empat dokumen dijana daripada satu order. Order, DO, SO dan Invoice tidak boleh tersasar antara satu sama lain.</div></div>
+    <div class="im"><div class="v">0</div><div class="l" data-t="i3">Sifar pengiraan manual untuk consignment. Masukkan baki, sistem kira yang terjual.</div></div>
+    <div class="im"><div class="v">24/7</div><div class="l" data-t="i4">Kedudukan jualan dan baki hutang sentiasa terkini — bukan laporan hujung bulan.</div></div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3 data-t="ccT">Konsep teras — Customer Profile ialah pusat arahan</h3>
+    <p data-t="ccP">Dalam kebanyakan sistem jualan, salesman terpaksa melompat antara menu untuk satu outlet: satu skrin untuk order, satu lagi untuk bayaran, satu lagi untuk sejarah. Portal ini menyongsangkannya. Buka outlet, dan setiap tindakan untuk outlet itu ada di hadapan mata — ambil order, semak baki consignment, rekod bayaran, rekod pulangan, buka dokumen, navigate, WhatsApp.</p>
+    <p data-t="ccP2">Kesannya mudah: salesman tidak perlu ingat di mana sesuatu berada. Dia hanya perlu ingat kedai mana dia sedang berada.</p>
+    <div class="cta" style="margin-top:16px">
+      <a class="btn btn-ai" href="index.html#/s/customer/c1" data-t="ccBtn">Buka contoh Customer Profile</a>
+    </div>
+  </div>
+
+  <h2 class="sec" id="models" data-t="sModels">Tiga model transaksi</h2>
+  <div class="note" data-t="nModels"><b>Payment Term bukan sekadar tarikh matang.</b> Setiap term menjalankan aliran transaksi yang berlainan sama sekali. Ini perbezaan paling penting dalam sistem ini.</div>
+  <div class="g3">
+    <div class="model m-con">
+      <span class="tag">📦 Consignment</span>
+      <h3 data-t="conT">Bil barang terjual sahaja</h3>
+      <p data-t="conP">Stock dihantar dahulu tanpa bil. Pada lawatan berikut, salesman kira baki di rak dan masukkan nombor itu. Sistem tolak untuk dapat jumlah terjual, dan hanya jumlah itu yang dibilkan.</p>
+      <div class="flow">
+        Hantar <b>100 unit</b><br>
+        → lawatan berikut: baki = <b>30</b><br>
+        → terjual = 100 − 30 = <b>70</b><br>
+        → Bill = 70 × RM5 = <b>RM350</b><br>
+        → Payment → Receipt
+      </div>
+    </div>
+    <div class="model m-bil">
+      <span class="tag">📝 Bil to Bil</span>
+      <h3 data-t="bilT">Setiap order jadi bil sendiri</h3>
+      <p data-t="bilP">Order menjana rantaian dokumen penuh serta-merta. Tarikh matang dikira daripada term 1, 2 atau 3 bulan yang disimpan pada outlet itu sendiri, bukan tetapan sejagat.</p>
+      <div class="flow">
+        <b>Order</b> → <b>DO</b> → <b>SO</b><br>
+        → <b>Invoice</b> + due date<br>
+        → Payment ikut term<br>
+        → Receipt
+      </div>
+    </div>
+    <div class="model m-cash">
+      <span class="tag">💵 Cash</span>
+      <h3 data-t="cashT">Order dan bayar di tempat</h3>
+      <p data-t="cashP">Aliran yang sama, tetapi bayaran direkod serta-merta. Resit keluar sebelum salesman keluar dari kedai, dan baki outlet kekal sifar.</p>
+      <div class="flow">
+        <b>Order</b> → <b>DO</b> → <b>SO</b><br>
+        → <b>Invoice</b><br>
+        → Payment terus<br>
+        → <b>Receipt</b> di tempat
+      </div>
+    </div>
+  </div>
+
+  <div class="tw" style="margin-top:16px"><table>
+    <thead><tr><th data-t="thAspect">Aspek</th><th>Consignment</th><th>Bil to Bil</th><th>Cash</th></tr></thead>
+    <tbody>
+      <tr><td><b data-t="r1">Bila dibil</b></td><td>Selepas semak baki</td><td>Semasa order</td><td>Semasa order</td></tr>
+      <tr><td><b data-t="r2">Apa yang dibil</b></td><td><span class="chip k-vio">Barang terjual</span></td><td>Semua barang dihantar</td><td>Semua barang dihantar</td></tr>
+      <tr><td><b data-t="r3">Bila dibayar</b></td><td>Selepas bil dijana</td><td>Ikut term 1/2/3 bulan</td><td><span class="chip k-grn">Serta-merta</span></td></tr>
+      <tr><td><b data-t="r4">Risiko stok</b></td><td>Pada syarikat</td><td>Pada outlet</td><td>Tiada</td></tr>
+      <tr><td><b data-t="r5">Perlu semak baki</b></td><td><span class="chip k-amb">Ya, setiap lawatan</span></td><td>Tidak</td><td>Tidak</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 class="sec" data-t="sMods">Enam belas modul</h2>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th data-t="thMod">Modul</th><th data-t="thWhat">Apa yang ia buat</th></tr></thead>
+    <tbody>
+      <tr><td class="n">01</td><td><b>Register Customer</b></td><td>Daftar outlet dengan GPS, SSM, PIC dan payment term. Data menjadi milik syarikat.</td></tr>
+      <tr><td class="n">02</td><td><b>Senarai Outlet</b></td><td>Carian pantas mengikut kod, nama, PIC, telefon atau WhatsApp.</td></tr>
+      <tr><td class="n">03</td><td><b>Customer Profile</b></td><td>Pusat arahan. Semua tindakan untuk outlet bermula di sini.</td></tr>
+      <tr><td class="n">04</td><td><b>Jadual Harian</b></td><td>Senarai kedai untuk dilawat. Bukan attendance, bukan tracking, tiada status.</td></tr>
+      <tr><td class="n">05</td><td><b>Ambil Order</b></td><td>Laraskan harga dalam had lantai. Stok van ditolak automatik.</td></tr>
+      <tr><td class="n">06</td><td><b>Delivery Order</b></td><td>DO dijana serentak dengan order.</td></tr>
+      <tr><td class="n">07</td><td><b>Sales Order</b></td><td>SO mengikut DO dan dibawa ke invois.</td></tr>
+      <tr><td class="n">08</td><td><b>Invoice</b></td><td>Tarikh matang dikira daripada payment term outlet itu.</td></tr>
+      <tr><td class="n">09</td><td><b>Payment</b></td><td>Penuh atau separa. Empat kaedah. Baki dikemas kini serta-merta.</td></tr>
+      <tr><td class="n">10</td><td><b>Receipt</b></td><td>Dijana automatik pada setiap bayaran yang direkod.</td></tr>
+      <tr><td class="n">11</td><td><b>Product &amp; Stock</b></td><td>Stok van, harga lantai dan paras minimum bagi setiap SKU.</td></tr>
+      <tr><td class="n">12</td><td><b>Return</b></td><td>Dokumen RET, stok kembali ke van, sebab direkod.</td></tr>
+      <tr><td class="n">13</td><td><b>Sales Ranking</b></td><td>Dikira semula pada setiap jualan, merentas tujuh tempoh.</td></tr>
+      <tr><td class="n">14</td><td><b>PDF · WhatsApp · Print</b></td><td>Susun atur terma 58mm dan 80mm untuk setiap dokumen.</td></tr>
+      <tr><td class="n">15</td><td><b>Running Number</b></td><td>Enam turutan berasingan. Tiada nombor diguna semula.</td></tr>
+      <tr><td class="n">16</td><td><b>Refer &amp; Earn</b></td><td>Jejak referral dengan komisen pada outlet yang disahkan.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 class="sec" data-t="sNum">Running number</h2>
+  <div class="tw"><table>
+    <thead><tr><th data-t="thDoc">Dokumen</th><th data-t="thFmt">Format</th><th data-t="thWhen">Bila dijana</th></tr></thead>
+    <tbody>
+      <tr><td><b>Order</b></td><td class="n">ORD000001</td><td>Semasa order dihantar</td></tr>
+      <tr><td><b>Delivery Order</b></td><td class="n">DO000001</td><td>Serentak dengan order</td></tr>
+      <tr><td><b>Sales Order</b></td><td class="n">SO000001</td><td>Serentak dengan DO</td></tr>
+      <tr><td><b>Invoice</b></td><td class="n">INV000001</td><td>Serentak dengan SO</td></tr>
+      <tr><td><b>Return</b></td><td class="n">RET000001</td><td>Semasa pulangan disimpan</td></tr>
+      <tr><td><b>Receipt</b></td><td class="n">REC000001</td><td>Semasa bayaran direkod</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 class="sec" data-t="sUse">Cara guna dengan berkesan</h2>
+  <div class="g2">
+    <div class="card">
+      <h3 data-t="uSmT">Salesman — rutin harian</h3>
+      <div class="step"><span class="no">1</span><span><b data-t="us1">Buka Jadual Harian</b>
+        <span data-t="us1d">Senarai kedai hari ini sudah disusun. Outlet dengan bayaran tertunggak dan consignment yang perlu disemak muncul dahulu.</span></span></div>
+      <div class="step"><span class="no">2</span><span><b data-t="us2">Buka Customer Profile di kedai</b>
+        <span data-t="us2d">Semak baki hutang dan consignment terbuka sebelum bercakap dengan pemilik kedai.</span></span></div>
+      <div class="step"><span class="no">3</span><span><b data-t="us3">Semak baki consignment dahulu</b>
+        <span data-t="us3d">Kira baki di rak, masukkan nombor. Bil untuk barang terjual keluar serta-merta.</span></span></div>
+      <div class="step"><span class="no">4</span><span><b data-t="us4">Ambil order, kemudian kutip</b>
+        <span data-t="us4d">Hantar order — empat dokumen dijana. Untuk cash, rekod bayaran sebelum keluar dari kedai.</span></span></div>
+      <div class="step"><span class="no">5</span><span><b data-t="us5">Hantar dokumen melalui WhatsApp</b>
+        <span data-t="us5d">Pemilik kedai terima salinan tanpa perlu menunggu penghantaran kertas.</span></span></div>
+    </div>
+    <div class="card">
+      <h3 data-t="uMgT">Pengurusan — rutin mingguan</h3>
+      <div class="step"><span class="no">1</span><span><b data-t="um1">Mula di Dashboard</b>
+        <span data-t="um1d">Jualan, kutipan, baki belum jelas dan tertunggak dalam satu pandangan. Tukar tempoh untuk membandingkan.</span></span></div>
+      <div class="step"><span class="no">2</span><span><b data-t="um2">Baca briefing AI</b>
+        <span data-t="um2d">Satu perenggan yang dikira daripada data yang sama — siapa mendahului, berapa tertunggak, berapa consignment tergantung.</span></span></div>
+      <div class="step"><span class="no">3</span><span><b data-t="um3">Semak penuaan hutang</b>
+        <span data-t="um3d">Kutipan &amp; Hutang memecahkan baki kepada 0–30, 31–60, 61–90 dan 90+ hari.</span></span></div>
+      <div class="step"><span class="no">4</span><span><b data-t="um4">Bandingkan pasukan</b>
+        <span data-t="um4d">Prestasi Pasukan menunjukkan jualan, order, kutipan dan purata order setiap salesman.</span></span></div>
+      <div class="step"><span class="no">5</span><span><b data-t="um5">Tindak pada outlet yang senyap</b>
+        <span data-t="um5d">Pusat AI menyenaraikan outlet yang berhenti memesan berbanding irama mereka sendiri.</span></span></div>
+    </div>
+  </div>
+
+  <h2 class="sec" data-t="sAI">Lapisan AI</h2>
+  <div class="aish">
+    <div class="aur"></div>
+    <span class="ai-pill"><span class="dot"></span>AI</span>
+    <h3 data-t="aiT">Tiga kerja sebenar, bukan hiasan</h3>
+    <p data-t="aiP">Setiap bacaan AI dalam portal ini dikira daripada data transaksi yang sama yang menggerakkan setiap panel. Tiada ayat yang ditulis lebih awal — ubah data, dan bacaan berubah dengan sendirinya.</p>
+    <ul>
+      <li><i>🧭</i><span><b data-t="ai1">Susunan laluan.</b> <span data-t="ai1d">Jadual harian disusun ikut wang tertunggak, consignment yang menunggu semakan, dan nilai outlet.</span></span></li>
+      <li><i>📉</i><span><b data-t="ai2">Outlet yang senyap.</b> <span data-t="ai2d">Setiap outlet dibandingkan dengan irama pesanannya sendiri, bukan purata sejagat — kedai kecil yang memesan setiap 40 hari tidak ditanda hanya kerana ia bukan kedai besar.</span></span></li>
+      <li><i>💰</i><span><b data-t="ai3">Kelakuan bayaran.</b> <span data-t="ai3d">Purata hari sebenar dari invois ke resit bagi setiap outlet, dibaca daripada rekod bayaran, bukan anggaran.</span></span></li>
+    </ul>
+  </div>
+
+  <h2 class="sec" data-t="sPanels">Tiga panel akses</h2>
+  <div class="tw"><table>
+    <thead><tr><th data-t="thPanel">Panel</th><th data-t="thWho">Untuk siapa</th><th data-t="thSees">Apa yang dilihat</th></tr></thead>
+    <tbody>
+      <tr><td><b>Panel Pengurusan</b></td><td>Pemilik, pengarah jualan, penyelia</td><td>Dashboard, Prestasi Pasukan, Outlet, Kutipan &amp; Hutang, Stok, Dokumen, Laporan, Pusat AI</td></tr>
+      <tr><td><b>Panel Salesman</b></td><td>Salesman di lapangan</td><td>Jadual Harian, Outlet Saya, Ambil Order, Consignment, Dokumen, Stok Van, Ranking, Refer &amp; Earn</td></tr>
+      <tr><td><b>Panel Awam</b></td><td>Pelanggan, rakan niaga, calon salesman</td><td>Keupayaan sistem, tiga model transaksi, lapisan AI — tanpa log masuk</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 class="sec" data-t="sNext">Langkah seterusnya</h2>
+  <div class="card">
+    <h3 data-t="nxT">Portal dahulu, aplikasi kemudian</h3>
+    <p data-t="nxP">Pusingan ini disiapkan sebagai portal web supaya susun atur penuh boleh dilihat dan dipersetujui pada skrin besar. Semua logik — rantaian dokumen, pengiraan consignment, penuaan hutang, ranking — sudah beroperasi. Versi aplikasi mudah alih akan menggunakan logik yang sama, dibungkus untuk skrin telefon dan penggunaan luar talian.</p>
+    <div class="cta">
+      <a class="btn btn-ai" href="index.html#/m/dash" data-t="nx1">Buka Panel Pengurusan</a>
+      <a class="btn" href="index.html#/s/home" data-t="nx2">Buka Panel Salesman</a>
+    </div>
+  </div>
+</div>
+
+<a class="bub bl" href="index.html#/m/ai"><span class="av">✦</span>
+  <span class="tx"><span data-t="bAi">Bantuan AI</span><span class="st" data-t="bAi2">24/7 · Sedia membantu</span></span></a>
+<a class="bub br" href="https://wa.me/60355218890" target="_blank" rel="noopener"><span class="av">💬<span class="lv"></span></span>
+  <span class="tx"><span data-t="bHp">Sokongan</span><span class="st" data-t="bHp2">Pasukan KOBIS</span></span></a>
+
+<footer class="sig"><div class="in">
+  <a class="brand" href="index.html"><span class="mk">K</span>
+    <span><span data-t="app2">Portal Jualan KOBIS</span><small style="color:rgba(255,255,255,.5)"><span data-t="tag2">Pengurusan Jualan &amp; Pengedaran</span></small></span></a>
+  <p data-t="fBlurb">Portal jualan dan pengedaran berasaskan web untuk pengedar runcit Malaysia. Enam belas modul, tiga model transaksi, empat bahasa.</p>
+  <div class="bot">
+    <span class="by"><span data-t="fBuilt">Dibina oleh</span>
+      <a class="kobis" href="https://www.kobisberhad.com" target="_blank" rel="noopener">KOBIS Berhad<span class="u">www.kobisberhad.com</span></a></span>
+    <span>© 2026 · <span data-t="fRights">Hak cipta terpelihara.</span></span>
+  </div>
+</div></footer>
+
+<script>
+"use strict";
+/* The playbook carries the same four-pane switch as the portal. It translates
+   the page chrome, every section heading and every lead paragraph. The tables
+   and flow diagrams stay in the language the paperwork is actually printed in,
+   because "Consignment", "DO" and "Bil to Bil" are the terms printed on the paperwork. */
+const D={
+ app:["Portal Jualan KOBIS","KOBIS Sales Portal","KOBIS 销售门户","KOBIS விற்பனை போர்டல்"],
+ tag:["Pengurusan Jualan & Pengedaran","Sales & Distribution Management","销售与分销管理","விற்பனை & விநியோக மேலாண்மை"],
+ nOverview:["Utama","Overview","总览","மேலோட்டம்"],
+ nMgmt:["Panel Pengurusan","Management Panel","管理面板","மேலாண்மை பேனல்"],
+ nSm:["Panel Salesman","Salesman Panel","业务员面板","விற்பனையாளர் பேனல்"],
+ nPlay:["Playbook","Playbook","操作手册","பிளேபுக்"],
+ kicker:["Operations Playbook","Operations Playbook","操作手册","செயல்பாட்டு பிளேபுக்"],
+ h1:["Bagaimana portal ini mengubah cara jualan dijalankan","How this portal changes the way selling is run","本门户如何改变销售的运作方式","இந்த போர்டல் விற்பனை நடத்தப்படும் விதத்தை எவ்வாறு மாற்றுகிறது"],
+ lead:["Dokumen rujukan untuk KOBIS Berhad: apa yang portal ini ubah pada operasi harian, tiga model transaksi yang disokong sepenuhnya, enam belas modul yang beroperasi, dan cara setiap peranan menggunakannya dengan berkesan.",
+       "A reference for KOBIS Berhad: what this portal changes in daily operations, the three transaction models it supports end to end, the sixteen modules that are running, and how each role uses it effectively.",
+       "KOBIS Berhad 参考文档：本门户如何改变日常运营、完整支持的三种交易模式、十六个已运行模块，以及每个角色如何高效使用。",
+       "KOBIS Berhad-க்கான குறிப்பு ஆவணம்: இந்த போர்டல் தினசரி செயல்பாடுகளில் என்ன மாற்றுகிறது, முழுமையாக ஆதரிக்கப்படும் மூன்று பரிவர்த்தனை முறைகள், இயங்கும் பதினாறு தொகுதிகள், ஒவ்வொரு பங்கும் எவ்வாறு திறம்பட பயன்படுத்துவது."],
+ mMod:["modul beroperasi","live modules","运行模块","இயங்கும் தொகுதிகள்"],
+ mModel:["model transaksi","transaction models","交易模式","பரிவர்த்தனை முறைகள்"],
+ mPanel:["panel akses","access panels","访问面板","அணுகல் பேனல்கள்"],
+ mLang:["bahasa","languages","语言","மொழிகள்"],
+ sImpact:["Kesan pada operasi","Operational impact","运营影响","செயல்பாட்டு தாக்கம்"],
+ i1:["Satu skrin untuk setiap outlet. Customer Profile menjadi pusat arahan — semua tindakan bermula di situ.",
+     "One screen per outlet. The Customer Profile is the command center — every action starts there.",
+     "每个门店一个界面。客户档案即指挥中心——所有操作从这里开始。",
+     "ஒரு கடைக்கு ஒரு திரை. வாடிக்கையாளர் சுயவிவரமே கட்டளை மையம் — அனைத்து செயல்களும் அங்கிருந்தே."],
+ i2:["Empat dokumen dijana daripada satu order. Order, DO, SO dan Invoice tidak boleh tersasar antara satu sama lain.",
+     "Four documents from one order. Order, DO, SO and Invoice can never drift apart.",
+     "一张订单生成四份单据。订单、送货单、销售单与发票永不脱节。",
+     "ஒரு ஆர்டரிலிருந்து நான்கு ஆவணங்கள். ஆர்டர், DO, SO மற்றும் விலைப்பட்டியல் ஒருபோதும் விலகாது."],
+ i3:["Sifar pengiraan manual untuk consignment. Masukkan baki, sistem kira yang terjual.",
+     "Zero manual arithmetic for consignment. Enter the balance, the system computes what sold.",
+     "寄售无需手工计算。输入余量，系统算出售出量。",
+     "அனுப்புகைக்கு கைமுறை கணக்கீடு இல்லை. மீதியை உள்ளிடுங்கள், விற்றதை அமைப்பு கணக்கிடும்."],
+ i4:["Kedudukan jualan dan baki hutang sentiasa terkini — bukan laporan hujung bulan.",
+     "Ranking and outstanding debt are always current — not a month-end report.",
+     "排名与欠款始终实时——不是月末报表。",
+     "தரவரிசையும் நிலுவைக் கடனும் எப்போதும் நடப்பு — மாத இறுதி அறிக்கை அல்ல."],
+ ccT:["Konsep teras — Customer Profile ialah pusat arahan","The core idea — the Customer Profile is the command center","核心理念——客户档案即指挥中心","மைய கருத்து — வாடிக்கையாளர் சுயவிவரமே கட்டளை மையம்"],
+ ccP:["Dalam kebanyakan sistem jualan, salesman terpaksa melompat antara menu untuk satu outlet: satu skrin untuk order, satu lagi untuk bayaran, satu lagi untuk sejarah. Portal ini menyongsangkannya. Buka outlet, dan setiap tindakan untuk outlet itu ada di hadapan mata — ambil order, semak baki consignment, rekod bayaran, rekod pulangan, buka dokumen, navigate, WhatsApp.",
+      "In most sales systems a salesman jumps between menus for a single outlet: one screen to order, another to take payment, another for history. This portal inverts that. Open the outlet, and every action for it is in front of you — take the order, check the consignment balance, record payment, record a return, open documents, navigate, WhatsApp.",
+      "在多数销售系统中，业务员要为同一门店在菜单间来回切换：下单一个界面，收款另一个，历史再一个。本门户反其道而行。打开门店，该门店的所有操作就在眼前——下单、核对寄售余量、收款、退货、查单据、导航、WhatsApp。",
+      "பெரும்பாலான விற்பனை அமைப்புகளில் ஒரு கடைக்காக விற்பனையாளர் பல மெனுக்களுக்கு இடையே தாவ வேண்டும். இந்த போர்டல் அதை மாற்றுகிறது. கடையைத் திறந்தால், அதற்கான ஒவ்வொரு செயலும் கண்முன்னே."],
+ ccP2:["Kesannya mudah: salesman tidak perlu ingat di mana sesuatu berada. Dia hanya perlu ingat kedai mana dia sedang berada.",
+       "The effect is simple: the salesman no longer has to remember where things live. He only has to remember which shop he is standing in.",
+       "效果很简单：业务员不必记住功能藏在哪里，只需记住自己身处哪家店。",
+       "விளைவு எளிது: விற்பனையாளர் எது எங்கே இருக்கிறது என நினைவில் வைக்க வேண்டியதில்லை. எந்தக் கடையில் நிற்கிறார் என்பதை மட்டும் நினைவில் வைத்தால் போதும்."],
+ ccBtn:["Buka contoh Customer Profile","Open a sample Customer Profile","打开客户档案示例","மாதிரி வாடிக்கையாளர் சுயவிவரத்தைத் திற"],
+ sModels:["Tiga model transaksi","The three transaction models","三种交易模式","மூன்று பரிவர்த்தனை முறைகள்"],
+ nModels:["<b>Payment Term bukan sekadar tarikh matang.</b> Setiap term menjalankan aliran transaksi yang berlainan sama sekali. Ini perbezaan paling penting dalam sistem ini.",
+          "<b>Payment Term is not just a due date.</b> Each term runs an entirely different transaction flow. This is the single most important distinction in the system.",
+          "<b>付款条件不只是到期日。</b>每种条件对应完全不同的交易流程。这是本系统最重要的区分。",
+          "<b>கட்டணக் காலம் என்பது வெறும் காலக்கெடு அல்ல.</b> ஒவ்வொரு காலமும் முற்றிலும் வேறுபட்ட ஓட்டத்தை இயக்குகிறது."],
+ conT:["Bil barang terjual sahaja","Bill only what actually sold","只对售出部分开单","விற்றதை மட்டும் பில் செய்"],
+ conP:["Stock dihantar dahulu tanpa bil. Pada lawatan berikut, salesman kira baki di rak dan masukkan nombor itu. Sistem tolak untuk dapat jumlah terjual, dan hanya jumlah itu yang dibilkan.",
+       "Stock is delivered first with no bill. On the next visit the salesman counts what is left on the shelf and enters it. The system subtracts to get units sold, and bills only that.",
+       "先送货不开单。下次拜访时，业务员清点货架余量并录入。系统相减得出售出量，仅对该数量开单。",
+       "முதலில் பில் இல்லாமல் பொருள் வழங்கப்படுகிறது. அடுத்த வருகையில் அலமாரியில் மீதியை எண்ணி உள்ளிடுகிறார். விற்றதை மட்டும் பில் செய்யப்படுகிறது."],
+ bilT:["Setiap order jadi bil sendiri","Every order becomes its own bill","每张订单成为独立账单","ஒவ்வொரு ஆர்டரும் தனி பில்"],
+ bilP:["Order menjana rantaian dokumen penuh serta-merta. Tarikh matang dikira daripada term 1, 2 atau 3 bulan yang disimpan pada outlet itu sendiri, bukan tetapan sejagat.",
+       "The order generates the full document chain at once. The due date comes from the 1, 2 or 3 month term stored on that outlet itself, not a global setting.",
+       "订单立即生成完整单据链。到期日来自该门店自身设定的 1/2/3 个月条件，而非全局设置。",
+       "ஆர்டர் முழு ஆவணச் சங்கிலியை உடனே உருவாக்குகிறது. காலக்கெடு அந்தக் கடையிலேயே சேமிக்கப்பட்ட 1, 2 அல்லது 3 மாத காலத்திலிருந்து வருகிறது."],
+ cashT:["Order dan bayar di tempat","Order and pay on the spot","当场下单当场付款","ஆர்டர் செய்து அங்கேயே செலுத்து"],
+ cashP:["Aliran yang sama, tetapi bayaran direkod serta-merta. Resit keluar sebelum salesman keluar dari kedai, dan baki outlet kekal sifar.",
+        "The same flow, but payment is recorded immediately. The receipt prints before the salesman leaves the shop, and the outlet's balance stays at zero.",
+        "流程相同，但立即记录付款。业务员离店前收据已出，门店余额保持为零。",
+        "அதே ஓட்டம், ஆனால் கட்டணம் உடனே பதிவு செய்யப்படுகிறது. விற்பனையாளர் கடையை விட்டு வெளியேறும் முன் ரசீது வெளியாகும்."],
+ thAspect:["Aspek","Aspect","方面","அம்சம்"],
+ r1:["Bila dibil","When billed","何时开单","எப்போது பில்"],
+ r2:["Apa yang dibil","What is billed","开单内容","என்ன பில்"],
+ r3:["Bila dibayar","When paid","何时付款","எப்போது செலுத்தல்"],
+ r4:["Risiko stok","Stock risk","库存风险","இருப்பு ஆபத்து"],
+ r5:["Perlu semak baki","Balance check needed","需核对余量","மீதி சரிபார்ப்பு தேவை"],
+ sMods:["Enam belas modul","Sixteen modules","十六个模块","பதினாறு தொகுதிகள்"],
+ thMod:["Modul","Module","模块","தொகுதி"],
+ thWhat:["Apa yang ia buat","What it does","功能说明","என்ன செய்கிறது"],
+ sNum:["Running number","Running numbers","单据流水号","இயங்கு எண்கள்"],
+ thDoc:["Dokumen","Document","单据","ஆவணம்"],
+ thFmt:["Format","Format","格式","வடிவம்"],
+ thWhen:["Bila dijana","When generated","生成时机","எப்போது உருவாக்கப்படுகிறது"],
+ sUse:["Cara guna dengan berkesan","How to use it effectively","如何高效使用","எவ்வாறு திறம்பட பயன்படுத்துவது"],
+ uSmT:["Salesman — rutin harian","Salesman — the daily routine","业务员——每日流程","விற்பனையாளர் — தினசரி நடைமுறை"],
+ uMgT:["Pengurusan — rutin mingguan","Management — the weekly routine","管理层——每周流程","மேலாண்மை — வாராந்திர நடைமுறை"],
+ sAI:["Lapisan AI","The AI layer","AI 层","AI அடுக்கு"],
+ aiT:["Tiga kerja sebenar, bukan hiasan","Three real jobs, not decoration","三项真实工作，而非装饰","மூன்று உண்மையான வேலைகள், அலங்காரம் அல்ல"],
+ aiP:["Setiap bacaan AI dalam portal ini dikira daripada data transaksi yang sama yang menggerakkan setiap panel. Tiada ayat yang ditulis lebih awal — ubah data, dan bacaan berubah dengan sendirinya.",
+      "Every AI reading in this portal is computed from the same transaction data that drives every panel. No sentence is written in advance — change the data and the reading changes with it.",
+      "本门户中的每条 AI 解读均基于驱动各面板的同一批交易数据计算得出。没有预写话术——数据一变，解读随之改变。",
+      "இந்த போர்டலில் உள்ள ஒவ்வொரு AI வாசிப்பும் அதே பரிவர்த்தனை தரவிலிருந்து கணக்கிடப்படுகிறது. முன்கூட்டியே எழுதப்பட்ட வாக்கியம் இல்லை."],
+ sPanels:["Tiga panel akses","The three access panels","三个访问面板","மூன்று அணுகல் பேனல்கள்"],
+ thPanel:["Panel","Panel","面板","பேனல்"],
+ thWho:["Untuk siapa","Who it is for","面向谁","யாருக்காக"],
+ thSees:["Apa yang dilihat","What it shows","显示内容","என்ன காட்டுகிறது"],
+ sNext:["Langkah seterusnya","What comes next","后续步骤","அடுத்த படி"],
+ nxT:["Portal dahulu, aplikasi kemudian","Portal first, app next","先门户，后应用","முதலில் போர்டல், பின் செயலி"],
+ nxP:["Pusingan ini disiapkan sebagai portal web supaya susun atur penuh boleh dilihat dan dipersetujui pada skrin besar. Semua logik — rantaian dokumen, pengiraan consignment, penuaan hutang, ranking — sudah beroperasi. Versi aplikasi mudah alih akan menggunakan logik yang sama, dibungkus untuk skrin telefon dan penggunaan luar talian.",
+      "This round is delivered as a web portal so the full layout can be seen and agreed on a large screen. All of the logic — the document chain, consignment arithmetic, debt ageing, ranking — is already running. The mobile app version will use the same logic, wrapped for a phone screen and offline use.",
+      "本轮以网页门户交付，便于在大屏上查看并确认完整布局。所有逻辑——单据链、寄售计算、账龄、排名——均已运行。移动应用版本将沿用同一套逻辑，针对手机屏幕与离线场景封装。",
+      "இந்தச் சுற்று வலை போர்டலாக வழங்கப்படுகிறது, முழு தளவமைப்பையும் பெரிய திரையில் பார்க்க முடியும். அனைத்து தர்க்கமும் ஏற்கனவே இயங்குகிறது. மொபைல் செயலி பதிப்பு அதே தர்க்கத்தைப் பயன்படுத்தும்."],
+ nx1:["Buka Panel Pengurusan","Open Management Panel","打开管理面板","மேலாண்மை பேனலைத் திற"],
+ nx2:["Buka Panel Salesman","Open Salesman Panel","打开业务员面板","விற்பனையாளர் பேனலைத் திற"],
+ bAi:["Bantuan AI","AI Help","AI 帮助","AI உதவி"],
+ bAi2:["24/7 · Sedia membantu","24/7 · Always on","24/7 · 全天候","24/7 · எப்போதும்"],
+ bHp:["Sokongan","Support","支持","ஆதரவு"],
+ bHp2:["Pasukan KOBIS","KOBIS team","KOBIS 团队","KOBIS குழு"],
+ fBuilt:["Dibina oleh","Built by","技术支持","உருவாக்கியவர்"],
+ fRights:["Hak cipta terpelihara.","All rights reserved.","版权所有。","அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை."],
+ fBlurb:["Portal jualan dan pengedaran berasaskan web untuk pengedar runcit Malaysia. Enam belas modul, tiga model transaksi, empat bahasa.",
+         "A web-based sales and distribution portal for Malaysian retail distributors. Sixteen modules, three transaction models, four languages.",
+         "面向马来西亚零售分销商的网页版销售分销门户。十六个模块、三种交易模式、四种语言。",
+         "மலேசிய சில்லறை விநியோகஸ்தர்களுக்கான வலை போர்டல். பதினாறு தொகுதிகள், மூன்று முறைகள், நான்கு மொழிகள்."]
+};
+D.app2=D.app; D.tag2=D.tag;
+/* the step lists share the same shape, so they translate from one table */
+const STEPS={
+ us1:[["Buka Jadual Harian","Open the Daily Schedule","打开每日行程","தினசரி அட்டவணையைத் திற"],
+      ["Senarai kedai hari ini sudah disusun. Outlet dengan bayaran tertunggak dan consignment yang perlu disemak muncul dahulu.",
+       "Today's shops are already ordered. Outlets with money overdue and consignment awaiting a check come first.",
+       "今日门店已排序。有逾期欠款和待核对寄售的门店排在最前。",
+       "இன்றைய கடைகள் ஏற்கனவே வரிசைப்படுத்தப்பட்டுள்ளன. தாமதமான பணம் உள்ள கடைகள் முதலில்."]],
+ us2:[["Buka Customer Profile di kedai","Open the Customer Profile at the shop","到店打开客户档案","கடையில் வாடிக்கையாளர் சுயவிவரத்தைத் திற"],
+      ["Semak baki hutang dan consignment terbuka sebelum bercakap dengan pemilik kedai.",
+       "Check outstanding debt and open consignment before you speak to the shop owner.",
+       "与店主交谈前，先查看欠款与未结寄售。",
+       "கடை உரிமையாளரிடம் பேசும் முன் நிலுவைக் கடனையும் திறந்த அனுப்புகையையும் சரிபார்க்கவும்."]],
+ us3:[["Semak baki consignment dahulu","Check the consignment balance first","先核对寄售余量","முதலில் அனுப்புகை மீதியை சரிபார்"],
+      ["Kira baki di rak, masukkan nombor. Bil untuk barang terjual keluar serta-merta.",
+       "Count what is left on the shelf and enter it. The bill for what sold comes out immediately.",
+       "清点货架余量并录入。售出部分的账单立即生成。",
+       "அலமாரியில் மீதியை எண்ணி உள்ளிடவும். விற்றதற்கான பில் உடனே வெளிவரும்."]],
+ us4:[["Ambil order, kemudian kutip","Take the order, then collect","先下单，再收款","ஆர்டர் எடு, பின் வசூலி"],
+      ["Hantar order — empat dokumen dijana. Untuk cash, rekod bayaran sebelum keluar dari kedai.",
+       "Submit the order — four documents are generated. For cash, record the payment before you leave.",
+       "提交订单——生成四份单据。现金客户请在离店前记录收款。",
+       "ஆர்டரைச் சமர்ப்பி — நான்கு ஆவணங்கள் உருவாகும். ரொக்கத்திற்கு, வெளியேறும் முன் பணத்தைப் பதிவு செய்."]],
+ us5:[["Hantar dokumen melalui WhatsApp","Send the documents by WhatsApp","通过 WhatsApp 发送单据","WhatsApp வழியாக ஆவணங்களை அனுப்பு"],
+      ["Pemilik kedai terima salinan tanpa perlu menunggu penghantaran kertas.",
+       "The shop owner gets a copy without waiting for paper to arrive.",
+       "店主无需等待纸质单据即可收到副本。",
+       "கடை உரிமையாளர் காகிதத்திற்குக் காத்திருக்காமல் நகலைப் பெறுகிறார்."]],
+ um1:[["Mula di Dashboard","Start at the Dashboard","从仪表板开始","டாஷ்போர்டில் தொடங்கு"],
+      ["Jualan, kutipan, baki belum jelas dan tertunggak dalam satu pandangan. Tukar tempoh untuk membandingkan.",
+       "Sales, collections, outstanding and overdue in one view. Switch the period to compare.",
+       "销售、回款、未结与逾期一屏尽览。切换周期即可对比。",
+       "விற்பனை, வசூல், நிலுவை மற்றும் தாமதம் ஒரே பார்வையில். ஒப்பிட காலத்தை மாற்று."]],
+ um2:[["Baca briefing AI","Read the AI briefing","阅读 AI 简报","AI சுருக்கத்தைப் படி"],
+      ["Satu perenggan yang dikira daripada data yang sama — siapa mendahului, berapa tertunggak, berapa consignment tergantung.",
+       "One paragraph computed from the same data — who is ahead, how much is overdue, how much consignment is hanging.",
+       "基于同一数据计算的一段话——谁领先、逾期多少、多少寄售悬而未决。",
+       "அதே தரவிலிருந்து கணக்கிடப்பட்ட ஒரு பத்தி — யார் முன்னிலையில், எவ்வளவு தாமதம், எவ்வளவு அனுப்புகை நிலுவையில்."]],
+ um3:[["Semak penuaan hutang","Review the debt ageing","查看账龄","கடன் வயதை மதிப்பாய்வு செய்"],
+      ["Kutipan & Hutang memecahkan baki kepada 0–30, 31–60, 61–90 dan 90+ hari.",
+       "Collections & Debt breaks the balance into 0–30, 31–60, 61–90 and 90+ days.",
+       "回款与欠款将余额拆分为 0–30、31–60、61–90 与 90+ 天。",
+       "வசூல் & கடன் மீதியை 0–30, 31–60, 61–90 மற்றும் 90+ நாட்களாகப் பிரிக்கிறது."]],
+ um4:[["Bandingkan pasukan","Compare the team","对比团队","குழுவை ஒப்பிடு"],
+      ["Prestasi Pasukan menunjukkan jualan, order, kutipan dan purata order setiap salesman.",
+       "Team Performance shows sales, orders, collections and average order for each salesman.",
+       "团队业绩展示每位业务员的销售额、订单数、回款与平均订单。",
+       "குழு செயல்திறன் ஒவ்வொரு விற்பனையாளரின் விற்பனை, ஆர்டர், வசூல் மற்றும் சராசரி ஆர்டரைக் காட்டுகிறது."]],
+ um5:[["Tindak pada outlet yang senyap","Act on the quiet outlets","跟进转淡门店","அமைதியான கடைகளில் நடவடிக்கை எடு"],
+      ["Pusat AI menyenaraikan outlet yang berhenti memesan berbanding irama mereka sendiri.",
+       "The AI Center lists outlets that stopped ordering relative to their own rhythm.",
+       "AI 中心列出相对自身节奏已停止下单的门店。",
+       "AI மையம் தங்கள் சொந்த தாளத்துடன் ஒப்பிடும்போது ஆர்டர் நிறுத்திய கடைகளைப் பட்டியலிடுகிறது."]]
+};
+const AIL={
+ ai1:[["Susunan laluan.","Route sequencing.","路线排序。","வழி வரிசைப்படுத்தல்."],
+      ["Jadual harian disusun ikut wang tertunggak, consignment yang menunggu semakan, dan nilai outlet.",
+       "The daily schedule is ordered by money overdue, consignment awaiting a check, and outlet value.",
+       "每日行程按逾期金额、待核对寄售与门店价值排序。",
+       "தினசரி அட்டவணை தாமதமான பணம், சரிபார்ப்புக்கு காத்திருக்கும் அனுப்புகை, கடை மதிப்பு வாரியாக வரிசைப்படுத்தப்படுகிறது."]],
+ ai2:[["Outlet yang senyap.","Quiet outlets.","转淡门店。","அமைதியான கடைகள்."],
+      ["Setiap outlet dibandingkan dengan irama pesanannya sendiri, bukan purata sejagat — kedai kecil yang memesan setiap 40 hari tidak ditanda hanya kerana ia bukan kedai besar.",
+       "Each outlet is compared against its own ordering rhythm, not a global average — a small shop that orders every 40 days is not flagged just for not being a big one.",
+       "每家门店与自身下单节奏对比，而非全局平均——每 40 天下单一次的小店不会仅因规模小而被预警。",
+       "ஒவ்வொரு கடையும் அதன் சொந்த ஆர்டர் தாளத்துடன் ஒப்பிடப்படுகிறது, உலகளாவிய சராசரியுடன் அல்ல."]],
+ ai3:[["Kelakuan bayaran.","Payment behaviour.","付款行为。","கட்டண நடத்தை."],
+      ["Purata hari sebenar dari invois ke resit bagi setiap outlet, dibaca daripada rekod bayaran, bukan anggaran.",
+       "The real average days from invoice to receipt for each outlet, read off the payment records, not estimated.",
+       "每家门店从开票到收据的真实平均天数，取自付款记录而非估算。",
+       "ஒவ்வொரு கடைக்கும் விலைப்பட்டியல் முதல் ரசீது வரையிலான உண்மையான சராசரி நாட்கள், கட்டணப் பதிவுகளிலிருந்து."]]
+};
+let L=(()=>{try{return localStorage.getItem("kobis.lang")||"bm"}catch(_){return "bm"}})();
+const IDX=()=>["bm","en","cn","ta"].indexOf(L)<0?0:["bm","en","cn","ta"].indexOf(L);
+function apply(){
+  const i=IDX();
+  document.body.dataset.lang=L;
+  document.querySelectorAll("[data-t]").forEach(el=>{
+    const r=D[el.dataset.t]; if(r) el.innerHTML=r[i]||r[1];
+  });
+  for(const k in STEPS){
+    const el=document.querySelector(`[data-t="${k}"]`); if(!el) continue;
+    el.textContent=STEPS[k][0][i]||STEPS[k][0][1];
+    const d=document.querySelector(`[data-t="${k}d"]`);
+    if(d) d.textContent=STEPS[k][1][i]||STEPS[k][1][1];
+  }
+  for(const k in AIL){
+    const el=document.querySelector(`[data-t="${k}"]`); if(!el) continue;
+    el.textContent=AIL[k][0][i]||AIL[k][0][1];
+    const d=document.querySelector(`[data-t="${k}d"]`);
+    if(d) d.textContent=AIL[k][1][i]||AIL[k][1][1];
+  }
+  document.querySelectorAll(".lang button").forEach(b=>b.classList.toggle("on",b.dataset.l===L));
+  document.documentElement.lang=L==="bm"?"ms":L==="cn"?"zh":L==="ta"?"ta":"en";
+}
+document.querySelectorAll(".lang button").forEach(b=>b.addEventListener("click",()=>{
+  L=b.dataset.l; try{localStorage.setItem("kobis.lang",L)}catch(_){} apply();
+}));
+apply();
+</script>
