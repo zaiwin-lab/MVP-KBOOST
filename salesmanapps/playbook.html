@@ -141,7 +141,8 @@ td b{color:var(--ink)}
 
 /* bubbles */
 .bub{position:fixed;bottom:22px;z-index:200;display:flex;align-items:center;gap:10px;padding:11px 17px 11px 12px;
-  border-radius:var(--pill);font-size:13px;font-weight:800;box-shadow:var(--sh3);transition:.2s cubic-bezier(.2,.8,.2,1)}
+  border-radius:var(--pill);font-size:13px;font-weight:800;box-shadow:var(--sh3);text-decoration:none;
+  transition:.2s cubic-bezier(.2,.8,.2,1)}
 .bub:hover{transform:translateY(-3px) scale(1.03)}
 .bub .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:14px;flex:none;position:relative}
 .bub .st{display:block;font-size:10px;font-weight:700;opacity:.72;letter-spacing:.03em;line-height:1.25}
@@ -149,9 +150,13 @@ td b{color:var(--ink)}
 .bl{left:22px;background:var(--ai);color:#fff}
 .bl .av{background:rgba(255,255,255,.2)}
 .bl .av::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(255,255,255,.5);animation:ring 2.2s ease-out infinite}
-.br{right:22px;background:#fff;color:var(--ink);border:1px solid var(--line2)}
-.br .av{background:var(--grn-lo);color:var(--grn)}
-.br .lv{width:7px;height:7px;border-radius:50%;background:var(--grn);position:absolute;right:-1px;bottom:-1px;border:2px solid #fff}
+/* WhatsApp keeps its own brand green — a visitor should recognise where the
+   button leads before reading the label. */
+.br{right:22px;background:linear-gradient(180deg,#2BD46E,#17A34A);color:#fff;
+  box-shadow:0 12px 28px -10px rgba(23,163,74,.62),var(--sh3)}
+.br .av{background:rgba(255,255,255,.22);color:#fff}
+.br .st{opacity:.8}
+.br .lv{width:7px;height:7px;border-radius:50%;background:#BBF7D0;position:absolute;right:-1px;bottom:-1px;border:2px solid #17A34A}
 
 /* signature */
 .sig{background:linear-gradient(155deg,#080E1E,#131C3E 60%,#0C1327);color:#fff;padding:46px 22px 30px;position:relative;overflow:hidden}
@@ -388,15 +393,16 @@ td b{color:var(--ink)}
 
 <a class="bub bl" href="index.html#/m/ai"><span class="av">✦</span>
   <span class="tx"><span data-t="bAi">Bantuan AI</span><span class="st" data-t="bAi2">24/7 · Sedia membantu</span></span></a>
-<a class="bub br" href="https://wa.me/60355218890" target="_blank" rel="noopener"><span class="av">💬<span class="lv"></span></span>
-  <span class="tx"><span data-t="bHp">Sokongan</span><span class="st" data-t="bHp2">Pasukan sokongan</span></span></a>
+<a class="bub br" id="wabub" href="https://wa.me/60102670177" target="_blank" rel="noopener" aria-label="WhatsApp 010-267 0177">
+  <span class="av"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.46-2.4-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.14-.14.3-.35.45-.53.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.91-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.87 1.22 3.07c.15.2 2.1 3.2 5.08 4.49.7.3 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2-1.41.25-.7.25-1.29.18-1.42-.08-.12-.28-.2-.57-.34M12.05 21.8a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26 9.89 9.89 0 0 1 16.88-6.99 9.83 9.83 0 0 1 2.89 6.99 9.89 9.89 0 0 1-9.89 9.89m8.42-18.3A11.82 11.82 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 0 0 5.69 1.45c6.55 0 11.89-5.34 11.89-11.9 0-3.17-1.24-6.15-3.48-8.41Z"/></svg><span class="lv"></span></span>
+  <span class="tx"><span data-t="bWa">WhatsApp kami</span><span class="st" data-t="bWa2">Balas pantas · 010-267 0177</span></span></a>
 
 <footer class="sig"><div class="in">
   <a class="brand" href="index.html"><span class="mk">SP</span>
     <span><span data-t="app2">Portal Jualan</span><small style="color:rgba(255,255,255,.5)"><span data-t="tag2">Pengurusan Jualan &amp; Pengedaran</span></small></span></a>
   <p data-t="fBlurb">Portal jualan dan pengedaran berasaskan web untuk pengedar runcit Malaysia. Enam belas modul, tiga model transaksi, empat bahasa.</p>
   <div class="bot">
-    <span class="by"><span data-t="fBuilt">Direka &amp; dibina oleh</span>
+    <span class="by"><span data-t="fBuilt">Direka &amp; Dibina oleh</span>
       <a class="kobis" href="https://www.kobisberhad.com" target="_blank" rel="noopener">KOBIS Berhad</a></span>
     <span>© 2026 · <span data-t="fRights">Hak cipta terpelihara.</span></span>
   </div>
@@ -508,9 +514,9 @@ const D={
  nx2:["Buka Panel Salesman","Open Salesman Panel","打开业务员面板","Buka Panel Orang Jual"],
  bAi:["Bantuan AI","AI Help","AI 帮助","Tulung AI"],
  bAi2:["24/7 · Sedia membantu","24/7 · Always on","24/7 · 全天候","24/7 · Sedia nulung"],
- bHp:["Sokongan","Support","支持","Sokongan"],
- bHp2:["Pasukan sokongan","Support team","支持团队","Pasukan sokongan"],
- fBuilt:["Direka & dibina oleh","Designed & built by","设计与开发","Direka & digaga ulih"],
+ bWa:["WhatsApp kami","WhatsApp us","WhatsApp 联系","WhatsApp kami"],
+ bWa2:["Balas pantas · 010-267 0177","Fast reply · 010-267 0177","快速回复 · 010-267 0177","Nyaut jampat · 010-267 0177"],
+ fBuilt:["Direka & Dibina oleh","Designed & Built by","设计与开发","Direka & Digaga ulih"],
  fRights:["Hak cipta terpelihara.","All rights reserved.","版权所有。","Semua hak dikemata."],
  fBlurb:["Portal jualan dan pengedaran berasaskan web untuk pengedar runcit Malaysia. Enam belas modul, tiga model transaksi, empat bahasa.",
          "A web-based sales and distribution portal for Malaysian retail distributors. Sixteen modules, three transaction models, four languages.",
@@ -588,6 +594,12 @@ const AIL={
        "每家门店从开票到收据的真实平均天数，取自付款记录而非估算。",
        "Purata hari amat ari invois ngagai resit ke genap kedai, dibacha ari rekod bayar, ukai semina dikira-kira."]]
 };
+const WA_MSG=["Hi, saya menghubungi dari {p} (salesmanapps.netlify.app). Boleh saya tahu lebih lanjut?",
+              "Hi, I'm messaging from the {p} (salesmanapps.netlify.app). Could you tell me more?",
+              "您好，我从{p} (salesmanapps.netlify.app) 联系您，想了解更多。",
+              "Hi, aku bekirum ari {p} (salesmanapps.netlify.app). Ulih aku nemu mimit agi?"];
+const WA_PAGE=["Playbook Operasi","Operations Playbook","运营手册","Playbook Operasi"];
+
 let L=(()=>{try{return localStorage.getItem("sp.lang")||"bm"}catch(_){return "bm"}})();
 const IDX=()=>["bm","en","cn","iba"].indexOf(L)<0?0:["bm","en","cn","iba"].indexOf(L);
 function apply(){
@@ -610,6 +622,12 @@ function apply(){
   }
   document.querySelectorAll(".lang button").forEach(b=>b.classList.toggle("on",b.dataset.l===L));
   document.documentElement.lang=L==="bm"?"ms":L==="cn"?"zh":L==="iba"?"iba":"en";
+
+  /* The WhatsApp bubble carries a pre-filled line naming the page it came
+     from, so an incoming message is recognisable without having to ask. */
+  const wb=document.getElementById("wabub");
+  if(wb) wb.href="https://wa.me/60102670177?text="+
+    encodeURIComponent((WA_MSG[i]||WA_MSG[1]).replace("{p}",WA_PAGE[i]||WA_PAGE[1]));
 }
 document.querySelectorAll(".lang button").forEach(b=>b.addEventListener("click",()=>{
   L=b.dataset.l; try{localStorage.setItem("sp.lang",L)}catch(_){} apply();

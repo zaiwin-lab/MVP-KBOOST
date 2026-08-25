@@ -358,9 +358,10 @@ td b{font-weight:700}
 .aic .out{margin-top:12px;padding:11px;border-radius:9px;background:rgba(0,0,0,.28);font-size:12px;line-height:1.55;
   border-left:2px solid var(--cyan);color:rgba(255,255,255,.9)}
 
-/* ---------- CORNER BUBBLES: AI HELP 24/7 ---------- */
+/* ---------- CORNER BUBBLES: AI HELP 24/7 (left) · WHATSAPP (right) ------- */
 .bub{position:fixed;bottom:22px;z-index:200;display:flex;align-items:center;gap:10px;padding:11px 17px 11px 12px;
-  border-radius:var(--pill);font-size:13px;font-weight:800;box-shadow:var(--sh3);transition:.2s cubic-bezier(.2,.8,.2,1)}
+  border-radius:var(--pill);font-size:13px;font-weight:800;box-shadow:var(--sh3);text-decoration:none;
+  transition:.2s cubic-bezier(.2,.8,.2,1)}
 .bub:hover{transform:translateY(-3px) scale(1.03)}
 .bub .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:14px;flex:none;position:relative}
 .bub .st{display:block;font-size:10px;font-weight:700;opacity:.72;letter-spacing:.03em;line-height:1.25}
@@ -368,9 +369,13 @@ td b{font-weight:700}
 .bl{left:22px;background:var(--ai);color:#fff}
 .bl .av{background:rgba(255,255,255,.2)}
 .bl .av::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(255,255,255,.5);animation:ring 2.2s ease-out infinite}
-.br{right:22px;background:#fff;color:var(--ink);border:1px solid var(--line2)}
-.br .av{background:var(--grn-lo);color:var(--grn)}
-.br .lv{width:7px;height:7px;border-radius:50%;background:var(--grn);position:absolute;right:-1px;bottom:-1px;border:2px solid #fff}
+/* WhatsApp keeps its own brand green — a visitor should recognise where the
+   button leads before reading the label. */
+.br{right:22px;background:linear-gradient(180deg,#2BD46E,#17A34A);color:#fff;
+  box-shadow:0 12px 28px -10px rgba(23,163,74,.62),var(--sh3)}
+.br .av{background:rgba(255,255,255,.22);color:#fff}
+.br .st{opacity:.8}
+.br .lv{width:7px;height:7px;border-radius:50%;background:#BBF7D0;position:absolute;right:-1px;bottom:-1px;border:2px solid #17A34A}
 @media(max-width:720px){
   .bub{padding:11px;bottom:16px}
   .bub .tx{display:none}
@@ -380,7 +385,6 @@ td b{font-weight:700}
 /* AI chat drawer */
 .chat{position:fixed;bottom:0;left:0;right:0;top:0;z-index:310;background:rgba(11,18,36,.55);backdrop-filter:blur(5px);display:grid;place-items:end start;padding:20px}
 .chat .box{width:100%;max-width:400px;height:min(600px,86vh);background:#fff;border-radius:var(--r-l);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--sh3);animation:rise .24s cubic-bezier(.2,.8,.2,1)}
-.chat.right{place-items:end}
 .chat .ch{background:linear-gradient(140deg,#0B1224,#221B4A);color:#fff;padding:16px 18px;display:flex;align-items:center;gap:11px;flex:none}
 .chat .ch .o{width:34px;height:34px;border-radius:11px;background:var(--ai);display:grid;place-items:center;font-size:15px;flex:none}
 .chat .ch b{font-size:14.5px;display:block}
@@ -605,16 +609,22 @@ const DICT={
 
  "bub.ai":        ["Bantuan AI","AI Help","AI 帮助","Tulung AI"],
  "bub.ai2":       ["24/7 · Sedia membantu","24/7 · Always on","24/7 · 全天候","24/7 · Sedia nulung"],
- "bub.hp":        ["Sokongan","Support","支持","Sokongan"],
- "bub.hp2":       ["Pasukan sokongan","Support team","支持团队","Pasukan sokongan"],
+ "bub.wa":        ["WhatsApp kami","WhatsApp us","WhatsApp 联系","WhatsApp kami"],
+ "bub.wa2":       ["Balas pantas · 010-267 0177","Fast reply · 010-267 0177","快速回复 · 010-267 0177","Nyaut jampat · 010-267 0177"],
  "chat.ph":       ["Tanya apa-apa tentang portal…","Ask anything about the portal…","询问有关门户的任何问题…","Tanya nama-nama pasal portal tu…"],
  "chat.sub":      ["Dalam talian · membalas serta-merta","Online · replies instantly","在线 · 即时回复","Online · nyaut tekala nya"],
- "hp.sub":        ["Isnin–Sabtu, 9 pagi–6 petang","Mon–Sat, 9am–6pm","周一至周六 9:00–18:00","Senin–Sabtu, 9 pagi–6 lemai"],
+
+ /* The one-liner pre-loaded into WhatsApp. It names the page the visitor came
+    from, so an incoming message is recognisable without having to ask. */
+ "wa.msg":        ["Hi, saya menghubungi dari {p} (salesmanapps.netlify.app). Boleh saya tahu lebih lanjut?",
+                   "Hi, I'm messaging from the {p} (salesmanapps.netlify.app). Could you tell me more?",
+                   "您好，我从{p} (salesmanapps.netlify.app) 联系您，想了解更多。",
+                   "Hi, aku bekirum ari {p} (salesmanapps.netlify.app). Ulih aku nemu mimit agi?"],
 
  "f.panels":      ["Panel","Panels","面板","Panel"],
  "f.modules":     ["Modul","Modules","模块","Modul"],
  "f.blurb":       ["Portal jualan dan pengedaran berasaskan web untuk pengedar runcit Malaysia. Enam belas modul, tiga model transaksi, empat bahasa.","A web-based sales and distribution portal for Malaysian retail distributors. Sixteen modules, three transaction models, four languages.","面向马来西亚零售分销商的网页版销售分销门户。十六个模块、三种交易模式、四种语言。","Portal jualan enggau pengagih berasas web ke penjual runcit Malaysia. Enam belas modul, tiga model transaksi, empat jaku."],
- "f.built":       ["Direka & dibina oleh","Designed & built by","设计与开发","Direka & digaga ulih"],
+ "f.built":       ["Direka & Dibina oleh","Designed & Built by","设计与开发","Direka & Digaga ulih"],
  "f.rights":      ["Hak cipta terpelihara.","All rights reserved.","版权所有。","Semua hak dikemata."],
  "f.demo":        ["Demo — data dijana daripada benih tetap.","Demonstration — data generated from a fixed seed.","演示版——数据由固定种子生成。","Demo — data digaga ari benih ti tetap."]
 };
@@ -622,6 +632,15 @@ let LANG=(()=>{try{return localStorage.getItem("sp.lang")||"bm"}catch(_){return 
 const LI=()=>Math.max(0,LANGS.findIndex(l=>l[0]===LANG));
 const T=k=>{const r=DICT[k];return r?r[LI()]||r[1]:k};
 function setLang(v){LANG=v;try{localStorage.setItem("sp.lang",v)}catch(_){}document.body.dataset.lang=v;render()}
+
+/* ---- WhatsApp bubble --------------------------------------------------- */
+/* One number, and a pre-filled line that names the page the visitor came from
+   so an incoming message is recognisable on arrival without having to ask. */
+const WA_NO="60102670177";
+const WA_PAGE=["demo Portal Jualan","Sales Portal demo","销售门户演示","demo Portal Jualan"];
+const waHref=()=>"https://wa.me/"+WA_NO+"?text="+
+  encodeURIComponent(T("wa.msg").replace("{p}",WA_PAGE[LI()]||WA_PAGE[1]));
+const WA_GLYPH='<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.46-2.4-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.14-.14.3-.35.45-.53.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.91-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.87 1.22 3.07c.15.2 2.1 3.2 5.08 4.49.7.3 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2-1.41.25-.7.25-1.29.18-1.42-.08-.12-.28-.2-.57-.34M12.05 21.8a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26 9.89 9.89 0 0 1 16.88-6.99 9.83 9.83 0 0 1 2.89 6.99 9.89 9.89 0 0 1-9.89 9.89m8.42-18.3A11.82 11.82 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 0 0 5.69 1.45c6.55 0 11.89-5.34 11.89-11.9 0-3.17-1.24-6.15-3.48-8.41Z"/></svg>';
 
 /* ---------- icons ---------- */
 const I={
@@ -957,10 +976,10 @@ function chrome(){
     <span class="av">✦</span>
     <span class="tx">${T("bub.ai")}<span class="st">${T("bub.ai2")}</span></span>
   </button>
-  <button class="bub br" data-a="chat" data-side="right" aria-label="${T("bub.hp")}">
-    <span class="av">💬<span class="lv"></span></span>
-    <span class="tx">${T("bub.hp")}<span class="st">${T("bub.hp2")}</span></span>
-  </button>`;
+  <a class="bub br" href="${waHref()}" target="_blank" rel="noopener" aria-label="${T("bub.wa")} 010-267 0177">
+    <span class="av">${WA_GLYPH}<span class="lv"></span></span>
+    <span class="tx">${T("bub.wa")}<span class="st">${T("bub.wa2")}</span></span>
+  </a>`;
 }
 function footer(){
   return `<footer class="sig"><div class="aur"></div><div class="in">
@@ -2206,39 +2225,24 @@ function aiAnswer(q){
 }
 function chatDrawer(){
   if(!ST.chat) return "";
-  const ai=ST.chat==="left";
-  const body = ai
-    ? `<div class="bd" id="cbd">
+  /* Only the left bubble opens a drawer now — the right one hands the visitor
+     straight to WhatsApp rather than to a second panel of canned answers. */
+  return `<div class="chat" data-a="closechat">
+    <div class="box" data-stop>
+      <div class="ch">
+        <span class="o">✦</span>
+        <span style="flex:1;min-width:0"><b>${T("bub.ai")}</b>
+          <span><span class="dot" style="color:#4ADE80"></span>${T("chat.sub")}</span></span>
+        <button class="x" data-a="closechat" aria-label="Close">×</button>
+      </div>
+      <div class="bd" id="cbd">
         ${ST.chatLog.map(m=>`<div class="msg ${m.u?"u":"a"}">${m.u?esc(m.t):m.t}</div>`).join("")}
       </div>
       <div class="qk">${CHIPS.map(([t])=>`<button data-a="ask" data-q="${esc(t)}">${esc(t)}</button>`).join("")}</div>
       <form class="fo" data-a="send">
         <input id="cin" placeholder="${T("chat.ph")}" autocomplete="off">
         <button type="submit" aria-label="Send">${ic(I.send,"#fff")}</button>
-      </form>`
-    : `<div class="bd">
-        <div class="msg a"><b>${T("bub.hp2")}</b><br>${T("hp.sub")}. Kami balas dalam masa satu hari bekerja.</div>
-        <div class="msg a" style="max-width:100%">
-          <b>Hubungi kami</b><br>
-          📞 ${esc(CO.phone)}<br>
-          📍 ${esc(CO.addr)}
-        </div>
-        <div class="msg a" style="max-width:100%"><b>Topik biasa</b><br>
-          · Menambah salesman dan outlet baru<br>
-          · Menetapkan payment term per outlet<br>
-          · Menyambung printer terma 58mm / 80mm<br>
-          · Mengeksport laporan bulanan</div>
-      </div>
-      <div class="fo"><a class="btn btn-g btn-w" href="https://wa.me/60355218890" target="_blank" rel="noopener">${ic(I.wa)} WhatsApp</a></div>`;
-  return `<div class="chat ${ai?"":"right"}" data-a="closechat">
-    <div class="box" data-stop>
-      <div class="ch">
-        <span class="o">${ai?"✦":"💬"}</span>
-        <span style="flex:1;min-width:0"><b>${ai?T("bub.ai"):T("bub.hp")}</b>
-          <span>${ai?`<span class="dot" style="color:#4ADE80"></span>${T("chat.sub")}`:T("hp.sub")}</span></span>
-        <button class="x" data-a="closechat" aria-label="Close">×</button>
-      </div>
-      ${body}
+      </form>
     </div></div>`;
 }
 

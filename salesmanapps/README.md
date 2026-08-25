@@ -38,9 +38,13 @@ Every panel reads the same data. Nothing is duplicated between them.
    switch is in the top bar of every page, persists in `localStorage` under
    `sp.lang`, and carries across from the portal to the playbook.
 2. **Corner bubbles** — bottom-left **AI Help 24/7** opens an assistant that
-   answers from live data; bottom-right **Support** carries the operating
-   company's contact details and common topics.
-3. **Signature footer** — one line, `Designed & built by KOBIS Berhad`, set
+   answers from live data; bottom-right is **WhatsApp**, in the platform's own
+   green, going straight to `010-267 0177` with no drawer in between. It
+   pre-fills a one-line message naming the page the visitor came from, so an
+   incoming enquiry is recognisable on arrival without having to ask. The
+   portal sends "Sales Portal demo", the playbook sends "Operations Playbook",
+   and the line itself follows the selected language.
+3. **Signature footer** — one line, `Designed & Built by KOBIS Berhad`, set
    small and letterspaced so it reads as a signature rather than a second
    logo. The name links to kobisberhad.com and the gradient shine, glow and
    underline sweep run on hover.
