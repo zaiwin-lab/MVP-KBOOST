@@ -1,13 +1,13 @@
 <meta charset="utf-8">
-<title>KOBIS Sales Portal</title>
+<title>Sales Portal</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Web-based Retail Sales &amp; Distribution Portal — Management Panel, Salesman Panel and Public Panel. 16 modules, 3 transaction models, AI-assisted.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+Tamil:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+SC:wght@400;700&display=swap">
 <style>
 /* ==========================================================================
-   KOBIS SALES PORTAL — web-based, three access panels.
+   SALES PORTAL — web-based, three access panels.
    Public / Management / Salesman. 16 modules, 3 transaction models.
    ========================================================================== */
 :root{
@@ -33,7 +33,6 @@
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
 body{background:var(--page);color:var(--ink);font-family:var(--ui);font-size:14.5px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 body[data-lang="cn"]{font-family:"Noto Sans SC",var(--ui)}
-body[data-lang="ta"]{font-family:"Noto Sans Tamil",var(--ui)}
 h1,h2,h3,h4{line-height:1.18;letter-spacing:-.025em;font-weight:800;text-wrap:balance}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer;border:none;background:none}
@@ -405,7 +404,7 @@ td b{font-weight:700}
 .sig .aur{position:absolute;width:520px;height:520px;border-radius:50%;filter:blur(80px);pointer-events:none;
   background:radial-gradient(circle,rgba(59,91,255,.28),transparent 68%);bottom:-300px;left:50%;transform:translateX(-50%)}
 .sig .in{position:relative;z-index:1;max-width:1120px;margin:0 auto}
-.sig .cols{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:34px;padding-bottom:32px;border-bottom:1px solid rgba(255,255,255,.11)}
+.sig .cols{display:grid;grid-template-columns:1.9fr 1fr 1fr;gap:34px;padding-bottom:32px;border-bottom:1px solid rgba(255,255,255,.11)}
 .sig h4{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.48);margin-bottom:13px;font-weight:800}
 .sig a.l{display:block;font-size:13px;color:rgba(255,255,255,.74);padding:4px 0;transition:.15s}
 .sig a.l:hover{color:#fff;transform:translateX(3px)}
@@ -414,16 +413,18 @@ td b{font-weight:700}
 .sig .bot .rt{margin-left:auto;display:flex;align-items:center;gap:8px}
 
 /* the signature line — KOBIS gets the shine on hover */
-.by{display:inline-flex;align-items:center;gap:9px;font-size:13px;color:rgba(255,255,255,.62)}
-.by .sep{width:1px;height:15px;background:rgba(255,255,255,.2)}
-.kobis{position:relative;font-weight:800;color:#fff;padding:3px 2px;display:inline-block;
-  background:linear-gradient(100deg,#fff 26%,#7BE9FB 42%,#A9BEFF 50%,#C6AEFF 58%,#fff 74%);
+/* The maker's credit. Understated by default — small, letterspaced, low
+   contrast — so it reads as a signature rather than a second logo. The shine
+   only wakes on hover. */
+.by{display:inline-flex;align-items:baseline;gap:7px;font-size:11.5px;
+  letter-spacing:.055em;color:rgba(255,255,255,.4);font-weight:500}
+.kobis{position:relative;font-weight:700;font-size:12px;letter-spacing:.045em;padding:2px 1px;display:inline-block;
+  background:linear-gradient(100deg,rgba(255,255,255,.82) 26%,#7BE9FB 42%,#A9BEFF 50%,#C6AEFF 58%,rgba(255,255,255,.82) 74%);
   background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;transition:filter .3s}
 .kobis::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1.5px;border-radius:2px;
   background:var(--ai);transform:scaleX(0);transform-origin:left;transition:transform .34s cubic-bezier(.2,.8,.2,1)}
 .kobis:hover{animation:sweep 1.5s linear infinite;filter:drop-shadow(0 0 12px rgba(139,92,246,.75))}
 .kobis:hover::after{transform:scaleX(1)}
-.kobis .u{font-size:11px;font-weight:700;opacity:.7;margin-left:5px;font-family:var(--mono)}
 
 /* ---------- RESPONSIVE ---------- */
 @media(max-width:1080px){
@@ -496,131 +497,131 @@ const d0=x=>{const y=new Date(x);y.setHours(0,0,0,0);return y};
    numbers and the three model names stay untranslated on purpose — they are
    proper nouns on printed paperwork and must read the same in every language.
    ========================================================================== */
-const LANGS=[["bm","BM","Bahasa Malaysia"],["en","EN","English"],["cn","中文","简体中文"],["ta","தமிழ்","தமிழ்"]];
+const LANGS=[["bm","BM","Bahasa Malaysia"],["en","EN","English"],["cn","中文","简体中文"],["iba","IBAN","Jaku Iban"]];
 const DICT={
- "app.name":      ["Portal Jualan KOBIS","KOBIS Sales Portal","KOBIS 销售门户","KOBIS விற்பனை போர்டல்"],
- "app.tag":       ["Pengurusan Jualan & Pengedaran","Sales & Distribution Management","销售与分销管理","விற்பனை & விநியோக மேலாண்மை"],
- "nav.public":    ["Utama","Overview","总览","மேலோட்டம்"],
- "nav.mgmt":      ["Panel Pengurusan","Management Panel","管理面板","மேலாண்மை பேனல்"],
- "nav.sm":        ["Panel Salesman","Salesman Panel","业务员面板","விற்பனையாளர் பேனல்"],
- "nav.play":      ["Playbook","Playbook","操作手册","பிளேபுக்"],
- "nav.exit":      ["Keluar","Exit","退出","வெளியேறு"],
- "nav.enter":     ["Masuk","Enter","进入","நுழைக"],
+ "app.name":      ["Portal Jualan","Sales Portal","销售门户","Portal Jualan"],
+ "app.tag":       ["Pengurusan Jualan & Pengedaran","Sales & Distribution Management","销售与分销管理","Pengurusan Jualan & Pengagih"],
+ "nav.public":    ["Utama","Overview","总览","Mua Utama"],
+ "nav.mgmt":      ["Panel Pengurusan","Management Panel","管理面板","Panel Pengurus"],
+ "nav.sm":        ["Panel Salesman","Salesman Panel","业务员面板","Panel Orang Jual"],
+ "nav.play":      ["Playbook","Playbook","操作手册","Playbook"],
+ "nav.exit":      ["Keluar","Exit","退出","Pansut"],
+ "nav.enter":     ["Masuk","Enter","进入","Tama"],
 
- "hero.badge":    ["Enjin AI Aktif","AI Engine Active","AI 引擎运行中","AI இயந்திரம் இயங்குகிறது"],
- "hero.h1":       ["Satu portal untuk seluruh operasi jualan anda","One portal for your entire sales operation","一个门户，管理整个销售运营","உங்கள் முழு விற்பனை செயல்பாட்டிற்கும் ஒரே போர்டல்"],
- "hero.lead":     ["Dari perancangan lawatan sehingga kutipan bayaran — order, DO, SO, invois, resit dan ranking dijana serentak, dalam satu aliran yang tidak boleh terputus.","From visit planning to cash collection — orders, DOs, SOs, invoices, receipts and live ranking generated in one chain that cannot fall out of step.","从拜访计划到货款回收——订单、送货单、销售单、发票、收据与实时排名在同一条不会脱节的链条中生成。","வருகைத் திட்டமிடல் முதல் பணம் வசூல் வரை — ஆர்டர், DO, SO, விலைப்பட்டியல், ரசீது மற்றும் நேரடி தரவரிசை ஒரே சங்கிலியில் உருவாக்கப்படுகிறது."],
- "hero.cta1":     ["Buka Panel Pengurusan","Open Management Panel","打开管理面板","மேலாண்மை பேனலைத் திற"],
- "hero.cta2":     ["Buka Panel Salesman","Open Salesman Panel","打开业务员面板","விற்பனையாளர் பேனலைத் திற"],
- "tick.outlets":  ["Outlet Aktif","Active Outlets","活跃门店","செயலில் உள்ள கடைகள்"],
- "tick.sm":       ["Salesman","Salesmen","业务员","விற்பனையாளர்கள்"],
- "tick.docs":     ["Dokumen Dijana","Documents Generated","已生成单据","உருவாக்கப்பட்ட ஆவணங்கள்"],
- "tick.mods":     ["Modul Beroperasi","Live Modules","运行模块","இயங்கும் தொகுதிகள்"],
+ "hero.badge":    ["Enjin AI Aktif","AI Engine Active","AI 引擎运行中","Enjin AI Bejalai"],
+ "hero.h1":       ["Satu portal untuk seluruh operasi jualan anda","One portal for your entire sales operation","一个门户，管理整个销售运营","Siti portal ke semua pengawa jualan nuan"],
+ "hero.lead":     ["Dari perancangan lawatan sehingga kutipan bayaran — order, DO, SO, invois, resit dan ranking dijana serentak, dalam satu aliran yang tidak boleh terputus.","From visit planning to cash collection — orders, DOs, SOs, invoices, receipts and live ranking generated in one chain that cannot fall out of step.","从拜访计划到货款回收——订单、送货单、销售单、发票、收据与实时排名在同一条不会脱节的链条中生成。","Ari ngatur pengabas nyentuk ngagai ngumpul duit — order, DO, SO, invois, resit enggau pangkat digaga serentak, dalam siti rantai ti enda tau putus."],
+ "hero.cta1":     ["Buka Panel Pengurusan","Open Management Panel","打开管理面板","Buka Panel Pengurus"],
+ "hero.cta2":     ["Buka Panel Salesman","Open Salesman Panel","打开业务员面板","Buka Panel Orang Jual"],
+ "tick.outlets":  ["Outlet Aktif","Active Outlets","活跃门店","Kedai Bejalai"],
+ "tick.sm":       ["Salesman","Salesmen","业务员","Orang Jual"],
+ "tick.docs":     ["Dokumen Dijana","Documents Generated","已生成单据","Surat Digaga"],
+ "tick.mods":     ["Modul Beroperasi","Live Modules","运行模块","Modul Bejalai"],
 
- "doors.k":       ["Akses","Access","访问权限","அணுகல்"],
- "doors.h":       ["Tiga panel, satu sumber kebenaran","Three panels, one source of truth","三个面板，一个真实数据源","மூன்று பேனல்கள், ஒரே உண்மை மூலம்"],
- "doors.l":       ["Setiap peranan nampak apa yang perlu sahaja. Nombor yang sama, dikira sekali, dipapar mengikut peranan.","Each role sees only what it needs. The same numbers, computed once, presented per role.","每个角色只看到所需内容。同一组数据，计算一次，按角色呈现。","ஒவ்வொரு பங்கும் தேவையானதை மட்டுமே காண்கிறது. ஒரே எண்கள், ஒருமுறை கணக்கிடப்பட்டு, பங்கு வாரியாக காட்டப்படுகிறது."],
- "door.m.t":      ["Panel Pengurusan","Management Panel","管理面板","மேலாண்மை பேனல்"],
- "door.m.d":      ["Untuk pemilik dan penyelia. Prestasi pasukan, kutipan, penuaan hutang, stok dan laporan penuh.","For owners and supervisors. Team performance, collections, debt ageing, stock and full reporting.","面向管理层。团队业绩、回款、账龄、库存与完整报表。","உரிமையாளர்களுக்கும் மேற்பார்வையாளர்களுக்கும். குழு செயல்திறன், வசூல், கடன் வயது, இருப்பு மற்றும் அறிக்கைகள்."],
- "door.s.t":      ["Panel Salesman","Salesman Panel","业务员面板","விற்பனையாளர் பேனல்"],
- "door.s.d":      ["Untuk salesman di lapangan. Jadual, order, consignment, dokumen, kutipan dan ranking peribadi.","For the salesman in the field. Schedule, orders, consignment, documents, collections and personal ranking.","面向一线业务员。行程、下单、寄售、单据、收款与个人排名。","களத்தில் உள்ள விற்பனையாளருக்கு. அட்டவணை, ஆர்டர், அனுப்புகை, ஆவணங்கள், வசூல் மற்றும் தரவரிசை."],
- "door.p.t":      ["Panel Awam","Public Panel","公开面板","பொது பேனல்"],
- "door.p.d":      ["Halaman ini. Untuk pelanggan, rakan niaga dan calon salesman — apa sistem ini buat, tanpa perlu log masuk.","This page. For customers, partners and recruits — what the system does, with no login required.","即本页面。面向客户、伙伴与应聘者——无需登录即可了解系统能力。","இந்தப் பக்கம். வாடிக்கையாளர்கள், கூட்டாளிகள் மற்றும் புதியவர்களுக்கு — உள்நுழைவு தேவையில்லை."],
+ "doors.k":       ["Akses","Access","访问权限","Akses"],
+ "doors.h":       ["Tiga panel, satu sumber kebenaran","Three panels, one source of truth","三个面板，一个真实数据源","Tiga panel, siti pun amat"],
+ "doors.l":       ["Setiap peranan nampak apa yang perlu sahaja. Nombor yang sama, dikira sekali, dipapar mengikut peranan.","Each role sees only what it needs. The same numbers, computed once, presented per role.","每个角色只看到所需内容。同一组数据，计算一次，按角色呈现。","Genap pengawa meda utai ti dipeguna aja. Nambor ti sama, dikira sekali, dipandang nitih pengawa."],
+ "door.m.t":      ["Panel Pengurusan","Management Panel","管理面板","Panel Pengurus"],
+ "door.m.d":      ["Untuk pemilik dan penyelia. Prestasi pasukan, kutipan, penuaan hutang, stok dan laporan penuh.","For owners and supervisors. Team performance, collections, debt ageing, stock and full reporting.","面向管理层。团队业绩、回款、账龄、库存与完整报表。","Ke tuai enggau penyeliaka. Pengawa pasukan, kutipan, utang lama, stock enggau laporan penuh."],
+ "door.s.t":      ["Panel Salesman","Salesman Panel","业务员面板","Panel Orang Jual"],
+ "door.s.d":      ["Untuk salesman di lapangan. Jadual, order, consignment, dokumen, kutipan dan ranking peribadi.","For the salesman in the field. Schedule, orders, consignment, documents, collections and personal ranking.","面向一线业务员。行程、下单、寄售、单据、收款与个人排名。","Ke orang jual di padang. Jadual, order, consignment, surat, kutipan enggau pangkat empu."],
+ "door.p.t":      ["Panel Awam","Public Panel","公开面板","Panel Umum"],
+ "door.p.d":      ["Halaman ini. Untuk pelanggan, rakan niaga dan calon salesman — apa sistem ini buat, tanpa perlu log masuk.","This page. For customers, partners and recruits — what the system does, with no login required.","即本页面。面向客户、伙伴与应聘者——无需登录即可了解系统能力。","Mua tu. Ke pelanggan, kaban dagang enggau orang baru — nama ti dikereja sistem tu, enda ibuh log masuk."],
 
- "caps.k":        ["Keupayaan","Capability","功能","திறன்"],
- "caps.h":        ["Enam belas modul yang beroperasi","Sixteen modules, all operational","十六个模块，全部运行","பதினாறு தொகுதிகள், அனைத்தும் இயங்குகின்றன"],
- "caps.l":        ["Bukan senarai roadmap. Setiap modul di bawah boleh diklik dan mengira dari data yang sama.","Not a roadmap list. Every module below is clickable and computes off the same data.","这不是路线图清单。下列每个模块均可点击，并基于同一数据计算。","இது ஒரு திட்டப் பட்டியல் அல்ல. கீழே உள்ள ஒவ்வொரு தொகுதியும் கிளிக் செய்யக்கூடியது."],
- "models.k":      ["Model Transaksi","Transaction Models","交易模式","பரிவர்த்தனை முறைகள்"],
- "models.h":      ["Payment Term bukan sekadar tarikh matang","Payment Term is not just a due date","付款条件不只是到期日","கட்டணக் காலம் என்பது வெறும் காலக்கெடு அல்ல"],
- "models.l":      ["Setiap term menjalankan aliran transaksi yang berlainan. Portal ini menyokong ketiga-tiganya secara penuh.","Each term runs a different transaction flow. The portal supports all three end to end.","每种条件对应不同的交易流程。本门户完整支持三种模式。","ஒவ்வொரு காலமும் வெவ்வேறு பரிவர்த்தனை ஓட்டத்தை இயக்குகிறது. மூன்றையும் முழுமையாக ஆதரிக்கிறது."],
- "ai.k":          ["Lapisan AI","AI Layer","AI 层","AI அடுக்கு"],
- "ai.h":          ["AI yang benar-benar membuat kerja","AI that actually does the work","真正干活的 AI","உண்மையிலேயே வேலை செய்யும் AI"],
- "ai.l":          ["Bukan chatbot yang ditampal di tepi. AI di sini menyusun laluan, membaca corak bayaran, dan menandakan outlet yang senyap sebelum ia menjadi masalah.","Not a chatbot bolted to the side. Here the AI sequences the route, reads payment behaviour, and flags outlets going quiet before it becomes a problem.","不是外挂的聊天机器人。AI 在此规划路线、解读付款行为，并在门店转淡前提前预警。","பக்கத்தில் ஒட்டப்பட்ட அரட்டை பாட் அல்ல. AI வழியை வரிசைப்படுத்துகிறது, கட்டண நடத்தையைப் படிக்கிறது, அமைதியாகும் கடைகளைக் குறிக்கிறது."],
+ "caps.k":        ["Keupayaan","Capability","功能","Pengelandik"],
+ "caps.h":        ["Enam belas modul yang beroperasi","Sixteen modules, all operational","十六个模块，全部运行","Enam belas modul ti bejalai"],
+ "caps.l":        ["Bukan senarai roadmap. Setiap modul di bawah boleh diklik dan mengira dari data yang sama.","Not a roadmap list. Every module below is clickable and computes off the same data.","这不是路线图清单。下列每个模块均可点击，并基于同一数据计算。","Ukai senarai roadmap. Genap modul di baruh ulih diklik lalu ngira ari data ti sama."],
+ "models.k":      ["Model Transaksi","Transaction Models","交易模式","Model Transaksi"],
+ "models.h":      ["Payment Term bukan sekadar tarikh matang","Payment Term is not just a due date","付款条件不只是到期日","Payment Term ukai semina tanggal matang"],
+ "models.l":      ["Setiap term menjalankan aliran transaksi yang berlainan. Portal ini menyokong ketiga-tiganya secara penuh.","Each term runs a different transaction flow. The portal supports all three end to end.","每种条件对应不同的交易流程。本门户完整支持三种模式。","Genap term bejalai enggau chara ti belain. Portal tu nyukung ketiga-tiga iya penuh."],
+ "ai.k":          ["Lapisan AI","AI Layer","AI 层","Lapis AI"],
+ "ai.h":          ["AI yang benar-benar membuat kerja","AI that actually does the work","真正干活的 AI","AI ti amat bekereja"],
+ "ai.l":          ["Bukan chatbot yang ditampal di tepi. AI di sini menyusun laluan, membaca corak bayaran, dan menandakan outlet yang senyap sebelum ia menjadi masalah.","Not a chatbot bolted to the side. Here the AI sequences the route, reads payment behaviour, and flags outlets going quiet before it becomes a problem.","不是外挂的聊天机器人。AI 在此规划路线、解读付款行为，并在门店转淡前提前预警。","Ukai chatbot ti ditampal ba tisi. AI ditu ngatur jalai, macha chara bayar, lalu nanda kedai ti senyap sebedau nya nyadi penyakit."],
 
- "m.dash":        ["Dashboard","Dashboard","仪表板","டாஷ்போர்டு"],
- "m.team":        ["Prestasi Pasukan","Team Performance","团队业绩","குழு செயல்திறன்"],
- "m.cust":        ["Outlet","Outlets","门店","கடைகள்"],
- "m.collect":     ["Kutipan & Hutang","Collections & Debt","回款与欠款","வசூல் & கடன்"],
- "m.stock":       ["Stok & Produk","Stock & Products","库存与产品","இருப்பு & பொருட்கள்"],
- "m.docs":        ["Dokumen","Documents","单据","ஆவணங்கள்"],
- "m.reports":     ["Laporan","Reports","报表","அறிக்கைகள்"],
- "m.ai":          ["Pusat AI","AI Center","AI 中心","AI மையம்"],
+ "m.dash":        ["Dashboard","Dashboard","仪表板","Dashboard"],
+ "m.team":        ["Prestasi Pasukan","Team Performance","团队业绩","Pengawa Pasukan"],
+ "m.cust":        ["Outlet","Outlets","门店","Kedai"],
+ "m.collect":     ["Kutipan & Hutang","Collections & Debt","回款与欠款","Kutipan & Utang"],
+ "m.stock":       ["Stok & Produk","Stock & Products","库存与产品","Stock & Utai"],
+ "m.docs":        ["Dokumen","Documents","单据","Surat"],
+ "m.reports":     ["Laporan","Reports","报表","Laporan"],
+ "m.ai":          ["Pusat AI","AI Center","AI 中心","Pusat AI"],
 
- "s.home":        ["Utama","Home","首页","முகப்பு"],
- "s.sched":       ["Jadual Harian","Daily Schedule","每日行程","தினசரி அட்டவணை"],
- "s.cust":        ["Outlet Saya","My Outlets","我的门店","எனது கடைகள்"],
- "s.order":       ["Ambil Order","Take Order","下单","ஆர்டர் எடு"],
- "s.consign":     ["Consignment","Consignment","寄售","அனுப்புகை"],
- "s.docs":        ["Dokumen","Documents","单据","ஆவணங்கள்"],
- "s.stock":       ["Stok Van","Van Stock","车载库存","வேன் இருப்பு"],
- "s.rank":        ["Ranking","Ranking","排名","தரவரிசை"],
- "s.refer":       ["Refer & Earn","Refer & Earn","推荐奖励","பரிந்துரை & சம்பாதி"],
- "s.return":      ["Pulangan","Returns","退货","திரும்பப் பெறுதல்"],
+ "s.home":        ["Utama","Home","首页","Utama"],
+ "s.sched":       ["Jadual Harian","Daily Schedule","每日行程","Jadual Sehari"],
+ "s.cust":        ["Outlet Saya","My Outlets","我的门店","Kedai Aku"],
+ "s.order":       ["Ambil Order","Take Order","下单","Ambi Order"],
+ "s.consign":     ["Consignment","Consignment","寄售","Consignment"],
+ "s.docs":        ["Dokumen","Documents","单据","Surat"],
+ "s.stock":       ["Stok Van","Van Stock","车载库存","Stock Van"],
+ "s.rank":        ["Ranking","Ranking","排名","Pangkat"],
+ "s.refer":       ["Refer & Earn","Refer & Earn","推荐奖励","Refer & Untung"],
+ "s.return":      ["Pulangan","Returns","退货","Pulai Utai"],
 
- "k.sales":       ["Jualan","Sales","销售额","விற்பனை"],
- "k.collected":   ["Kutipan","Collected","已回款","வசூலிக்கப்பட்டது"],
- "k.outstanding": ["Belum Jelas","Outstanding","未结清","நிலுவை"],
- "k.overdue":     ["Tertunggak","Overdue","逾期","தாமதம்"],
- "k.orders":      ["Order","Orders","订单","ஆர்டர்கள்"],
- "k.outlets":     ["Outlet Dilawat","Outlets Served","服务门店","சேவை கடைகள்"],
- "k.avg":         ["Purata Order","Average Order","平均订单","சராசரி ஆர்டர்"],
- "k.rate":        ["Kadar Kutipan","Collection Rate","回款率","வசூல் விகிதம்"],
+ "k.sales":       ["Jualan","Sales","销售额","Jualan"],
+ "k.collected":   ["Kutipan","Collected","已回款","Udah Dikumpul"],
+ "k.outstanding": ["Belum Jelas","Outstanding","未结清","Apin Bayar"],
+ "k.overdue":     ["Tertunggak","Overdue","逾期","Udah Lepas"],
+ "k.orders":      ["Order","Orders","订单","Order"],
+ "k.outlets":     ["Outlet Dilawat","Outlets Served","服务门店","Kedai Dilayan"],
+ "k.avg":         ["Purata Order","Average Order","平均订单","Order Purata"],
+ "k.rate":        ["Kadar Kutipan","Collection Rate","回款率","Kadar Kutipan"],
 
- "t.today":       ["Hari Ini","Today","今日","இன்று"],
- "t.yest":        ["Semalam","Yesterday","昨日","நேற்று"],
- "t.week":        ["Minggu Ini","This Week","本周","இந்த வாரம்"],
- "t.lweek":       ["Minggu Lepas","Last Week","上周","கடந்த வாரம்"],
- "t.month":       ["Bulan Ini","This Month","本月","இந்த மாதம்"],
- "t.lmonth":      ["Bulan Lepas","Last Month","上月","கடந்த மாதம்"],
- "t.all":         ["Semua","All Time","全部","அனைத்தும்"],
+ "t.today":       ["Hari Ini","Today","今日","Sehari Tu"],
+ "t.yest":        ["Semalam","Yesterday","昨日","Kemari"],
+ "t.week":        ["Minggu Ini","This Week","本周","Minggu Tu"],
+ "t.lweek":       ["Minggu Lepas","Last Week","上周","Minggu Udah"],
+ "t.month":       ["Bulan Ini","This Month","本月","Bulan Tu"],
+ "t.lmonth":      ["Bulan Lepas","Last Month","上月","Bulan Udah"],
+ "t.all":         ["Semua","All Time","全部","Semua"],
 
- "l.customer":    ["Pelanggan","Customer","客户","வாடிக்கையாளர்"],
- "l.salesman":    ["Salesman","Salesman","业务员","விற்பனையாளர்"],
- "l.amount":      ["Jumlah","Amount","金额","தொகை"],
- "l.date":        ["Tarikh","Date","日期","தேதி"],
- "l.status":      ["Status","Status","状态","நிலை"],
- "l.term":        ["Term","Term","条件","காலம்"],
- "l.due":         ["Tarikh Matang","Due","到期","காலக்கெடு"],
- "l.doc":         ["Dokumen","Document","单据","ஆவணம்"],
- "l.total":       ["Jumlah Besar","Total","合计","மொத்தம்"],
- "l.outlet":      ["Outlet","Outlet","门店","கடை"],
- "l.product":     ["Produk","Product","产品","பொருள்"],
- "l.qty":         ["Kuantiti","Qty","数量","அளவு"],
- "l.price":       ["Harga","Price","单价","விலை"],
- "l.search":      ["Cari outlet, kod, PIC atau telefon…","Search outlet, code, PIC or phone…","搜索门店、编号、联系人或电话…","கடை, குறியீடு, தொடர்பு அல்லது தொலைபேசியைத் தேடு…"],
- "l.view":        ["Lihat","View","查看","பார்"],
- "l.paid":        ["Selesai","Paid","已付","செலுத்தப்பட்டது"],
- "l.pending":     ["Belum Bayar","Pending","未付","நிலுவையில்"],
- "l.partial":     ["Separa","Partial","部分","பகுதி"],
- "l.rank":        ["Kedudukan","Rank","名次","இடம்"],
- "l.none":        ["Tiada rekod","No records","暂无记录","பதிவுகள் இல்லை"],
- "l.back":        ["Kembali","Back","返回","திரும்பு"],
+ "l.customer":    ["Pelanggan","Customer","客户","Pelanggan"],
+ "l.salesman":    ["Salesman","Salesman","业务员","Orang Jual"],
+ "l.amount":      ["Jumlah","Amount","金额","Penyampau"],
+ "l.date":        ["Tarikh","Date","日期","Tanggal"],
+ "l.status":      ["Status","Status","状态","Status"],
+ "l.term":        ["Term","Term","条件","Term"],
+ "l.due":         ["Tarikh Matang","Due","到期","Tanggal Matang"],
+ "l.doc":         ["Dokumen","Document","单据","Surat"],
+ "l.total":       ["Jumlah Besar","Total","合计","Jumlah"],
+ "l.outlet":      ["Outlet","Outlet","门店","Kedai"],
+ "l.product":     ["Produk","Product","产品","Utai"],
+ "l.qty":         ["Kuantiti","Qty","数量","Kuantiti"],
+ "l.price":       ["Harga","Price","单价","Rega"],
+ "l.search":      ["Cari outlet, kod, PIC atau telefon…","Search outlet, code, PIC or phone…","搜索门店、编号、联系人或电话…","Gigaka kedai, kod, PIC tauka telefon…"],
+ "l.view":        ["Lihat","View","查看","Peda"],
+ "l.paid":        ["Selesai","Paid","已付","Udah Bayar"],
+ "l.pending":     ["Belum Bayar","Pending","未付","Apin Bayar"],
+ "l.partial":     ["Separa","Partial","部分","Sebagi"],
+ "l.rank":        ["Kedudukan","Rank","名次","Pangkat"],
+ "l.none":        ["Tiada rekod","No records","暂无记录","Nadai rekod"],
+ "l.back":        ["Kembali","Back","返回","Pulai"],
 
- "ai.od":         ["tertunggak","overdue","逾期","தாமதம்"],
- "ai.chk":        ["consignment perlu semak","consignment to check","寄售待核对","அனுப்புகை சரிபார்க்க"],
- "ai.routine":    ["Panggilan rutin","Routine call","例行拜访","வழக்கமான அழைப்பு"],
- "ai.days":       ["hari senyap","days quiet","天未下单","நாட்கள் அமைதி"],
- "ai.usual":      ["biasanya setiap","usually every","通常每","வழக்கமாக ஒவ்வொரு"],
- "bub.ai":        ["Bantuan AI","AI Help","AI 帮助","AI உதவி"],
- "bub.ai2":       ["24/7 · Sedia membantu","24/7 · Always on","24/7 · 全天候","24/7 · எப்போதும்"],
- "bub.hp":        ["Sokongan","Support","支持","ஆதரவு"],
- "bub.hp2":       ["Pasukan KOBIS","KOBIS team","KOBIS 团队","KOBIS குழு"],
- "chat.ph":       ["Tanya apa-apa tentang portal…","Ask anything about the portal…","询问有关门户的任何问题…","போர்டல் பற்றி எதையும் கேளுங்கள்…"],
- "chat.sub":      ["Dalam talian · membalas serta-merta","Online · replies instantly","在线 · 即时回复","ஆன்லைன் · உடனடி பதில்"],
- "hp.sub":        ["Isnin–Sabtu, 9 pagi–6 petang","Mon–Sat, 9am–6pm","周一至周六 9:00–18:00","திங்கள்–சனி, காலை 9–மாலை 6"],
+ "ai.od":         ["tertunggak","overdue","逾期","udah lepas"],
+ "ai.chk":        ["consignment perlu semak","consignment to check","寄售待核对","consignment patut dichek"],
+ "ai.routine":    ["Panggilan rutin","Routine call","例行拜访","Pengabas biasa"],
+ "ai.days":       ["hari senyap","days quiet","天未下单","hari senyap"],
+ "ai.usual":      ["biasanya setiap","usually every","通常每","selalu genap"],
 
- "f.panels":      ["Panel","Panels","面板","பேனல்கள்"],
- "f.modules":     ["Modul","Modules","模块","தொகுதிகள்"],
- "f.company":     ["Syarikat","Company","公司","நிறுவனம்"],
- "f.blurb":       ["Portal jualan dan pengedaran berasaskan web untuk pengedar runcit Malaysia. Enam belas modul, tiga model transaksi, empat bahasa.","A web-based sales and distribution portal for Malaysian retail distributors. Sixteen modules, three transaction models, four languages.","面向马来西亚零售分销商的网页版销售分销门户。十六个模块、三种交易模式、四种语言。","மலேசிய சில்லறை விநியோகஸ்தர்களுக்கான வலை அடிப்படையிலான போர்டல். பதினாறு தொகுதிகள், மூன்று முறைகள், நான்கு மொழிகள்."],
- "f.built":       ["Dibina oleh","Built by","技术支持","உருவாக்கியவர்"],
- "f.rights":      ["Hak cipta terpelihara.","All rights reserved.","版权所有。","அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை."],
- "f.demo":        ["Demo — data dijana daripada benih tetap.","Demonstration — data generated from a fixed seed.","演示版——数据由固定种子生成。","விளக்கம் — நிலையான விதையிலிருந்து உருவாக்கப்பட்ட தரவு."]
+ "bub.ai":        ["Bantuan AI","AI Help","AI 帮助","Tulung AI"],
+ "bub.ai2":       ["24/7 · Sedia membantu","24/7 · Always on","24/7 · 全天候","24/7 · Sedia nulung"],
+ "bub.hp":        ["Sokongan","Support","支持","Sokongan"],
+ "bub.hp2":       ["Pasukan sokongan","Support team","支持团队","Pasukan sokongan"],
+ "chat.ph":       ["Tanya apa-apa tentang portal…","Ask anything about the portal…","询问有关门户的任何问题…","Tanya nama-nama pasal portal tu…"],
+ "chat.sub":      ["Dalam talian · membalas serta-merta","Online · replies instantly","在线 · 即时回复","Online · nyaut tekala nya"],
+ "hp.sub":        ["Isnin–Sabtu, 9 pagi–6 petang","Mon–Sat, 9am–6pm","周一至周六 9:00–18:00","Senin–Sabtu, 9 pagi–6 lemai"],
+
+ "f.panels":      ["Panel","Panels","面板","Panel"],
+ "f.modules":     ["Modul","Modules","模块","Modul"],
+ "f.blurb":       ["Portal jualan dan pengedaran berasaskan web untuk pengedar runcit Malaysia. Enam belas modul, tiga model transaksi, empat bahasa.","A web-based sales and distribution portal for Malaysian retail distributors. Sixteen modules, three transaction models, four languages.","面向马来西亚零售分销商的网页版销售分销门户。十六个模块、三种交易模式、四种语言。","Portal jualan enggau pengagih berasas web ke penjual runcit Malaysia. Enam belas modul, tiga model transaksi, empat jaku."],
+ "f.built":       ["Direka & dibina oleh","Designed & built by","设计与开发","Direka & digaga ulih"],
+ "f.rights":      ["Hak cipta terpelihara.","All rights reserved.","版权所有。","Semua hak dikemata."],
+ "f.demo":        ["Demo — data dijana daripada benih tetap.","Demonstration — data generated from a fixed seed.","演示版——数据由固定种子生成。","Demo — data digaga ari benih ti tetap."]
 };
-let LANG=(()=>{try{return localStorage.getItem("kobis.lang")||"bm"}catch(_){return "bm"}})();
+let LANG=(()=>{try{return localStorage.getItem("sp.lang")||"bm"}catch(_){return "bm"}})();
 const LI=()=>Math.max(0,LANGS.findIndex(l=>l[0]===LANG));
 const T=k=>{const r=DICT[k];return r?r[LI()]||r[1]:k};
-function setLang(v){LANG=v;try{localStorage.setItem("kobis.lang",v)}catch(_){}document.body.dataset.lang=v;render()}
+function setLang(v){LANG=v;try{localStorage.setItem("sp.lang",v)}catch(_){}document.body.dataset.lang=v;render()}
 
 /* ---------- icons ---------- */
 const I={
@@ -938,7 +939,7 @@ function topbar(kind){
         <span><b>${esc(ME.name)}</b><span>${ME.code} · ${T("tick.sm")}</span></span></span>` : "";
   return `<header class="top${dark?" dark":""}">
     ${kind!=="pub"?`<button class="burger" data-a="rail" aria-label="Menu">${ic(I.menu)}</button>`:""}
-    <a class="brand" href="#/"><span class="mk">K</span>
+    <a class="brand" href="#/"><span class="mk">SP</span>
       <span>${T("app.name")}<small>${T("app.tag")}</small></span></a>
     ${links}
     <div class="tright">
@@ -965,7 +966,7 @@ function footer(){
   return `<footer class="sig"><div class="aur"></div><div class="in">
     <div class="cols">
       <div class="bl">
-        <a class="brand" href="#/" style="color:#fff"><span class="mk">K</span>
+        <a class="brand" href="#/" style="color:#fff"><span class="mk">SP</span>
           <span>${T("app.name")}<small style="color:rgba(255,255,255,.5)">${T("app.tag")}</small></span></a>
         <p>${T("f.blurb")}</p>
       </div>
@@ -982,20 +983,14 @@ function footer(){
         <a class="l" href="#/m/collect">${T("m.collect")}</a>
         <a class="l" href="#/m/stock">${T("m.stock")}</a>
         <a class="l" href="#/m/docs">${T("m.docs")}</a>
-      </div>
-      <div>
-        <h4>${T("f.company")}</h4>
-        <a class="l" href="https://www.kobisberhad.com" target="_blank" rel="noopener">KOBIS Berhad</a>
         <a class="l" href="#/m/ai">${T("m.ai")}</a>
-        <a class="l" href="playbook.html#models">${T("models.k")}</a>
       </div>
     </div>
     <div class="bot">
-      <span class="by">
-        <span>${T("f.built")}</span>
-        <a class="kobis" href="https://www.kobisberhad.com" target="_blank" rel="noopener">KOBIS Berhad<span class="u">www.kobisberhad.com</span></a>
+      <span class="by">${T("f.built")}
+        <a class="kobis" href="https://www.kobisberhad.com" target="_blank" rel="noopener">KOBIS Berhad</a>
       </span>
-      <span class="sep" style="display:inline-block;width:1px;height:15px;background:rgba(255,255,255,.2)"></span>
+      <span style="display:inline-block;width:1px;height:14px;background:rgba(255,255,255,.16)"></span>
       <span>© 2026 · ${T("f.rights")}</span>
       <span class="rt"><span class="ai-pill gh" style="background:rgba(255,255,255,.1);color:#fff"><span class="dot"></span>${T("f.demo")}</span></span>
     </div>
@@ -2200,7 +2195,7 @@ function aiAnswer(q){
   if(has("dokumen","document","invoice","resit","receipt","running"))
     return `Setakat ini <b>${S.docCount()}</b> dokumen dijana: ${DB.orders.length} Order · ${DB.dos.length} DO · ${DB.sos.length} SO · ${DB.invoices.length} Invoice · ${DB.receipts.length} Receipt · ${DB.returns.length} Return. Enam turutan berasingan, tiada nombor diguna semula.`;
   if(has("bahasa","language","语言"))
-    return `Portal ini menyokong empat bahasa: Bahasa Malaysia, English, 中文 dan தமிழ். Tukar di penjuru kanan atas — seluruh portal berubah serta-merta.`;
+    return `Portal ini menyokong empat bahasa: Bahasa Malaysia, English, 中文 dan Jaku Iban. Tukar di penjuru kanan atas — seluruh portal berubah serta-merta.`;
   if(has("modul","module","apa boleh"))
     return `Enam belas modul beroperasi: Register Customer, Senarai Outlet, Customer Profile, Jadual Harian, Ambil Order, DO, SO, Invoice, Payment, Receipt, Product &amp; Stock, Return, Sales Ranking, PDF/WhatsApp/Print, Running Number, dan Refer &amp; Earn.`;
   if(has("ai","kecerdasan"))
@@ -2222,11 +2217,10 @@ function chatDrawer(){
         <button type="submit" aria-label="Send">${ic(I.send,"#fff")}</button>
       </form>`
     : `<div class="bd">
-        <div class="msg a"><b>Pasukan sokongan KOBIS</b><br>${T("hp.sub")}. Kami balas dalam masa satu hari bekerja.</div>
+        <div class="msg a"><b>${T("bub.hp2")}</b><br>${T("hp.sub")}. Kami balas dalam masa satu hari bekerja.</div>
         <div class="msg a" style="max-width:100%">
           <b>Hubungi kami</b><br>
           📞 ${esc(CO.phone)}<br>
-          🌐 <a href="https://www.kobisberhad.com" target="_blank" rel="noopener" style="color:var(--blue);font-weight:700">www.kobisberhad.com</a><br>
           📍 ${esc(CO.addr)}
         </div>
         <div class="msg a" style="max-width:100%"><b>Topik biasa</b><br>
@@ -2235,7 +2229,7 @@ function chatDrawer(){
           · Menyambung printer terma 58mm / 80mm<br>
           · Mengeksport laporan bulanan</div>
       </div>
-      <div class="fo"><a class="btn btn-g btn-w" href="https://wa.me/60355218890" target="_blank" rel="noopener">${ic(I.wa)} WhatsApp ${T("bub.hp")}</a></div>`;
+      <div class="fo"><a class="btn btn-g btn-w" href="https://wa.me/60355218890" target="_blank" rel="noopener">${ic(I.wa)} WhatsApp</a></div>`;
   return `<div class="chat ${ai?"":"right"}" data-a="closechat">
     <div class="box" data-stop>
       <div class="ch">
@@ -2363,7 +2357,7 @@ const A={
       <div style="background:#ECE5DD;border-radius:12px;padding:15px">
         <div style="background:#D9FDD3;border-radius:9px 9px 2px 9px;padding:12px 14px;font-size:13.5px;line-height:1.6;margin-left:auto;max-width:88%">
           Terima kasih ${esc(c.pic.split(" ")[0])}! Dokumen <b>${esc(e.dataset.id)}</b> untuk ${esc(c.name)}.
-          <span style="display:block;color:#027EB5;font-size:12px;margin-top:5px">kobis.my/d/${esc(e.dataset.id.toLowerCase())}.pdf</span>
+          <span style="display:block;color:#027EB5;font-size:12px;margin-top:5px">majujaya.my/d/${esc(e.dataset.id.toLowerCase())}.pdf</span>
           <span style="display:block;font-size:10px;color:rgba(17,27,33,.5);text-align:right;margin-top:4px">09:41 ✓✓</span></div></div>
       <button class="btn btn-p btn-w" style="margin-top:14px" data-a="close">Tutup</button>`);
   },
@@ -2373,7 +2367,7 @@ const A={
   "share-ref"(){modal(`<h3>Share Referral</h3><div style="background:#ECE5DD;border-radius:12px;padding:15px;margin:13px 0">
     <div style="background:#D9FDD3;border-radius:9px 9px 2px 9px;padding:12px 14px;font-size:13.5px;max-width:90%">
       Jom daftar outlet anda dengan ${esc(CO.name)}! Guna kod saya:
-      <b>AZ-${ME.code}-2026</b><span style="display:block;color:#027EB5;font-size:12px;margin-top:5px">kobis.my/r/AZ-${ME.code}-2026</span></div></div>
+      <b>AZ-${ME.code}-2026</b><span style="display:block;color:#027EB5;font-size:12px;margin-top:5px">majujaya.my/r/AZ-${ME.code}-2026</span></div></div>
     <button class="btn btn-p btn-w" data-a="close">Tutup</button>`)},
   close(){$("#modal").innerHTML=""}
 };

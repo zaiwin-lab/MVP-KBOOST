@@ -1,6 +1,9 @@
-# KOBIS Sales Portal
+# Sales Portal
 
-**Web-based Retail Sales & Distribution Portal** for KOBIS Berhad.
+**Web-based Retail Sales & Distribution Portal.**
+
+The product carries no agency branding — the portal is the client's. The only
+maker credit is a single line in the footer signature.
 
 Built to the MASTER FINAL requirement: **16 modules, 3 transaction models**,
 with Customer Profile as the command center — delivered this round as a **web
@@ -31,20 +34,27 @@ Every panel reads the same data. Nothing is duplicated between them.
 
 ## The three standard items
 
-1. **Four-pane language** — Bahasa Malaysia · English · 中文 · தமிழ். The switch
-   is in the top bar of every page, persists in `localStorage`, and carries
-   across from the portal to the playbook.
+1. **Four-pane language** — Bahasa Malaysia · English · 中文 · Jaku Iban. The
+   switch is in the top bar of every page, persists in `localStorage` under
+   `sp.lang`, and carries across from the portal to the playbook.
 2. **Corner bubbles** — bottom-left **AI Help 24/7** opens an assistant that
-   answers from live data; bottom-right **Support** carries KOBIS contact
-   details and common topics.
-3. **Signature footer** — credits KOBIS Berhad, and hovering the name runs a
-   gradient shine with an underline sweep.
+   answers from live data; bottom-right **Support** carries the operating
+   company's contact details and common topics.
+3. **Signature footer** — one line, `Designed & built by KOBIS Berhad`, set
+   small and letterspaced so it reads as a signature rather than a second
+   logo. The name links to kobisberhad.com and the gradient shine, glow and
+   underline sweep run on hover.
 
 ### What the language switch covers
 
 The chrome, navigation, panel names, section headings, KPI labels, table
 headers, period tabs, bubbles and footer all translate, plus every lead
 paragraph and both step-by-step routines in the playbook.
+
+The Iban column is a first pass written against standard Iban vocabulary. It
+should be read by a native speaker before this goes in front of a Sarawak
+audience — the technical loanwords (order, invoice, consignment, stock) are
+deliberately left as-is, but the connecting prose is worth a check.
 
 Deliberately **not** translated: running numbers, document type names
 (`Order`, `DO`, `SO`, `Invoice`, `Receipt`, `RET`), the three model names
