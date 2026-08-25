@@ -366,20 +366,23 @@ td b{font-weight:700}
 .bub .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:14px;flex:none;position:relative}
 .bub .st{display:block;font-size:10px;font-weight:700;opacity:.72;letter-spacing:.03em;line-height:1.25}
 .bub .tx{line-height:1.2}
-.bl{left:22px;background:var(--ai);color:#fff}
-.bl .av{background:rgba(255,255,255,.2)}
-.bl .av::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(255,255,255,.5);animation:ring 2.2s ease-out infinite}
+/* Scoped to .bub deliberately: bare .bl and .br are short enough to collide
+   with a layout class elsewhere, and the footer's first column did exactly
+   that — it was being painted with the AI gradient. */
+.bub.bl{left:22px;background:var(--ai);color:#fff}
+.bub.bl .av{background:rgba(255,255,255,.2)}
+.bub.bl .av::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(255,255,255,.5);animation:ring 2.2s ease-out infinite}
 /* WhatsApp keeps its own brand green — a visitor should recognise where the
    button leads before reading the label. */
-.br{right:22px;background:linear-gradient(180deg,#2BD46E,#17A34A);color:#fff;
+.bub.br{right:22px;background:linear-gradient(180deg,#2BD46E,#17A34A);color:#fff;
   box-shadow:0 12px 28px -10px rgba(23,163,74,.62),var(--sh3)}
-.br .av{background:rgba(255,255,255,.22);color:#fff}
-.br .st{opacity:.8}
-.br .lv{width:7px;height:7px;border-radius:50%;background:#BBF7D0;position:absolute;right:-1px;bottom:-1px;border:2px solid #17A34A}
+.bub.br .av{background:rgba(255,255,255,.22);color:#fff}
+.bub.br .st{opacity:.8}
+.bub.br .lv{width:7px;height:7px;border-radius:50%;background:#BBF7D0;position:absolute;right:-1px;bottom:-1px;border:2px solid #17A34A}
 @media(max-width:720px){
   .bub{padding:11px;bottom:16px}
   .bub .tx{display:none}
-  .bl{left:16px}.br{right:16px}
+  .bub.bl{left:16px}.bub.br{right:16px}
 }
 
 /* AI chat drawer */
@@ -404,7 +407,10 @@ td b{font-weight:700}
 @media(max-width:600px){.chat{padding:0;place-items:end center}.chat .box{max-width:none;border-radius:20px 20px 0 0;height:88vh}}
 
 /* ---------- SIGNATURE FOOTER ---------- */
-.sig{background:linear-gradient(155deg,#080E1E,#131C3E 60%,#0C1327);color:#fff;padding:52px 30px 34px;position:relative;overflow:hidden}
+/* The deep bottom padding keeps the signature row clear of the two fixed
+   corner bubbles, which otherwise sit right on top of it at the end of a
+   scroll and cover the maker's credit. */
+.sig{background:linear-gradient(155deg,#080E1E,#131C3E 60%,#0C1327);color:#fff;padding:52px 30px 96px;position:relative;overflow:hidden}
 .sig .aur{position:absolute;width:520px;height:520px;border-radius:50%;filter:blur(80px);pointer-events:none;
   background:radial-gradient(circle,rgba(59,91,255,.28),transparent 68%);bottom:-300px;left:50%;transform:translateX(-50%)}
 .sig .in{position:relative;z-index:1;max-width:1120px;margin:0 auto}
@@ -984,7 +990,7 @@ function chrome(){
 function footer(){
   return `<footer class="sig"><div class="aur"></div><div class="in">
     <div class="cols">
-      <div class="bl">
+      <div class="fbrand">
         <a class="brand" href="#/" style="color:#fff"><span class="mk">SP</span>
           <span>${T("app.name")}<small style="color:rgba(255,255,255,.5)">${T("app.tag")}</small></span></a>
         <p>${T("f.blurb")}</p>
