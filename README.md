@@ -1,214 +1,147 @@
-# Winning Salesman — Web Demo V1
+# Winning Salesman — Field Sales Control Room
 
-A clickable demo of the Winning Salesman Platform, a retail field-sales management
-app for **KOBIS Berhad**. Built for Coach Aril to pitch to companies running field
-sales teams.
+**Maturity:** Working interactive demonstration prototype  
+**Portfolio category:** Field-sales operations, collections and performance visibility  
+**Production status:** Demonstration only; no accounts, shared database or operational integrations
 
-It ships with **four client companies** across four industries, switchable from the
-top bar, to show the same system is plug-and-play for any field-sales business.
+Winning Salesman demonstrates one connected field-sales loop:
 
-It proves one loop, end to end:
+**plan the day → visit the outlet → take the order → generate an invoice → record payment → update the ranking**
 
-**plan the day → visit the outlet → take the order → generate invoice → collect
-payment → watch the ranking move**
+The product is designed to help a sales manager see field activity, collections and performance in one operating view while giving sales representatives a focused mobile workflow.
 
-**Live:** https://winning-salesman-kobis.netlify.app
+## Business problem
 
-- **[PITCH-PATH.md](PITCH-PATH.md)** — the exact 60-second click sequence for a live pitch.
+Field-sales organisations can lose visibility when customer histories, visit plans, orders, collections and salesperson relationships live in separate devices or informal records. Common risks include:
 
-## Run it
+- weak follow-up on overdue invoices;
+- inconsistent visit planning;
+- unapproved price reductions;
+- slow paperwork and reconciliation;
+- customer history leaving with a departing salesperson;
+- managers learning about problems only after month end.
 
-Open https://winning-salesman-kobis.netlify.app, or open `index.html` in any browser.
-That is the whole setup.
+Winning Salesman makes those risks visible in a single, inspectable demonstration.
 
-No install, no build, no server, no login, no internet required. One file. It works
-from a USB stick, an email attachment, or a laptop with no signal in a client's
-meeting room.
+## Intended users
 
-## Multi-tenant: four clients, one system
+- field-sales managers and supervisors;
+- sales representatives visiting outlets;
+- finance or collections teams;
+- distribution-business owners;
+- implementation teams evaluating a future operational build.
 
-Switch client company from the dropdown in the top bar. Nothing about the app changes
-except the configuration:
+These are intended personas. The repository does not evidence customers, adoption or production use.
 
-| Client | Industry | Calls a customer a | Monthly target |
-|---|---|---|---|
-| Aroma Prestige Sdn Bhd | Perfume & fragrance distribution | Outlet | RM 850,000 |
-| Bekal Segar Sdn Bhd | FMCG & grocery distribution | Store | RM 1,200,000 |
-| FarmaLink Distributors Sdn Bhd | Pharmacy & clinic supply | Pharmacy | RM 980,000 |
-| Gerak Auto Parts Sdn Bhd | Automotive parts distribution | Workshop | RM 720,000 |
+## Demonstrated capabilities
 
-Each carries its own catalogue, salesmen, territories, credit terms, volume profile
-and document numbering. Data is fully isolated — every record carries a `companyId`
-and `DB` is a live view of the selected tenant only, so no query can reach across
-companies.
+- manager dashboard with coverage, sales and collection indicators;
+- salesman beat plan and outlet check-in flow;
+- order, invoice, part-payment and receipt sequence;
+- configurable client terminology, products, territories and credit terms;
+- live leaderboard and target contribution;
+- company-owned outlet history and reassignment simulation;
+- responsive manager and mobile salesperson experiences;
+- deterministic data reset for repeatable demonstrations.
 
-The volume profiles are deliberately different so each industry feels like itself:
-FMCG moves cartons (high quantity, low unit price), auto parts moves few high-value
-units, pharmacy sits between the two on 45-day credit terms.
+Four tenant configurations illustrate perfume, FMCG, pharmacy-supply and automotive-parts workflows. Their companies, people, transactions and figures are fictional demonstration data.
 
-## Adding a new client company
+## What is real in the prototype
 
-One config entry in the `TENANTS` array in `index.html`. No code changes:
+The application genuinely calculates its displayed results from the seeded browser dataset:
 
-```js
-{
-  id:"c5", name:"Client Sdn Bhd", trade:"What they distribute",
-  reg:"SSM number", target:1000000,
-  word:{s:"Outlet",p:"Outlets"},        // what they call a customer
-  terms:{A:30,B:14,C:7},                 // credit days by tier
-  qty:{A:[6,20],B:[3,12],C:[2,6]},       // order volume profile
-  products:[["Name","SKU",price], ...],
-  salesmen:[["Name","Territory"], ...],
-  outlets:[["Name","Area","Territory","Tier","Owner"], ...]
-}
-```
+- sales, balances, overdue amounts, collection rate and target contribution;
+- sequential order, invoice and payment identifiers;
+- invoice due dates derived from configured credit terms;
+- part-payment balances and status changes;
+- leaderboard changes after a transaction;
+- outlet reassignment while retaining company-owned transaction history;
+- tenant-scoped views through the selected in-memory company dataset.
 
-Everything else — the loop, the AI, every screen, the ranking, the documents —
-is shared and needs no per-client work.
+The application is a self-contained HTML/CSS/JavaScript file with hash-based navigation. Reloading restores the fixed starting state.
 
-## What is in the demo
+## The “AI” boundary
 
-| Module | What works |
+The current intelligence layer is **rule-based and explainable**, not a language model:
+
+- route priority scores overdue amount, order value, recency and outlet tier;
+- coaching nudges identify product or ordering gaps;
+- the morning briefing summarises computed performance data;
+- price checks compare an entered value with configured floors and prior averages.
+
+Calling this “AI” describes deterministic decision-support logic. The repository contains no model API, machine-learning training, predictive model or autonomous sales decision-maker.
+
+## Simulated or not implemented
+
+- The fixed dataset and all performance history are invented.
+- The demonstration date is pinned to 19 August 2026.
+- GPS check-in generates a plausible coordinate; it does not read device location.
+- WhatsApp displays a preview; it does not send a message.
+- Receipt links are illustrative and do not resolve.
+- There is no login, authorisation, database, persistence or offline synchronisation.
+- Sales orders, returns, stock, multi-warehouse, commissions, route optimisation, LHDN e-Invoice and referral functions remain roadmap concepts.
+- No money is transferred and no compliant tax invoice is issued.
+
+## Strategic value
+
+Winning Salesman is a useful discovery and sales-engineering asset because it proves the product flow before a costly backend build. It helps an organisation test:
+
+1. whether the field workflow matches actual selling practice;
+2. which exceptions require manager approval;
+3. what data must remain company-owned;
+4. how collections and margin controls should surface;
+5. which integrations justify a production pilot.
+
+## Technology
+
+| Layer | Current implementation |
 |---|---|
-| **Manager Dashboard** | Live coverage, today's sales, collection rate, activity feed, AI briefing |
-| **Jadual Harian** | Beat plan ordered by AI priority, check-in with GPS tag and timestamp |
-| **Order → Invoice → Payment** | Quantity capture, controlled price tweak, anomaly flag, invoice, part or full payment, digital receipt |
-| **Sales Ranking** | Live leaderboard, contribution % toward the monthly company target |
-| **Company-Owned Client Data** | Outlet register with full history, plus a resignation simulation |
-| **AI Copilot** | Route priority, coaching nudge, morning briefing, price anomaly flag |
+| Application | Single static `index.html` |
+| Interface | HTML, responsive CSS and vanilla JavaScript |
+| Navigation | Hash routes with browser back-button support |
+| Data | Fixed seeded in-memory tenant datasets |
+| Intelligence | Deterministic scoring, comparison and templating rules |
+| Backend / authentication | Not implemented |
+| Persistence | Not implemented |
+| Hosting | Manually uploaded static Netlify deployment |
 
-Switch between **Manager** (desktop-first) and **Salesman** (mobile-first) with the
-toggle in the top right. On a desktop the salesman view renders inside a phone frame
-so the mobile story is visible during a pitch; on a real phone it goes full screen.
+## Live demonstration
 
----
+[Open Winning Salesman](https://winning-salesman.netlify.app)
 
-## What is real vs. simulated
+The Netlify deployment was confirmed ready on **25 August 2026**. It is manually uploaded rather than Git-linked, so a repository update does not by itself prove that the hosted copy changed.
 
-This matters. Nothing below should be overclaimed in front of a client.
+A repeatable 60-second walkthrough is available in [PITCH-PATH.md](PITCH-PATH.md).
 
-### Real — actually computed, live, from the seeded dataset
-- **All arithmetic.** Sales totals, outstanding balances, overdue amounts, collection
-  rate, lifetime value, average order value, contribution percentages, days since last
-  order. Every figure is derived, none is typed in.
-- **The full transaction chain.** Placing an order really creates an order record,
-  which really generates an invoice with a sequential number and a due date computed
-  from that outlet's credit term. Recording a payment really updates the invoice
-  balance and status, and really moves the leaderboard.
-- **Document numbering.** `ORD-0001`, `INV-2026-0001`, `PAY-0001` increment properly.
-- **Partial payments.** Pay less than the balance and the invoice becomes `partial`,
-  the receipt is stamped `PART PAYMENT RECEIVED`, and the outstanding figure follows.
-- **All four AI outputs.** See below.
-- **The resignation simulation.** It genuinely reassigns every outlet and visit, and
-  the order and payment records genuinely survive, because they were never attached to
-  the salesman in the first place.
+## Delivery role
 
-### Real logic, but rule-based rather than a language model
-The AI layer is **templated logic running on live data** — not a chat model, and not
-static text. Every number in every AI output is computed at the moment you look at it.
-Swapping in a real model later does not change the data model.
+**Ts. Zaiwin Kassim** led the product concept, operating-model design, commercial narrative and solution direction with the **KOBIS AI Prodigy Team**, using supervised AI-assisted development.
 
-- **Route priority** — scores each outlet on overdue amount, average order value, days
-  since last order, and outlet tier, then shows the rationale as chips.
-- **Coaching nudge** — finds a product the outlet used to buy but did not order this
-  time, and reports the real gap in days. Falls back to comparing the order against
-  that outlet's real average.
-- **Morning briefing** — counts who is behind plan, totals what is actually overdue,
-  identifies the real top performer, and reports true month-to-date against target.
-- **Price anomaly** — compares the entered unit price against both the product floor
-  price and that outlet's real 90-day average unit price.
+This statement describes delivery responsibility. It does not claim client adoption, endorsement or commercial deployment.
 
-### Simulated — clearly fake, by design
-- **The dataset.** 4 companies, 19 salesmen, 51 customer sites, 32 products and about
-  90 days of trading history each, generated from a fixed seed. The figures are
-  realistic but invented. The seed is fixed so the demo is identical every run — no
-  surprises mid-pitch.
-- **"Today" is pinned to 19 August 2026**, so the numbers never drift.
-- **GPS check-in** produces a plausible Klang Valley coordinate. It does not read the
-  device location.
-- **"Send via WhatsApp"** opens a mock preview. It does not send a message. The
-  receipt link (`kobis.my/r/...`) is illustrative and does not resolve.
-- **No login or accounts.** The role toggle stands in for authentication, deliberately.
-- **Nothing persists.** Reload and everything resets. There is no database.
+## Responsible use
 
-### Not built — on purpose
-Ten modules are named and scoped but not implemented, shown as a "Coming in the full
-build" strip: Sales Order (SO), Return & Credit Note, Refer & Earn, Running Number
-Config, Stock Control, Multi-Warehouse, Commission Engine, GPS Route Optimisation,
-LHDN e-Invoice, and Offline Mode.
+A production build must add:
 
-They are visible rather than hidden so the demo stays honest and the roadmap does the
-selling.
+- authenticated users, least-privilege roles and tenant isolation enforced server-side;
+- encrypted shared storage, backups, audit logs and retention controls;
+- explicit consent and lawful handling for location, customer and employee data;
+- approved pricing, discount, credit, commission and collection rules;
+- verified inventory, accounting, payment and e-Invoice integrations;
+- human review of route, coaching, anomaly and performance recommendations;
+- bias testing and an appeal path for employee-impacting rankings;
+- security, accessibility, reliability and offline-conflict testing.
 
----
+Managers should not use prototype rankings or recommendations for employment, disciplinary, credit or customer decisions.
 
-## For the engineer picking this up
+## Run locally
 
-`index.html` is self-contained: tokens and styles, then data model, then selectors,
-then the AI layer, then views, then actions, then the router.
+Open `index.html` in a modern browser. No install, build, server, login or API key is required.
 
-The data model is the part built to survive. Entities are `company`, `salesmen`,
-`outlets`, `products`, `orders`, `invoices`, `payments`, `visits` and `assignments`,
-with normalised IDs throughout. The ten roadmap modules attach to these same entities
-without a rewrite — stock control hangs off `products`, commission off `orders` and
-`payments`, returns off `invoices`.
+## Evidence needed for the next maturity stage
 
-**Tenant isolation.** `ST.companyId` selects the active tenant and `DB` is defined as
-a getter onto `WORLD[ST.companyId]`. Every selector and view was already written
-against `DB`, so tenant scoping needed no changes to them and no query can leak across
-companies. Records still carry `companyId` so the shape matches what a real backend
-does with row-level scoping.
+Build and test one secure shared workflow:
 
-**Per-company document numbering.** Invoice and order sequences live on the tenant, so
-`INV-2026-0001` restarts for each client rather than running as one global series.
-That is the "Running Number Config" roadmap module in its simplest form.
+**authenticated salesperson → real device-location consent → outlet visit → approved order → finance-reviewed invoice → auditable payment status**
 
-Three deliberate choices worth keeping when this becomes the real build:
-
-- **Hash routing with real URLs** (`#/salesman/order/o7`). Every screen is
-  addressable and the browser back button works. Do not replace this with a
-  `setPage()` state variable — deep links and back-button behaviour are extremely
-  expensive to retrofit later.
-- **One definition per rule.** `S.pace()` decides "behind plan" once, and both the
-  dashboard table and the AI briefing call it. When the same rule gets computed in two
-  places, the screen eventually contradicts itself in front of a client.
-
-Motion respects `prefers-reduced-motion`. Layout is genuinely responsive down to
-390px with no horizontal overflow.
-
-
-## Deployment
-
-Hosted on Netlify (project `winning-salesman-kobis`, team `zaiwin`). Deploys are
-manual via the Netlify MCP/CLI; the site is not wired to the GitHub branch, so a
-push does not redeploy — you must deploy explicitly.
-
-`netlify.toml` copies **only `index.html`** into `_site` and publishes that, so
-`README.md` and `PITCH-PATH.md` are never served — the pitch script is internal.
-A `/*.md` redirect was tried first and silently did nothing: Netlify splats only
-match at the end of a path, and `force = true` does not change that.
-
-To redeploy after a change, **from the repo root** (the CLI uploads the current
-directory, so the working directory matters):
-
-```shell
-npx -y @netlify/mcp@latest --site-id <site-id> --proxy-path <token>
-```
-
-Then verify you shipped what you think you shipped:
-
-```shell
-curl -s https://winning-salesman-kobis.netlify.app/ | grep -c TENANTS   # expect > 0
-curl -so /dev/null -w '%{http_code}' https://winning-salesman-kobis.netlify.app/README.md  # expect 404
-```
-
-## Visual design
-
-Bright, professional light surface with soft ambient colour washes. One accent
-(jade) carries brand and primary actions; periwinkle is reserved entirely for the AI
-layer so AI output has its own voice on the page; gold and coral are semantic only
-(attention, overdue). Invoices and receipts render as warm paper against the cool UI,
-so a document reads as a document.
-
-The theme is deliberately committed to light — every colour is painted explicitly, so
-the page stays bright regardless of the viewer's system theme.
+Use synthetic data until privacy, financial and employment safeguards are approved.
