@@ -1,9 +1,14 @@
 # Salesman Apps — static, nothing to build.
-# Deployed from this folder as its own Netlify project, completely separate
-# from the earlier demo at the repo root.
+# Its own Netlify project, completely separate from the earlier demo at the
+# repo root.
+#
+# Only the three client-facing pages are published. README.md stays in the
+# repository for the engineer and is never served — it documents which parts
+# of the demo are simulated, which is not something to leave at a guessable
+# URL during a pitch.
 [build]
-  publish = "."
-  command = ""
+  command = "mkdir -p _site && cp index.html proposal.html gap.html _site/"
+  publish = "_site"
 
 [[headers]]
   for = "/*"
