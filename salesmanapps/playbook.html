@@ -254,10 +254,11 @@ td b{color:var(--ink)}
       <h3 data-t="conT">Bil barang terjual sahaja</h3>
       <p data-t="conP">Stock dihantar dahulu tanpa bil. Pada lawatan berikut, salesman kira baki di rak dan masukkan nombor itu. Sistem tolak untuk dapat jumlah terjual, dan hanya jumlah itu yang dibilkan.</p>
       <div class="flow">
-        Hantar <b>100 unit</b><br>
+        Hantar <b>100 unit</b> → <b>DO</b><br>
         → lawatan berikut: baki = <b>30</b><br>
         → terjual = 100 − 30 = <b>70</b><br>
-        → Bill = 70 × RM5 = <b>RM350</b><br>
+        → <b>SO</b> untuk 70 unit<br>
+        → <b>Invoice</b> = 70 × RM5 = <b>RM350</b><br>
         → Payment → Receipt
       </div>
     </div>
@@ -266,10 +267,11 @@ td b{color:var(--ink)}
       <h3 data-t="bilT">Setiap order jadi bil sendiri</h3>
       <p data-t="bilP">Order menjana rantaian dokumen penuh serta-merta. Tarikh matang dikira daripada term 1, 2 atau 3 bulan yang disimpan pada outlet itu sendiri, bukan tetapan sejagat.</p>
       <div class="flow">
-        <b>Order</b> → <b>DO</b> → <b>SO</b><br>
+        Ambil order → <b>SO</b><br>
         → <b>Invoice</b> + due date<br>
         → Payment ikut term<br>
-        → Receipt
+        → Receipt<br>
+        <span style="opacity:.7">Tiada DO — barang dan jualan serentak</span>
       </div>
     </div>
     <div class="model m-cash">
@@ -277,10 +279,11 @@ td b{color:var(--ink)}
       <h3 data-t="cashT">Order dan bayar di tempat</h3>
       <p data-t="cashP">Aliran yang sama, tetapi bayaran direkod serta-merta. Resit keluar sebelum salesman keluar dari kedai, dan baki outlet kekal sifar.</p>
       <div class="flow">
-        <b>Order</b> → <b>DO</b> → <b>SO</b><br>
+        Ambil order → <b>SO</b><br>
         → <b>Invoice</b><br>
         → Payment terus<br>
-        → <b>Receipt</b> di tempat
+        → <b>Receipt</b> di tempat<br>
+        <span style="opacity:.7">Tiada DO</span>
       </div>
     </div>
   </div>
@@ -288,6 +291,9 @@ td b{color:var(--ink)}
   <div class="tw" style="margin-top:16px"><table>
     <thead><tr><th data-t="thAspect">Aspek</th><th>Consignment</th><th>Bil to Bil</th><th>Cash</th></tr></thead>
     <tbody>
+      <tr><td><b data-t="r0">Dokumen dijana</b></td>
+        <td><span class="chip k-vio">DO → SO → Invoice</span></td>
+        <td>SO → Invoice</td><td>SO → Invoice → Receipt</td></tr>
       <tr><td><b data-t="r1">Bila dibil</b></td><td>Selepas semak baki</td><td>Semasa order</td><td>Semasa order</td></tr>
       <tr><td><b data-t="r2">Apa yang dibil</b></td><td><span class="chip k-vio">Barang terjual</span></td><td>Semua barang dihantar</td><td>Semua barang dihantar</td></tr>
       <tr><td><b data-t="r3">Bila dibayar</b></td><td>Selepas bil dijana</td><td>Ikut term 1/2/3 bulan</td><td><span class="chip k-grn">Serta-merta</span></td></tr>
@@ -305,8 +311,8 @@ td b{color:var(--ink)}
       <tr><td class="n">03</td><td><b>Customer Profile</b></td><td>Pusat arahan. Semua tindakan untuk outlet bermula di sini.</td></tr>
       <tr><td class="n">04</td><td><b>Jadual Harian</b></td><td>Senarai kedai untuk dilawat. Bukan attendance, bukan tracking, tiada status.</td></tr>
       <tr><td class="n">05</td><td><b>Ambil Order</b></td><td>Laraskan harga dalam had lantai. Stok van ditolak automatik.</td></tr>
-      <tr><td class="n">06</td><td><b>Delivery Order</b></td><td>DO dijana serentak dengan order.</td></tr>
-      <tr><td class="n">07</td><td><b>Sales Order</b></td><td>SO mengikut DO dan dibawa ke invois.</td></tr>
+      <tr><td class="n">06</td><td><b>Delivery Order</b></td><td>Consignment sahaja. DO dijana semasa stock dihantar ke kedai.</td></tr>
+      <tr><td class="n">07</td><td><b>Sales Order</b></td><td>Dijana bila barang terjual, dan dibawa ke invois.</td></tr>
       <tr><td class="n">08</td><td><b>Invoice</b></td><td>Tarikh matang dikira daripada payment term outlet itu.</td></tr>
       <tr><td class="n">09</td><td><b>Payment</b></td><td>Penuh atau separa. Empat kaedah. Baki dikemas kini serta-merta.</td></tr>
       <tr><td class="n">10</td><td><b>Receipt</b></td><td>Dijana automatik pada setiap bayaran yang direkod.</td></tr>
@@ -314,7 +320,7 @@ td b{color:var(--ink)}
       <tr><td class="n">12</td><td><b>Return</b></td><td>Dokumen RET, stok kembali ke van, sebab direkod.</td></tr>
       <tr><td class="n">13</td><td><b>Sales Ranking</b></td><td>Dikira semula pada setiap jualan, merentas tujuh tempoh.</td></tr>
       <tr><td class="n">14</td><td><b>PDF · WhatsApp · Print</b></td><td>Susun atur terma 58mm dan 80mm untuk setiap dokumen.</td></tr>
-      <tr><td class="n">15</td><td><b>Running Number</b></td><td>Enam turutan berasingan. Tiada nombor diguna semula.</td></tr>
+      <tr><td class="n">15</td><td><b>Running Number</b></td><td>Lima turutan berasingan, dijana pada peristiwa berlainan. Tiada nombor diguna semula, dan tiada dua turutan yang sama.</td></tr>
       <tr><td class="n">16</td><td><b>Refer &amp; Earn</b></td><td>Jejak referral dengan komisen pada outlet yang disahkan.</td></tr>
     </tbody>
   </table></div>
@@ -323,10 +329,9 @@ td b{color:var(--ink)}
   <div class="tw"><table>
     <thead><tr><th data-t="thDoc">Dokumen</th><th data-t="thFmt">Format</th><th data-t="thWhen">Bila dijana</th></tr></thead>
     <tbody>
-      <tr><td><b>Order</b></td><td class="n">ORD000001</td><td>Semasa order dihantar</td></tr>
-      <tr><td><b>Delivery Order</b></td><td class="n">DO000001</td><td>Serentak dengan order</td></tr>
-      <tr><td><b>Sales Order</b></td><td class="n">SO000001</td><td>Serentak dengan DO</td></tr>
-      <tr><td><b>Invoice</b></td><td class="n">INV000001</td><td>Serentak dengan SO</td></tr>
+      <tr><td><b>Delivery Order</b></td><td class="n">DO000001</td><td>Semasa stock dihantar — consignment sahaja</td></tr>
+      <tr><td><b>Sales Order</b></td><td class="n">SO000001</td><td>Semasa barang benar-benar terjual</td></tr>
+      <tr><td><b>Invoice</b></td><td class="n">INV000001</td><td>Selepas SO diproses</td></tr>
       <tr><td><b>Return</b></td><td class="n">RET000001</td><td>Semasa pulangan disimpan</td></tr>
       <tr><td><b>Receipt</b></td><td class="n">REC000001</td><td>Semasa bayaran direkod</td></tr>
     </tbody>
@@ -474,16 +479,17 @@ const D={
        "先送货不开单。下次拜访时，业务员清点货架余量并录入。系统相减得出售出量，仅对该数量开单。",
        "Stock dihantar dulu, nadai bil. Ba pengabas ti datai, orang jual ngira baki ba rak lalu numbuh nambor nya. Sistem nulak kena ngasilka penyampau ti udah dijual, lalu semina nya ti dibil."],
  bilT:["Setiap order jadi bil sendiri","Every order becomes its own bill","每张订单成为独立账单","Genap order nyadi bil iya empu"],
- bilP:["Order menjana rantaian dokumen penuh serta-merta. Tarikh matang dikira daripada term 1, 2 atau 3 bulan yang disimpan pada outlet itu sendiri, bukan tetapan sejagat.",
-       "The order generates the full document chain at once. The due date comes from the 1, 2 or 3 month term stored on that outlet itself, not a global setting.",
-       "订单立即生成完整单据链。到期日来自该门店自身设定的 1/2/3 个月条件，而非全局设置。",
-       "Order ngasilka rantai surat penuh tekala nya. Tanggal matang dikira ari term 1, 2 tauka 3 bulan ti disimpan ba kedai nya empu, ukai setting sereta semua."],
+ bilP:["Tiada DO, sebab barang dan jualan berlaku dalam lawatan yang sama. Order terus menjadi SO, kemudian Invoice. Tarikh matang dikira daripada term 1, 2 atau 3 bulan yang disimpan pada outlet itu sendiri, bukan tetapan sejagat.",
+       "No DO, because the goods and the sale happen on the same visit. The order becomes an SO, then an Invoice. The due date comes from the 1, 2 or 3 month term stored on that outlet itself, not a global setting.",
+       "没有 DO，因为送货与销售在同一次拜访中完成。订单直接成为 SO，再生成发票。到期日来自该门店自身设定的 1/2/3 个月条件，而非全局设置。",
+       "Nadai DO, laban utai enggau jualan nya nyadi dalam siti pengabas ti sama. Order terus nyadi SO, udah nya Invoice. Tanggal matang dikira ari term 1, 2 tauka 3 bulan ti disimpan ba kedai nya empu, ukai setting sereta semua."],
  cashT:["Order dan bayar di tempat","Order and pay on the spot","当场下单当场付款","Order lalu bayar ba endur nya"],
  cashP:["Aliran yang sama, tetapi bayaran direkod serta-merta. Resit keluar sebelum salesman keluar dari kedai, dan baki outlet kekal sifar.",
         "The same flow, but payment is recorded immediately. The receipt prints before the salesman leaves the shop, and the outlet's balance stays at zero.",
         "流程相同，但立即记录付款。业务员离店前收据已出，门店余额保持为零。",
         "Chara ti sama, tang bayar direkod tekala nya. Resit pansut sebedau orang jual pansut ari kedai, lalu baki kedai agi nadai."],
  thAspect:["Aspek","Aspect","方面","Bagi"],
+ r0:["Dokumen dijana","Documents issued","生成的单据","Surat ti dijana"],
  r1:["Bila dibil","When billed","何时开单","Kemaya dibil"],
  r2:["Apa yang dibil","What is billed","开单内容","Nama ti dibil"],
  r3:["Bila dibayar","When paid","何时付款","Kemaya dibayar"],

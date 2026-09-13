@@ -562,6 +562,12 @@ const DICT={
  "s.cust":        ["Outlet Saya","My Outlets","我的门店","Kedai Aku"],
  "s.order":       ["Ambil Order","Take Order","下单","Ambi Order"],
  "s.consign":     ["Consignment","Consignment","寄售","Consignment"],
+ "s.collect":     ["Payment & Kutipan","Payment & Collections","收款与回收","Payment & Kutipan"],
+ "s.collect.d":   ["Invois outlet anda yang belum berbayar. Yang paling lewat di atas.","Your outlets' unpaid invoices. Most overdue first.","您门店的未付发票，逾期最久的排在最前。","Invois kedai nuan ti apin dibayar. Ti pemadu lama di atas."],
+ "l.late":        ["Lewat","Late","逾期","Lambat"],
+ "l.invoice":     ["Invois","Invoice","发票","Invois"],
+ "l.balance":     ["Baki","Balance","余额","Baki"],
+ "l.collected":   ["Dikutip hari ini","Collected today","今日已收","Dikutip sehari tu"],
  "s.docs":        ["Dokumen","Documents","单据","Surat"],
  "s.stock":       ["Stok Van","Van Stock","车载库存","Stock Van"],
  "s.rank":        ["Ranking","Ranking","排名","Pangkat"],
@@ -696,6 +702,30 @@ const PRODUCTS=[
   ["Gula Halus 1kg","GUL-1K",3.20,400],["Susu Tin 390g","SUS-390",4.80,260]
 ].map(([name,sku,price,stock],i)=>({id:"p"+(i+1),name,sku,price,floor:+(price*0.85).toFixed(2),van:stock,low:40}));
 
+/* Real centre point for each district an outlet is registered in. A pin has to
+   land in the town on the outlet's own address — a coordinate picked anywhere
+   inside the Klang Valley is worse than none, because the salesman drives to it. */
+const DISTRICT={
+  "Kajang":       [2.993400,101.787400],
+  "Shah Alam":    [3.073300,101.518500],
+  "Setia Alam":   [3.100500,101.453000],
+  "Ampang":       [3.150300,101.760100],
+  "Cheras":       [3.107300,101.744000],
+  "Puchong":      [3.031900,101.616900],
+  "Setapak":      [3.197000,101.720000],
+  "Klang":        [3.044900,101.445500],
+  "Gombak":       [3.233300,101.700000],
+  "Bangi":        [2.950000,101.783300],
+  "Rawang":       [3.321000,101.576000],
+  "Sri Petaling": [3.067000,101.689000]
+};
+/* ±0.006° is roughly 600 m, enough that twelve pins are not stacked on one
+   point but never enough to throw one into the next town. */
+const atDistrict=d=>{
+  const [la,ln]=DISTRICT[d]||[3.1390,101.6869];
+  return {lat:(la+(R()-0.5)*0.012).toFixed(6), lng:(ln+(R()-0.5)*0.012).toFixed(6)};
+};
+
 const CUSTOMERS=[
   ["Kedai Maju Sdn Bhd","Ahmad Ismail","Kajang","Selangor","43000","consign",3],
   ["Pasar Mini Abadi","Rosnah Abdullah","Shah Alam","Selangor","40150","biltobil",2],
@@ -716,7 +746,7 @@ const CUSTOMERS=[
   addr:"No "+bt(1,88)+", Jalan "+pick(["Mawar","Melati","Dahlia","Kenanga","Cempaka"])+" "+bt(1,9)+", "+dist,
   ssm:"20"+bt(15,23)+"010"+bt(1000,9999)+" ("+bt(100,999)+bt(1000,9999)+"-"+pick(["A","D","K","P","T","V"])+")",
   type:pick(["Kedai Runcit","Mini Market","Supermarket","Borong"]),
-  lat:(2.98+R()*0.32).toFixed(6), lng:(101.45+R()*0.42).toFixed(6),
+  ...atDistrict(dist),
   salesmanId:pick(SALESMEN).id, regAt:ago(bt(120,900)), status:"Active"
 }));
 CUSTOMERS.forEach((c,i)=>{ if(i<7) c.salesmanId=ME.id; });
@@ -724,30 +754,44 @@ CUSTOMERS.forEach((c,i)=>{ if(i<7) c.salesmanId=ME.id; });
    has something real to find rather than always reporting zero. */
 CUSTOMERS.forEach(c=>{ if(c.id==="c4"||c.id==="c10") c.dormant=true; });
 
-const DB={orders:[],dos:[],sos:[],invoices:[],payments:[],receipts:[],returns:[],consign:[],
-  schedule:[],referrals:[],seq:{ORD:0,DO:0,SO:0,INV:0,RET:0,REC:0}};
+const DB={dos:[],sos:[],invoices:[],payments:[],receipts:[],returns:[],consign:[],
+  schedule:[],referrals:[],seq:{DO:0,SO:0,INV:0,RET:0,REC:0}};
 const nn=(k,n)=>k+String(n).padStart(6,"0");
 const cust=id=>CUSTOMERS.find(c=>c.id===id);
 const prod=id=>PRODUCTS.find(p=>p.id===id);
 const sm=id=>SALESMEN.find(s=>s.id===id);
 const TERM={consign:{k:"k-vio",t:"Consignment",s:"CONSIGN"},biltobil:{k:"k-blue",t:"Bil to Bil",s:"BIL-TO-BIL"},cash:{k:"k-grn",t:"Cash",s:"CASH"}};
 
-/* The single place a document chain is created, so Order → DO → SO → Invoice
-   can never be produced inconsistently. */
-function mkChain(c,date,lines,salesmanId,payNow){
+/* Payment term decides which documents exist, so there is no one chain builder.
+   Consignment gets a DO when the stock is physically dropped at the shop; the
+   SO is raised later, and only for the units that actually sold. Bil to Bil and
+   Cash never produce a DO at all — goods and sale happen in the same visit — so
+   they go straight to SO and Invoice. Taking an order is a step, not a document:
+   there is no ORD number.
+
+   Because each document is issued on a different event, the running numbers
+   are never in step with each other. That is the point of keeping them apart. */
+function mkDelivery(c,date,lines,salesmanId){
   const total=lines.reduce((a,l)=>a+l.qty*l.price,0);
-  const o={id:nn("ORD",++DB.seq.ORD),customerId:c.id,salesmanId,date,lines,total,remark:""};
-  DB.orders.push(o);
-  const d={id:nn("DO",++DB.seq.DO),orderId:o.id,customerId:c.id,salesmanId,date,lines,total};
+  const d={id:nn("DO",++DB.seq.DO),customerId:c.id,salesmanId,date,lines,total};
   DB.dos.push(d);
-  const s={id:nn("SO",++DB.seq.SO),doId:d.id,orderId:o.id,customerId:c.id,salesmanId,date,lines,total};
+  return d;
+}
+function mkSale(c,date,lines,salesmanId,payNow,doId,invoiceNow){
+  const total=lines.reduce((a,l)=>a+l.qty*l.price,0);
+  const s={id:nn("SO",++DB.seq.SO),doId:doId||null,customerId:c.id,salesmanId,
+    date,lines,total,invoiceId:null};
   DB.sos.push(s);
+  /* An SO written in the field is not invoiced until the office processes it.
+     Holding a few back is what keeps the two sequences honestly out of step. */
+  if(invoiceNow===false) return {s,inv:null};
   const due=new Date(date.getTime()+(c.term==="cash"?0:c.months*30)*DAY);
-  const inv={id:nn("INV",++DB.seq.INV),soId:s.id,doId:d.id,orderId:o.id,customerId:c.id,salesmanId,
+  const inv={id:nn("INV",++DB.seq.INV),soId:s.id,doId:s.doId,customerId:c.id,salesmanId,
     date,due,total,paid:0,status:"pending",kind:c.term};
   DB.invoices.push(inv);
+  s.invoiceId=inv.id;
   if(payNow) payInvoice(inv,total,"Cash",date);
-  return {o,d,s,inv};
+  return {s,inv};
 }
 function payInvoice(inv,amt,method,date){
   inv.paid+=amt;
@@ -765,13 +809,15 @@ CUSTOMERS.forEach(c=>{
     for(let k=3;k>=1;k--){
       const date=ago(k*30+bt(0,4));
       const p=pick(PRODUCTS), qty=bt(60,140);
+      /* DO is cut here, at the drop — not later when the stock is billed. */
+      const d=mkDelivery(c,date,[{productId:p.id,qty,price:p.price}],c.salesmanId);
       const cg={id:"CG"+(DB.consign.length+1),customerId:c.id,productId:p.id,qty,price:p.price,date,
-        balance:null,checkedAt:null,sold:0,invoiceId:null,salesmanId:c.salesmanId};
+        doId:d.id,balance:null,checkedAt:null,sold:0,invoiceId:null,salesmanId:c.salesmanId};
       DB.consign.push(cg);
       if(k>1){
         const bal=bt(10,Math.floor(qty*0.45));
         cg.balance=bal; cg.checkedAt=ago((k-1)*30); cg.sold=qty-bal;
-        const {inv}=mkChain(c,cg.checkedAt,[{productId:p.id,qty:cg.sold,price:p.price}],c.salesmanId,false);
+        const {inv}=mkSale(c,cg.checkedAt,[{productId:p.id,qty:cg.sold,price:p.price}],c.salesmanId,false,d.id);
         inv.kind="consign"; cg.invoiceId=inv.id;
         if(R()<0.7) payInvoice(inv,inv.total,pick(["Cash","Bank Transfer"]),new Date(cg.checkedAt.getTime()+bt(3,20)*DAY));
       }
@@ -784,13 +830,15 @@ CUSTOMERS.forEach(c=>{
       for(let j=0;j<bt(2,4);j++){ const p=pick(PRODUCTS); if(used.has(p.id))continue; used.add(p.id);
         lines.push({productId:p.id,qty:bt(6,40),price:p.price}); }
       if(!lines.length) continue;
-      const {inv}=mkChain(c,date,lines,c.salesmanId,c.term==="cash");
+      /* Bil to Bil and Cash: no DO. The goods and the sale are one visit. */
+      const {inv}=mkSale(c,date,lines,c.salesmanId,c.term==="cash");
       if(c.term==="biltobil"&&R()<0.62&&!sameDay(date,TODAY))
         payInvoice(inv,inv.total,pick(["Bank Transfer","Cheque","Cash"]),new Date(date.getTime()+bt(10,50)*DAY));
     }
   }
 });
 /* Today's trading, so no panel opens empty in front of a client. */
+let awaitingInv=0;
 SALESMEN.forEach(s=>{
   const mine=CUSTOMERS.filter(c=>c.salesmanId===s.id&&c.term!=="consign"&&!c.dormant);
   const pool=mine.length?mine:CUSTOMERS.filter(c=>c.term!=="consign"&&!c.dormant);
@@ -799,8 +847,14 @@ SALESMEN.forEach(s=>{
     for(let j=0;j<bt(2,4);j++){ const p=pick(PRODUCTS); if(used.has(p.id))continue; used.add(p.id);
       lines.push({productId:p.id,qty:bt(8,45),price:p.price}); }
     if(!lines.length) return;
-    const {inv}=mkChain(c,new Date(TODAY.getTime()+bt(9,15)*36e5),lines,s.id,c.term==="cash");
-    if(c.term==="biltobil"&&R()<0.4) payInvoice(inv,inv.total,"Bank Transfer",TODAY);
+    /* The first two non-cash sales of the day are left with the office, still to
+       be invoiced — held deliberately rather than by chance, so the demo always
+       shows SO and INV standing at different numbers. Cash is always invoiced on
+       the spot, so it never waits. */
+    const hold = c.term!=="cash" && awaitingInv<2;
+    if(hold) awaitingInv++;
+    const {inv}=mkSale(c,new Date(TODAY.getTime()+bt(9,15)*36e5),lines,s.id,c.term==="cash",null,!hold);
+    if(inv&&c.term==="biltobil"&&R()<0.4) payInvoice(inv,inv.total,"Bank Transfer",TODAY);
   });
 });
 for(let i=0;i<5;i++){
@@ -846,10 +900,16 @@ const S={
     const t=inv.reduce((a,i)=>a+i.total,0);
     return t>0?Math.round(inv.reduce((a,i)=>a+i.paid,0)/t*100):0;
   },
-  ordersIn:(r,uid)=>DB.orders.filter(o=>S.inRange(o.date,r)&&(!uid||o.salesmanId===uid)).length,
-  qtyIn:(r,uid)=>DB.orders.filter(o=>S.inRange(o.date,r)&&(!uid||o.salesmanId===uid)).reduce((a,o)=>a+o.lines.reduce((x,l)=>x+l.qty,0),0),
+  /* The SO is the record that a sale happened, so every count of orders,
+     units and outlets traded reads from it. There is no separate ORD. */
+  ordersIn:(r,uid)=>DB.sos.filter(o=>S.inRange(o.date,r)&&(!uid||o.salesmanId===uid)).length,
+  qtyIn:(r,uid)=>DB.sos.filter(o=>S.inRange(o.date,r)&&(!uid||o.salesmanId===uid)).reduce((a,o)=>a+o.lines.reduce((x,l)=>x+l.qty,0),0),
   paidIn:(r,uid)=>DB.payments.filter(p=>S.inRange(p.date,r)&&(!uid||p.salesmanId===uid)).reduce((a,p)=>a+p.amount,0),
-  custIn:(r,uid)=>new Set(DB.orders.filter(o=>S.inRange(o.date,r)&&(!uid||o.salesmanId===uid)).map(o=>o.customerId)).size,
+  custIn:(r,uid)=>new Set(DB.sos.filter(o=>S.inRange(o.date,r)&&(!uid||o.salesmanId===uid)).map(o=>o.customerId)).size,
+  /* What this salesman still has money sitting in, worst overdue first. */
+  myDue:()=>DB.invoices.filter(i=>i.salesmanId===ME.id&&i.status!=="paid")
+    .map(i=>({i,late:dbet(i.due,TODAY)})).sort((a,b)=>b.late-a.late),
+  soPending:()=>DB.sos.filter(s=>!s.invoiceId),
   ranking:r=>SALESMEN.map(s=>({...s,sales:S.salesIn(r,s.id),ord:S.ordersIn(r,s.id),paid:S.paidIn(r,s.id)})).sort((a,b)=>b.sales-a.sales),
   openConsign:cid=>DB.consign.filter(c=>(!cid||c.customerId===cid)&&c.balance===null),
   /* debt ageing buckets, the number a boss actually asks for */
@@ -863,7 +923,6 @@ const S={
   },
   histOf:cid=>{
     const h=[];
-    DB.orders.filter(x=>x.customerId===cid).forEach(x=>h.push({t:"Order",id:x.id,d:x.date,amt:x.total,k:"k-mut"}));
     DB.dos.filter(x=>x.customerId===cid).forEach(x=>h.push({t:"DO",id:x.id,d:x.date,amt:x.total,k:"k-blue"}));
     DB.sos.filter(x=>x.customerId===cid).forEach(x=>h.push({t:"SO",id:x.id,d:x.date,amt:x.total,k:"k-blue"}));
     DB.invoices.filter(x=>x.customerId===cid).forEach(x=>h.push({t:"Invoice",id:x.id,d:x.date,amt:x.total,k:"k-amb"}));
@@ -871,7 +930,7 @@ const S={
     DB.returns.filter(x=>x.customerId===cid).forEach(x=>h.push({t:"Return",id:x.id,d:x.date,amt:0,k:"k-red"}));
     return h.sort((a,b)=>b.d-a.d);
   },
-  docCount:()=>DB.orders.length+DB.dos.length+DB.sos.length+DB.invoices.length+DB.receipts.length+DB.returns.length
+  docCount:()=>DB.dos.length+DB.sos.length+DB.invoices.length+DB.receipts.length+DB.returns.length
 };
 
 /* ==========================================================================
@@ -1033,8 +1092,8 @@ function vPublic(){
     ["03","Customer Profile","The command center. Every action for that outlet starts here."],
     ["04","Jadual Harian","A plain ordered list of shops to visit. Not attendance, not tracking."],
     ["05","Ambil Order","Price tweak inside a floor guard, live van stock deduction."],
-    ["06","Delivery Order","DO issued the moment the order is confirmed."],
-    ["07","Sales Order","SO mirrors the DO and carries into the invoice."],
+    ["06","Delivery Order","Consignment only — DO is cut when the stock is dropped at the shop."],
+    ["07","Sales Order","Raised when goods actually sell, and carries into the invoice."],
     ["08","Invoice","Due date derived from the outlet's own payment term."],
     ["09","Payment","Full or partial, four methods, outstanding updates instantly."],
     ["10","Receipt","Issued automatically on every payment recorded."],
@@ -1042,7 +1101,7 @@ function vPublic(){
     ["12","Return","RET document, stock returns to the van, reason recorded."],
     ["13","Sales Ranking","Recalculates on every sale, across seven periods."],
     ["14","PDF · WhatsApp · Print","58mm and 80mm thermal layouts for every document."],
-    ["15","Running Number","Six independent sequences, never reused."],
+    ["15","Running Number","Five independent sequences, never reused, never in step."],
     ["16","Refer & Earn","Referral tracking with commission on verified outlets."]
   ];
   return `<div class="pub">
@@ -1444,24 +1503,26 @@ function mDocs(){
   const tab=ST.docTab;
   const all=[];
   const add=(arr,t,k)=>arr.forEach(x=>all.push({t,k,id:x.id,d:x.date,amt:x.total!=null?x.total:x.amount||0,cid:x.customerId,sid:x.salesmanId}));
-  if(tab==="all"||tab==="ORD") add(DB.orders,"Order","k-mut");
   if(tab==="all"||tab==="DO")  add(DB.dos,"DO","k-blue");
   if(tab==="all"||tab==="SO")  add(DB.sos,"SO","k-cy");
   if(tab==="all"||tab==="INV") add(DB.invoices,"Invoice","k-amb");
   if(tab==="all"||tab==="REC") add(DB.receipts,"Receipt","k-grn");
   if(tab==="all"||tab==="RET") add(DB.returns,"Return","k-red");
   all.sort((a,b)=>b.d-a.d);
-  const tabs=[["all",T("t.all")],["ORD","Order"],["DO","DO"],["SO","SO"],["INV","Invoice"],["REC","Receipt"],["RET","Return"]];
+  const tabs=[["all",T("t.all")],["DO","DO"],["SO","SO"],["INV","Invoice"],["REC","Receipt"],["RET","Return"]];
   return M("docs",`
     <div class="pgh"><div><h1>${T("m.docs")}</h1><p>${S.docCount().toLocaleString("en-MY")} ${T("tick.docs").toLowerCase()}</p></div>
       <div class="ra"><div class="tabs">${tabs.map(([v,l])=>
         `<button data-a="doctab" data-v="${v}" class="${tab===v?"on":""}">${l}</button>`).join("")}</div></div></div>
     <div class="g g5" style="margin-bottom:18px">
-      ${[["Order",DB.orders.length,"ORD"],["DO",DB.dos.length,"DO"],["SO",DB.sos.length,"SO"],
-         ["Invoice",DB.invoices.length,"INV"],["Receipt",DB.receipts.length,"REC"]].map(([l,v,p])=>
+      ${[["DO",DB.dos.length,"DO"],["SO",DB.sos.length,"SO"],["Invoice",DB.invoices.length,"INV"],
+         ["Receipt",DB.receipts.length,"REC"],["Return",DB.returns.length,"RET"]].map(([l,v,p])=>
         `<div class="kpi"><div class="l">${l}</div><div class="v num">${v}</div>
           <div class="d mono" style="font-size:11px">${nn(p,v)}</div></div>`).join("")}
     </div>
+    <div class="note" style="margin-bottom:16px">DO hanya dijana untuk consignment, jadi kiraannya jauh lebih kecil.
+      SO dijana bila barang benar-benar terjual. ${S.soPending().length} SO masih menunggu invoice.
+      Sebab itu setiap turutan bergerak sendiri.</div>
     <div class="tw"><table>
       <thead><tr><th>${T("l.doc")}</th><th>Jenis</th><th>${T("l.customer")}</th><th>${T("l.salesman")}</th>
         <th>${T("l.date")}</th><th class="r">${T("l.amount")}</th></tr></thead>
@@ -1485,7 +1546,7 @@ function mReports(){
   const tmax=Math.max(...byTerm.map(x=>x.v),1);
   const byProd=PRODUCTS.map(p=>{
     let qty=0,val=0;
-    DB.orders.filter(o=>S.inRange(o.date,r)).forEach(o=>o.lines.forEach(l=>{
+    DB.sos.filter(o=>S.inRange(o.date,r)).forEach(o=>o.lines.forEach(l=>{
       if(l.productId===p.id){qty+=l.qty;val+=l.qty*l.price}}));
     return {p,qty,val};
   }).sort((a,b)=>b.val-a.val);
@@ -1594,6 +1655,8 @@ const SITEMS=()=>[
   {gp:T("models.k")},
   {k:"order",t:T("s.order"),i:I.cart,h:"#/s/order"},
   {k:"consign",t:T("s.consign"),i:I.box,h:"#/s/consign"},
+  {k:"collect",t:T("s.collect"),i:I.cash,h:"#/s/collect",
+    b:DB.invoices.filter(i=>i.salesmanId===ME.id&&i.status!=="paid"&&i.due<TODAY).length||""},
   {k:"docs",t:T("s.docs"),i:I.doc,h:"#/s/docs"},
   {gp:T("f.modules")},
   {k:"stock",t:T("s.stock"),i:I.truck,h:"#/s/stock"},
@@ -1709,7 +1772,7 @@ function sCustomer(id){
   const c=cust(id); if(!c) return sCust();
   const inv=S.invOf(id), open=S.openConsign(id), od=S.overdue(id), pay=AI.payer(id);
   const hist=S.histOf(id);
-  const tabs=["All","Order","DO","SO","Invoice","Receipt","Return"];
+  const tabs=["All","DO","SO","Invoice","Receipt","Return"];
   const h=ST.histTab==="All"?hist:hist.filter(x=>x.t===ST.histTab);
   const cmd=[["Ambil Order",I.cart,"#/s/order/"+id,"var(--blue-lo)","#2743D8"],
     ...(c.term==="consign"?[["Consignment",I.box,"#/s/consign/"+id,"var(--vio-lo)","#8B5CF6"]]:[]),
@@ -1806,8 +1869,10 @@ function sRegister(){
           <h3>Lokasi GPS</h3>
           <div class="sub">Ditangkap sekali di kedai. Salesman lain terus jumpa outlet ini.</div>
           <div class="f2" style="margin-top:13px">
-            <div class="f"><label>Latitud</label><input id="rlat" value="3.038291"></div>
-            <div class="f"><label>Longitud</label><input id="rlng" value="101.712345"></div></div>
+            <div class="f"><label>Latitud</label><input id="rlat" placeholder="Tangkap di lokasi"></div>
+            <div class="f"><label>Longitud</label><input id="rlng" placeholder="Tangkap di lokasi"></div></div>
+          <button class="btn btn-s" data-a="grab-gps" style="margin-bottom:8px">${ic(I.pin)} Tangkap GPS di sini</button>
+          <div class="hint" id="gpsnote" style="font-size:11.5px;color:var(--dim);margin-bottom:12px">Koordinat disemak terhadap Kawasan yang diisi, supaya pin jatuh di pekan yang betul.</div>
           <div style="height:120px;border-radius:var(--r-s);background:linear-gradient(160deg,#DCE9F7,#C5D9EE);
             display:grid;place-items:center;position:relative;overflow:hidden">
             <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);background-size:24px 24px"></div>
@@ -1858,9 +1923,8 @@ function sOrder(cid){
           ?`<div class="warn"><b>Harga bawah lantai.</b> Order masih boleh dihantar tetapi ditandakan untuk semakan pengurusan.</div>`:""}
         <div class="card p">
           <h3>Rantaian dokumen</h3>
-          <div class="sub">Dijana serentak apabila order dihantar.</div>
+          <div class="sub">${TERM[c.term].t} — SO dan Invoice sahaja. DO hanya untuk consignment.</div>
           <div class="flow" style="margin-top:12px">
-            <div>${nn("ORD",DB.seq.ORD+1)}</div><div>${nn("DO",DB.seq.DO+1)}</div>
             <div>${nn("SO",DB.seq.SO+1)}</div><div class="hi">${nn("INV",DB.seq.INV+1)}</div>
             ${c.term==="cash"?`<div class="gd">${nn("REC",DB.seq.REC+1)}</div>`:""}
           </div>
@@ -1869,6 +1933,41 @@ function sOrder(cid){
           Hantar Order · ${RM2(total)}</button>
       </div>
     </div>`);
+}
+
+/* ---------- SALESMAN: PAYMENT & COLLECTIONS ----------
+   The payment screen always existed, but only from inside an outlet profile.
+   A salesman starting his round needs the opposite view: who owes me, worst
+   first, and one tap into the payment screen from each row. */
+function sCollect(){
+  const due=S.myDue();
+  const late=due.filter(x=>x.late>0);
+  const out=due.reduce((a,x)=>a+(x.i.total-x.i.paid),0);
+  const lateAmt=late.reduce((a,x)=>a+(x.i.total-x.i.paid),0);
+  const today=DB.payments.filter(p=>p.salesmanId===ME.id&&sameDay(p.date,TODAY))
+    .reduce((a,p)=>a+p.amount,0);
+  return SM("collect",`
+    <div class="pgh"><div><h1>${T("s.collect")}</h1><p>${T("s.collect.d")}</p></div></div>
+    <div class="g g3" style="margin-bottom:18px">
+      ${kpi(T("k.outstanding"),RMk(out),due.length+" invois",I.doc,"#D97706")}
+      ${kpi(T("k.overdue"),RMk(lateAmt),late.length+" "+T("l.late").toLowerCase(),I.shield,"#DC2626")}
+      ${kpi(T("l.collected"),RMk(today),fd(TODAY),I.cash,"#0E9F6E")}
+    </div>
+    ${due.length?`<div class="tw"><table>
+      <thead><tr><th>${T("l.customer")}</th><th>${T("l.invoice")}</th><th>${T("l.due")}</th>
+        <th>${T("l.late")}</th><th class="r">${T("l.balance")}</th><th></th></tr></thead>
+      <tbody>${due.map(({i,late:L})=>{const c=cust(i.customerId);return `<tr>
+        <td><a class="lk" href="#/s/customer/${c.id}">${esc(c.name)}</a>
+          <div style="font-size:11.5px;color:var(--dim)">${esc(c.dist)} · ${TERM[c.term].t}</div></td>
+        <td><a class="lk mono" href="#/s/doc/Invoice/${i.id}">${i.id}</a></td>
+        <td>${fd(i.due)}</td>
+        <td>${L>0?`<span class="chip k-red">${L} hari</span>`:`<span class="chip k-mut">${-L} hari lagi</span>`}</td>
+        <td class="r"><b>${RM2(i.total-i.paid)}</b>${i.paid>0?`<div style="font-size:11px;color:var(--dim)">separa · ${RM2(i.paid)} dibayar</div>`:""}</td>
+        <td class="r"><a class="btn btn-s" href="#/s/payment/${c.id}/${i.id}">${ic(I.cash)} Rekod</a></td>
+      </tr>`}).join("")}</tbody>
+    </table></div>`
+    :`<div class="empty"><b>Tiada invois tertunggak</b><div>Semua outlet anda sudah menjelaskan bayaran.</div></div>`}
+    <div class="note" style="margin-top:13px">Resit dijana automatik selepas setiap bayaran direkod, penuh atau separa.</div>`);
 }
 
 function sConsign(cid){
@@ -1927,7 +2026,7 @@ function sDocs(cid){
     DB.sos.filter(i=>i.salesmanId===ME.id).forEach(x=>h.push({t:"SO",id:x.id,d:x.date,amt:x.total,k:"k-cy",cid:x.customerId}));
     return h.sort((a,b)=>b.d-a.d);
   })();
-  const tabs=["All","Order","DO","SO","Invoice","Receipt","Return"];
+  const tabs=["All","DO","SO","Invoice","Receipt","Return"];
   const list=ST.histTab==="All"?src:src.filter(x=>x.t===ST.histTab);
   return SM("docs",`
     <div class="pgh"><div>${c?`<a href="#/s/customer/${cid}" style="font-size:12.5px;color:var(--blue);font-weight:700">‹ ${esc(c.name)}</a>`:""}
@@ -1948,14 +2047,21 @@ function sDocs(cid){
 
 /* ---------- SHARED: THERMAL DOCUMENT ---------- */
 function vDoc(pfx,type,id){
-  const find={Order:DB.orders,DO:DB.dos,SO:DB.sos,Invoice:DB.invoices,Receipt:DB.receipts,Return:DB.returns}[type];
+  const find={DO:DB.dos,SO:DB.sos,Invoice:DB.invoices,Receipt:DB.receipts,Return:DB.returns}[type];
   const d=find&&find.find(x=>x.id===id);
   const inner=(()=>{
     if(!d) return `<div class="empty"><b>${T("l.none")}</b><span>${esc(type||"")} ${esc(id||"")}</span></div>`;
     const c=cust(d.customerId), w=ST.width;
     const lines=d.lines||(d.productId?[{productId:d.productId,qty:d.qty,price:0}]:[]);
     const rows=[["No",d.id],[T("l.date"),fd(d.date)],[T("l.customer"),c.name],["Kod",c.code]];
-    if(type==="Invoice") rows.push([T("l.due"),fd(d.due)],[T("l.term"),TERM[d.kind]?TERM[d.kind].t:"—"]);
+    /* Show where each document came from. Under this model a document's parents
+       differ by payment term, so the trail is worth printing on the paperwork. */
+    if(type==="DO")      rows.push([T("l.term"),"Consignment"]);
+    if(type==="SO"){     if(d.doId) rows.push(["Dari DO",d.doId]);
+                         rows.push(["Invoice",d.invoiceId||"Menunggu invoice"]); }
+    if(type==="Invoice"){rows.push([T("l.due"),fd(d.due)],[T("l.term"),TERM[d.kind]?TERM[d.kind].t:"—"]);
+                         if(d.doId) rows.push(["Dari DO",d.doId]);
+                         rows.push(["Dari SO",d.soId]); }
     if(type==="Receipt") rows.push(["Kaedah",d.method],["Invoice",d.invoiceId]);
     if(type==="Return") rows.push(["Sebab",d.reason]);
     if(d.salesmanId) rows.push([T("l.salesman"),sm(d.salesmanId).name]);
@@ -2218,7 +2324,7 @@ function aiAnswer(q){
   if(has("stock","stok","van"))
     return `Stok van sekarang bernilai <b>${RM2(PRODUCTS.reduce((a,p)=>a+p.van*p.price,0))}</b> merentas ${PRODUCTS.length} SKU. ${PRODUCTS.filter(p=>p.van<=p.low).length} SKU bawah paras minimum.`;
   if(has("dokumen","document","invoice","resit","receipt","running"))
-    return `Setakat ini <b>${S.docCount()}</b> dokumen dijana: ${DB.orders.length} Order · ${DB.dos.length} DO · ${DB.sos.length} SO · ${DB.invoices.length} Invoice · ${DB.receipts.length} Receipt · ${DB.returns.length} Return. Enam turutan berasingan, tiada nombor diguna semula.`;
+    return `Setakat ini <b>${S.docCount()}</b> dokumen dijana: ${DB.dos.length} DO · ${DB.sos.length} SO · ${DB.invoices.length} Invoice · ${DB.receipts.length} Receipt · ${DB.returns.length} Return. Lima turutan berasingan, tiada nombor diguna semula. DO hanya untuk consignment, jadi kiraannya kecil; SO dijana bila barang terjual. Sebab itu nombor setiap jenis tidak sama.`;
   if(has("bahasa","language","语言"))
     return `Portal ini menyokong empat bahasa: Bahasa Malaysia, English, 中文 dan Jaku Iban. Tukar di penjuru kanan atas — seluruh portal berubah serta-merta.`;
   if(has("modul","module","apa boleh"))
@@ -2289,11 +2395,11 @@ const A={
   "submit-order"(e){
     const c=cust(e.dataset.c), lines=ST.draft.lines.filter(l=>l.qty>0).map(l=>({...l}));
     lines.forEach(l=>{const p=prod(l.productId);p.van=Math.max(0,p.van-l.qty)});
-    const {inv}=mkChain(c,TODAY,lines,ME.id,c.term==="cash");
+    const {s,inv}=mkSale(c,TODAY,lines,ME.id,c.term==="cash");
     ST.draft=null;
-    modal(`<h3>Order berjaya</h3><p style="color:var(--mut);font-size:13.5px;margin-bottom:14px">Rantaian dokumen dijana automatik.</p>
+    modal(`<h3>Order berjaya</h3><p style="color:var(--mut);font-size:13.5px;margin-bottom:14px">${TERM[c.term].t} — SO dan Invoice dijana. Tiada DO, sebab barang dan jualan berlaku serentak.</p>
       <div class="card" style="padding:14px;margin-bottom:14px">
-        ${[["Order",inv.orderId],["DO",inv.doId],["SO",inv.soId],["Invoice",inv.id]].map(([t,n])=>
+        ${[["SO",s.id],["Invoice",inv.id]].map(([t,n])=>
           `<div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--mut)">${t}</span><b class="mono" style="font-size:12.5px">${n}</b></div>`).join("")}
         <div style="display:flex;justify-content:space-between;padding:9px 0 0;border-top:1px solid var(--line);margin-top:7px"><b>Total</b><b>${RM2(inv.total)}</b></div>
       </div>
@@ -2307,10 +2413,14 @@ const A={
   "gen-bill"(e){
     const g=DB.consign.find(x=>x.id===e.dataset.g), c=cust(g.customerId), p=prod(g.productId);
     g.balance=g.tmp; g.sold=g.qty-g.balance; g.checkedAt=TODAY;
-    const {inv}=mkChain(c,TODAY,[{productId:p.id,qty:g.sold,price:g.price}],ME.id,false);
+    /* The SO carries the DO it came from, so the paperwork traces back to the
+       drop even though the two were issued weeks apart. */
+    const {s,inv}=mkSale(c,TODAY,[{productId:p.id,qty:g.sold,price:g.price}],ME.id,false,g.doId);
     inv.kind="consign"; g.invoiceId=inv.id; delete g.tmp;
     modal(`<h3>Bill dijana</h3>
       <div class="card" style="padding:14px;margin:13px 0">
+        ${g.doId?`<div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">Dari DO</span><b class="mono" style="font-size:12.5px">${g.doId}</b></div>`:""}
+        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">SO dijana</span><b class="mono" style="font-size:12.5px">${s.id}</b></div>
         <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">Stock dihantar</span><b>${g.qty} unit</b></div>
         <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">Baki stock</span><b>${g.balance} unit</b></div>
         <div style="display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid var(--line);margin-top:5px"><b>Terjual</b><b style="color:var(--vio)">${g.sold} unit</b></div>
@@ -2323,13 +2433,21 @@ const A={
     const c=cust(e.dataset.c), pid=$("#cgp").value, qty=parseInt($("#cgq").value);
     if(!qty||qty<1) return;
     const p=prod(pid);
+    /* Delivering the stock is what issues the DO. Nothing is billed yet — the
+       SO and Invoice wait until the next visit tells us what actually sold. */
+    const d=mkDelivery(c,TODAY,[{productId:pid,qty,price:p.price}],ME.id);
     DB.consign.push({id:"CG"+(DB.consign.length+1),customerId:c.id,productId:pid,qty,price:p.price,
-      date:TODAY,balance:null,checkedAt:null,sold:0,invoiceId:null,salesmanId:ME.id});
+      date:TODAY,doId:d.id,balance:null,checkedAt:null,sold:0,invoiceId:null,salesmanId:ME.id});
     p.van=Math.max(0,p.van-qty);
     modal(`<h3>Stock dihantar</h3><div class="okbox" style="margin:13px 0"><span>📦</span>
       <span><b>${qty} unit ${esc(p.name)}</b> direkod sebagai consignment stock di ${esc(c.name)}.<br>
       Lawatan berikut masukkan baki untuk kira barang terjual.</span></div>
-      <button class="btn btn-p btn-w" data-a="close">OK</button>`);
+      <div class="card" style="padding:14px;margin-bottom:13px">
+        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">DO dijana</span><b class="mono" style="font-size:12.5px">${d.id}</b></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">Nilai stock dihantar</span><b>${RM2(d.total)}</b></div>
+      </div>
+      <div class="note" style="margin-bottom:13px">Belum dibil. Invoice hanya dijana untuk unit yang terjual, selepas baki disemak.</div>
+      <a class="btn btn-p btn-w" href="#/s/doc/DO/${d.id}" data-a="close">Lihat DO</a>`);
     render();
   },
   pay(e){
@@ -2347,6 +2465,20 @@ const A={
     DB.returns.push(r); prod(pid).van+=qty;
     go("/s/doc/Return/"+r.id);
   },
+  /* On a phone this reads the device. In the demo it resolves from the district
+     typed above, which is the whole point of the fix: the coordinate always
+     belongs to the town on the outlet's address. */
+  "grab-gps"(){
+    const d=$("#rd").value.trim();
+    const g=atDistrict(d);
+    $("#rlat").value=g.lat; $("#rlng").value=g.lng;
+    const known=Object.prototype.hasOwnProperty.call(DISTRICT,d);
+    const n=$("#gpsnote");
+    if(n) n.textContent = known
+      ? "Lokasi ditangkap di "+d+"."
+      : (d?"Kawasan “"+d+"” belum dikenali — guna pusat Kuala Lumpur. Betulkan koordinat jika perlu."
+         :"Isi Kawasan dahulu untuk ketepatan yang lebih baik.");
+  },
   "save-cust"(){
     const n=$("#rn").value.trim();
     if(!n){ modal(`<h3>Nama outlet diperlukan</h3><p style="color:var(--mut);font-size:13.5px;margin:11px 0">Sila isi nama outlet sebelum simpan.</p><button class="btn btn-p btn-w" data-a="close">OK</button>`); return; }
@@ -2354,7 +2486,12 @@ const A={
       pic:$("#rp").value||"—",phone:$("#rph").value||"—",wa:$("#rw").value||"—",addr:$("#ra").value||"—",
       dist:$("#rd").value||"—",state:$("#rs").value,pos:$("#rpo").value||"—",ssm:$("#rssm").value||"—",
       type:$("#rt").value,term:$("#rterm").value,months:$("#rterm").value==="cash"?0:2,
-      lat:$("#rlat").value,lng:$("#rlng").value,salesmanId:ME.id,regAt:TODAY,status:"Active"};
+      salesmanId:ME.id,regAt:TODAY,status:"Active"};
+    /* Fall back to the district centre if the salesman saved without capturing,
+       so the outlet is never stored at a coordinate belonging to another town. */
+    const g=atDistrict(c.dist);
+    c.lat=$("#rlat").value.trim()||g.lat;
+    c.lng=$("#rlng").value.trim()||g.lng;
     CUSTOMERS.push(c);
     go("/s/customer/"+c.id);
   },
@@ -2430,6 +2567,7 @@ function render(){
       case "register": h=sRegister(); break;
       case "order":    h=sOrder(p[2]); break;
       case "consign":  h=sConsign(p[2]); break;
+      case "collect":  h=sCollect(); break;
       case "docs":     h=sDocs(p[2]); break;
       case "doc":      h=vDoc("s",p[2],p[3]); break;
       case "payment":  h=sPayment(p[2],p[3]); break;
