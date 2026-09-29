@@ -419,6 +419,38 @@ td b{font-weight:700}
 .aic .out{margin-top:12px;padding:11px;border-radius:9px;background:rgba(0,0,0,.28);font-size:12px;line-height:1.55;
   border-left:2px solid var(--cyan);color:rgba(255,255,255,.9)}
 
+/* ---------- WHO IS USING THE PORTAL ----------
+   A demo affordance, styled to read as a account chip rather than a control
+   panel, with an explicit note that it is not security. */
+.whosw{position:relative}
+.whobtn{display:flex;align-items:center;gap:9px;padding:5px 9px 5px 6px;border-radius:var(--pill);
+  border:1px solid transparent;background:transparent;cursor:pointer;font:inherit;color:inherit;
+  transition:background .16s,border-color .16s}
+.whobtn:hover,.whobtn.on{background:var(--blue-lo);border-color:var(--line2)}
+.top.dark .whobtn:hover,.top.dark .whobtn.on{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2)}
+.whobtn .cv{font-size:10px;opacity:.5;flex:none}
+.whobtn:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+.umenu{position:absolute;right:0;top:calc(100% + 8px);z-index:400;min-width:266px;
+  background:var(--card);border:1px solid var(--line2);border-radius:var(--r);
+  box-shadow:var(--sh3);overflow:hidden;animation:rise .16s ease-out}
+.umenu .uh{padding:10px 13px 7px;font-size:10.5px;font-weight:800;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--dim)}
+.umenu .usep{padding:8px 13px 5px;font-size:10.5px;font-weight:800;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--dim);border-top:1px solid var(--line)}
+.umenu button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  padding:9px 13px;border:0;background:transparent;cursor:pointer;font:inherit;color:var(--ink)}
+.umenu button:hover{background:var(--blue-lo)}
+.umenu button.on{background:var(--blue-lo2)}
+.umenu button b{display:block;font-size:13.5px;font-weight:700;line-height:1.25}
+.umenu button span span{display:block;font-size:11px;color:var(--mut);margin-top:1px}
+.umenu button .tk{margin-left:auto;color:var(--blue);font-weight:800;flex:none}
+.umenu .unote{padding:9px 13px;font-size:10.5px;line-height:1.45;color:var(--dim);
+  background:var(--amb-lo);border-top:1px solid var(--line)}
+@media(max-width:860px){
+  .umenu{right:-6px;min-width:240px}
+}
+
 /* ---------- CORNER BUBBLES: AI HELP 24/7 (left) · WHATSAPP (right) ------- */
 .bub{position:fixed;bottom:22px;z-index:200;display:flex;align-items:center;gap:10px;padding:11px 17px 11px 12px;
   border-radius:var(--pill);font-size:13px;font-weight:800;box-shadow:var(--sh3);text-decoration:none;
@@ -691,6 +723,9 @@ const DICT={
 
  "bub.ai":        ["Bantuan AI","AI Help","AI 帮助","Tulung AI"],
  "bub.ai2":       ["24/7 · Sedia membantu","24/7 · Always on","24/7 · 全天候","24/7 · Sedia nulung"],
+ "sw.head":       ["Lihat portal sebagai","View the portal as","以此身分检视","Peda portal nya baka"],
+ "sw.all":        ["Semua pasukan, semua outlet","Whole team, every outlet","全team、全部门店","Semua pasukan, semua kedai"],
+ "sw.note":       ["Penukar demo — bukan kawalan akses. Login sebenar menyusul.","Demo switcher — not access control. Real login follows.","演示切换器，非权限控制。正式登录稍后推出。","Penukar demo — ukai kawal akses. Login bendar deka datai."],
  "bub.wa":        ["WhatsApp kami","WhatsApp us","WhatsApp 联系","WhatsApp kami"],
  "bub.wa2":       ["Balas pantas · 010-267 0177","Fast reply · 010-267 0177","快速回复 · 010-267 0177","Nyaut jampat · 010-267 0177"],
  "chat.ph":       ["Tanya apa-apa tentang portal…","Ask anything about the portal…","询问有关门户的任何问题…","Tanya nama-nama pasal portal tu…"],
@@ -768,12 +803,34 @@ const ic=(p,c)=>`<svg viewBox="0 0 24 24" fill="none" stroke="${c||'currentColor
    ------------------------------------------------------------------------- */
 const CO={name:"[Company Name] Sdn Bhd",trade:"Retail Distribution",ssm:"[SSM NO. — NOT SET]",
   addr:"[Registered address not set]",phone:"[Phone not set]",demo:true};
-/* Replaced by the signed-in user once login exists. */
-const ME={id:"u1",name:"Ahmad Zaki",code:"SM01",phone:"012-345 6789",withStock:true};
+/* Who is using the portal. A single fixed user hid every per-salesman
+   behaviour in the system — own outlets, own van, own collections, own
+   ranking — so identity is a variable with a picker in the top bar.
+
+   This is NOT access control: the picker is a demo affordance and anyone can
+   select anyone. Real separation arrives with login and the database rules.
+   At that point the session sets ME and the picker goes; every one of the
+   forty places that read ME stays exactly as it is. */
+let ME=null;
+const USER_KEY="sp.user";
+function setUser(id,go){
+  const u=SALESMEN.find(x=>x.id===id)||SALESMEN[0];
+  ME=u;
+  try{localStorage.setItem(USER_KEY,u.id)}catch(_){}
+  if(go) location.hash=go; else render();
+}
 const BOSS={name:"Sales Director",role:"Sales Director"};
 
 const SALESMEN=[["u1","Ahmad Zaki"],["u2","Faiz Rahman"],["u3","Aril Hakim"],["u4","Hafiz Omar"],["u5","Siti Nurhaliza"]]
-  .map(([id,name],i)=>({id,name,code:"SM0"+(i+1),zone:["Kajang","Shah Alam","Cheras","Klang","Gombak"][i]}));
+  .map(([id,name],i)=>({id,name,code:"SM0"+(i+1),zone:["Kajang","Shah Alam","Cheras","Klang","Gombak"][i],
+    phone:"01"+(2+i)+"-345 6"+(789+i),
+    /* Salesmen without van stock take orders for warehouse delivery instead. */
+    withStock:i<4}));
+
+/* Restore whoever was last selected. Must follow SALESMEN. */
+ME=(()=>{ try{ return SALESMEN.find(x=>x.id===localStorage.getItem(USER_KEY))||SALESMEN[0]; }
+          catch(_){ return SALESMEN[0]; } })();
+
 
 const PRODUCTS=[
   ["Milo 1kg","MLO-1K",18.00,220],["Nescafe 200g","NES-200",14.60,180],
@@ -853,7 +910,16 @@ const CUSTOMERS=[
   ...atDistrict(dist),
   salesmanId:pick(SALESMEN).id, regAt:ago(bt(120,900)), status:"Active"
 }));
-CUSTOMERS.forEach((c,i)=>{ if(i<7) c.salesmanId=ME.id; });
+/* A deliberate spread: the switcher is only worth having if every salesman
+   has a real book to look at. Consignment outlets (0, 4, 7, 10) land on four
+   different salesmen so the consignment flow is reachable from most panels. */
+/* SM01 carries the widest book because that is where a first-time visitor
+   lands — an empty panel is a bad first impression. He also holds one of the
+   two dormant outlets, so his collections screen and the quiet-outlet reading
+   both have something real to show. The rest get two each, and consignment is
+   spread across four of the five. */
+const BOOK=[0,0,1,0,1,2,2,3,3,4,4,0];
+CUSTOMERS.forEach((c,i)=>{ c.salesmanId=SALESMEN[BOOK[i]].id; });
 /* Two outlets that genuinely stopped ordering, so the quiet-outlet reading
    has something real to find rather than always reporting zero. */
 CUSTOMERS.forEach(c=>{ if(c.id==="c4"||c.id==="c10") c.dormant=true; });
@@ -967,9 +1033,13 @@ for(let i=0;i<5;i++){
     reason:pick(["Damaged","Expired","Wrong Product","Wrong Quantity","Defective"]),
     date:ago(bt(3,70)),salesmanId:c.salesmanId,remark:""});
 }
-DB.schedule=CUSTOMERS.filter(c=>c.salesmanId===ME.id).slice(0,6).map((c,i)=>({
-  id:"S"+i,customerId:c.id,date:TODAY,order:i,
-  remark:i===0?"Kutip payment overdue":i===2?"Check baki stock consignment":""}));
+DB.schedule=[];
+SALESMEN.forEach(sm=>{
+  CUSTOMERS.filter(c=>c.salesmanId===sm.id&&!c.dormant).slice(0,6).forEach((c,i)=>{
+    DB.schedule.push({id:"S"+sm.id+i,customerId:c.id,salesmanId:sm.id,date:TODAY,order:i,
+      remark:i===0?"Kutip payment overdue":i===2?"Check baki stock consignment":""});
+  });
+});
 DB.referrals=[["Kedai Ehsan Jaya","verified",4200],["Mini Market Aman","verified",2800],
   ["Pasar Mini Setia","pending",0],["Kedai Borong Utara","verified",6500],["Runcit Bahagia","pending",0]]
   .map(([name,status,val],i)=>({id:"RF"+(i+1),name,status,value:val,date:ago(bt(5,90)),commission:val*0.05}));
@@ -977,6 +1047,7 @@ DB.referrals=[["Kedai Ehsan Jaya","verified",4200],["Mini Market Aman","verified
 /* ---------- SELECTORS ---------- */
 const S={
   myCust:()=>CUSTOMERS.filter(c=>c.salesmanId===ME.id),
+  mySched:()=>DB.schedule.filter(x=>x.salesmanId===ME.id).sort((a,b)=>a.order-b.order),
   invOf:cid=>DB.invoices.filter(i=>i.customerId===cid).sort((a,b)=>b.date-a.date),
   outstanding:cid=>DB.invoices.filter(i=>(!cid||i.customerId===cid)&&i.status!=="paid").reduce((a,i)=>a+(i.total-i.paid),0),
   overdue:cid=>DB.invoices.filter(i=>(!cid||i.customerId===cid)&&i.status!=="paid"&&i.due<TODAY).reduce((a,i)=>a+(i.total-i.paid),0),
@@ -1090,13 +1161,14 @@ const AI={
    STATE + ROUTER
    ========================================================================== */
 const ST={panel:"pub",range:"today",mrange:"month",rankRange:"month",docTab:"all",histTab:"All",
-  width:"80",q:"",mq:"",draft:null,chat:null,chatLog:[],aging:false};
+  width:"80",q:"",mq:"",draft:null,chat:null,chatLog:[],aging:false,userMenu:false};
 const go=h=>location.hash=h;
 const parts=()=>location.hash.replace(/^#\/?/,"").split("/").filter(Boolean);
 addEventListener("hashchange",()=>{
   // A sheet left open across a route change would sit on top of the new screen
   // and swallow every click, so navigation always dismisses it.
   const m=document.getElementById("modal"); if(m) m.innerHTML="";
+  ST.userMenu=false;
   document.body.classList.remove("railopen");
   render(); scrollTo(0,0);
 });
@@ -1119,12 +1191,33 @@ function topbar(kind){
       <a href="#/s/home">${T("nav.sm")}</a>
       <a href="playbook.html">${T("nav.play")}</a>
     </nav>` : "";
-  const who = kind==="mgmt"
-    ? `<span class="who"><span class="av" style="background:var(--vio)">${ini(BOSS.name)}</span>
-        <span><b>${esc(BOSS.name)}</b><span>${esc(BOSS.role)}</span></span></span>`
-    : kind==="sm"
-    ? `<span class="who"><span class="av">${ini(ME.name)}</span>
-        <span><b>${esc(ME.name)}</b><span>${ME.code} · ${T("tick.sm")}</span></span></span>` : "";
+  const mgmt = kind==="mgmt";
+  const who = kind==="pub" ? "" : `
+    <div class="whosw">
+      <button class="whobtn${ST.userMenu?" on":""}" data-a="usermenu" aria-haspopup="true" aria-expanded="${!!ST.userMenu}">
+        <span class="av"${mgmt?' style="background:var(--vio)"':""}>${ini(mgmt?BOSS.name:ME.name)}</span>
+        <span class="who"><b>${esc(mgmt?BOSS.name:ME.name)}</b>
+          <span>${mgmt?esc(BOSS.role):ME.code+" · "+T("tick.sm")}</span></span>
+        <span class="cv" aria-hidden="true">▾</span>
+      </button>
+      ${ST.userMenu?`<div class="umenu">
+        <div class="uh">${T("sw.head")}</div>
+        <button data-a="user" data-v="mgmt" class="${mgmt?"on":""}">
+          <span class="av" style="background:var(--vio)">${ini(BOSS.name)}</span>
+          <span><b>${esc(BOSS.name)}</b><span>${T("sw.all")}</span></span>
+          ${mgmt?`<span class="tk">✓</span>`:""}
+        </button>
+        <div class="usep">${T("nav.sm")}</div>
+        ${SALESMEN.map(u=>{
+          const n=CUSTOMERS.filter(c=>c.salesmanId===u.id).length;
+          const on=!mgmt&&u.id===ME.id;
+          return `<button data-a="user" data-v="${u.id}" class="${on?"on":""}">
+            <span class="av">${ini(u.name)}</span>
+            <span><b>${esc(u.name)}</b><span>${u.code} · ${u.zone} · ${n} ${T("l.outlet").toLowerCase()}</span></span>
+            ${on?`<span class="tk">✓</span>`:""}</button>`}).join("")}
+        <div class="unote">${T("sw.note")}</div>
+      </div>`:""}
+    </div>`;
   return `<header class="top${dark?" dark":""}">
     ${kind!=="pub"?`<button class="burger" data-a="rail" aria-label="Menu">${ic(I.menu)}</button>`:""}
     <a class="brand" href="#/"><span class="mk">SP</span>
@@ -1754,7 +1847,7 @@ function mAI(){
 const SITEMS=()=>[
   {gp:T("nav.sm")},
   {k:"home",t:T("s.home"),i:I.home,h:"#/s/home"},
-  {k:"sched",t:T("s.sched"),i:I.cal,h:"#/s/sched",b:DB.schedule.length},
+  {k:"sched",t:T("s.sched"),i:I.cal,h:"#/s/sched",b:S.mySched().length},
   {k:"cust",t:T("s.cust"),i:I.user,h:"#/s/cust"},
   {gp:T("models.k")},
   {k:"order",t:T("s.order"),i:I.cart,h:"#/s/order"},
@@ -1796,8 +1889,8 @@ function sHome(){
     </div>
     <div class="g g23" style="margin-top:18px">
       <div class="card p">
-        <h3>${T("s.sched")}</h3><div class="sub">${DB.schedule.length} ${T("l.outlet").toLowerCase()} · ${fd(TODAY)}</div>
-        <div style="margin-top:14px">${DB.schedule.map((s,i)=>{const c=cust(s.customerId);return `
+        <h3>${T("s.sched")}</h3><div class="sub">${S.mySched().length} ${T("l.outlet").toLowerCase()} · ${fd(TODAY)}</div>
+        <div style="margin-top:14px">${S.mySched().map((s,i)=>{const c=cust(s.customerId);return `
           <div style="display:flex;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)">
             <span style="width:28px;height:28px;border-radius:9px;background:var(--s3);color:var(--mut);
               display:grid;place-items:center;font-weight:800;font-size:12px;flex:none">${i+1}</span>
@@ -1821,9 +1914,9 @@ function sHome(){
 
 function sSched(){
   return SM("sched",`
-    <div class="pgh"><div><h1>${T("s.sched")}</h1><p>${fd(TODAY)} · ${DB.schedule.length} ${T("l.outlet").toLowerCase()}</p></div></div>
+    <div class="pgh"><div><h1>${T("s.sched")}</h1><p>${fd(TODAY)} · ${S.mySched().length} ${T("l.outlet").toLowerCase()}</p></div></div>
     <div class="note" style="margin-bottom:16px">Senarai kedai untuk dilawat hari ini — bukan attendance, bukan tracking, tiada status pending atau completed.</div>
-    <div class="g" style="gap:11px">${DB.schedule.map((s,i)=>{const c=cust(s.customerId), od=S.overdue(c.id), open=S.openConsign(c.id).length;return `
+    <div class="g" style="gap:11px">${S.mySched().map((s,i)=>{const c=cust(s.customerId), od=S.overdue(c.id), open=S.openConsign(c.id).length;return `
       <div class="card p" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
         <span style="width:36px;height:36px;border-radius:11px;background:var(--ink);color:#fff;
           display:grid;place-items:center;font-weight:800;font-size:14px;flex:none">${i+1}</span>
@@ -2468,6 +2561,16 @@ function chatDrawer(){
 function modal(h){$("#modal").innerHTML=`<div class="mask" data-a="close"><div class="sheet" data-stop>${h}</div></div>`;}
 const A={
   lang(e){setLang(e.dataset.v)},
+  usermenu(){ST.userMenu=!ST.userMenu;render()},
+  user(e){
+    const v=e.dataset.v;
+    ST.userMenu=false;
+    ST.draft=null;              /* a half-typed order belongs to the old user */
+    /* Management is a panel, not a person: the signed-in salesman is kept so
+       switching back lands you where you were. */
+    if(v==="mgmt"){ render(); location.hash="#/m/dash"; return; }
+    setUser(v,"#/s/home");
+  },
   rail(){document.body.classList.toggle("railopen")},
   range(e){ST.range=e.dataset.v;render()},
   mrange(e){ST.mrange=e.dataset.v;render()},
@@ -2649,6 +2752,9 @@ const A={
   close(){$("#modal").innerHTML=""}
 };
 document.addEventListener("click",e=>{
+  /* Any click that is not on the picker itself closes it. Runs before the
+     action dispatch so choosing an entry still works. */
+  if(ST.userMenu&&!e.target.closest(".whosw")){ ST.userMenu=false; render(); }
   const el=e.target.closest("[data-a]"); if(!el) return;
   const a=el.dataset.a;
   if((a==="close"||a==="closechat")&&e.target.closest("[data-stop]")&&e.target.dataset.a!==a) return;
@@ -2667,7 +2773,7 @@ document.addEventListener("input",e=>{
   const el=e.target.closest('[data-a="price"],[data-a="q"],[data-a="mq"],[data-a="bal"]');
   if(el) A[el.dataset.a](el);
 });
-addEventListener("keydown",e=>{if(e.key==="Escape"){if(ST.chat){ST.chat=null;paintChrome()}else A.close()}});
+addEventListener("keydown",e=>{if(e.key==="Escape"){if(ST.userMenu){ST.userMenu=false;render();return}if(ST.chat){ST.chat=null;paintChrome()}else A.close()}});
 function scrollChat(){requestAnimationFrame(()=>{const b=$("#cbd");if(b)b.scrollTop=b.scrollHeight;const i=$("#cin");if(i)i.focus()})}
 
 /* ==========================================================================
