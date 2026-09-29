@@ -492,7 +492,16 @@ const RMk=n=>n>=1e6?"RM "+(n/1e6).toFixed(2)+"M":n>=1e3?"RM "+(n/1e3).toFixed(1)
 const ini=n=>n.split(" ").slice(0,2).map(w=>w[0]).join("").toUpperCase();
 function rng(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const R=rng(77001122); const pick=a=>a[Math.floor(R()*a.length)]; const bt=(a,b)=>a+Math.floor(R()*(b-a+1));
-const DAY=864e5, TODAY=new Date(2026,7,24);
+const DAY=864e5;
+/* The real clock. Seeded history is generated relative to this, so the demo
+   still reads consistently, but overdue flags, ageing buckets and the "this
+   week" tabs are now measured against a date that actually moves — which is
+   what they will have to survive in production. */
+const TODAY=(()=>{const d=new Date();d.setHours(0,0,0,0);return d})();
+
+/* Money is summed in the browser and stored to 2 decimals. Rounding each step
+   keeps a long invoice from drifting a cent away from what the database holds. */
+const money=n=>Math.round((n+Number.EPSILON)*100)/100;
 const ago=n=>new Date(TODAY.getTime()-n*DAY);
 const fd=d=>d.toLocaleDateString("en-MY",{day:"2-digit",month:"short",year:"numeric"});
 const fds=d=>d.toLocaleDateString("en-MY",{day:"2-digit",month:"short"});
@@ -687,10 +696,20 @@ const ic=(p,c)=>`<svg viewBox="0 0 24 24" fill="none" stroke="${c||'currentColor
 /* ==========================================================================
    DATA — one company, deterministic seed, ~120 days of trading.
    ========================================================================== */
-const CO={name:"Syarikat Maju Jaya Sdn Bhd",trade:"Retail Distribution",ssm:"202201009876 (1456789-T)",
-  addr:"No 12, Jalan Perindustrian 3, 40150 Shah Alam, Selangor",phone:"03-5521 8890"};
+/* ---------- COMPANY IDENTITY -----------------------------------------------
+   This block prints at the head of every Invoice, Receipt and DO.
+   It is DEMO DATA and must be replaced with the operating company's real
+   details before a single real document is issued.
+
+   The SSM field deliberately reads as a placeholder rather than a plausible
+   registration number: a fabricated-but-realistic SSM number on a document
+   that looks like a tax invoice is a problem, not a detail.
+   ------------------------------------------------------------------------- */
+const CO={name:"[Company Name] Sdn Bhd",trade:"Retail Distribution",ssm:"[SSM NO. — NOT SET]",
+  addr:"[Registered address not set]",phone:"[Phone not set]",demo:true};
+/* Replaced by the signed-in user once login exists. */
 const ME={id:"u1",name:"Ahmad Zaki",code:"SM01",phone:"012-345 6789",withStock:true};
-const BOSS={name:"Encik Aril",role:"Sales Director"};
+const BOSS={name:"Sales Director",role:"Sales Director"};
 
 const SALESMEN=[["u1","Ahmad Zaki"],["u2","Faiz Rahman"],["u3","Aril Hakim"],["u4","Hafiz Omar"],["u5","Siti Nurhaliza"]]
   .map(([id,name],i)=>({id,name,code:"SM0"+(i+1),zone:["Kajang","Shah Alam","Cheras","Klang","Gombak"][i]}));
@@ -700,7 +719,7 @@ const PRODUCTS=[
   ["Biskut Cream 400g","BIS-C400",7.50,300],["Air Mineral 1.5L","AIR-15",1.60,480],
   ["Minyak Masak 5kg","MYK-5K",42.00,95],["Beras Wangi 10kg","BRS-10",38.00,60],
   ["Gula Halus 1kg","GUL-1K",3.20,400],["Susu Tin 390g","SUS-390",4.80,260]
-].map(([name,sku,price,stock],i)=>({id:"p"+(i+1),name,sku,price,floor:+(price*0.85).toFixed(2),van:stock,low:40}));
+].map(([name,sku,price,stock],i)=>({id:"p"+(i+1),name,sku,price,floor:+(price*0.85).toFixed(2),seed:stock,low:40}));
 
 /* Real centre point for each district an outlet is registered in. A pin has to
    land in the town on the outlet's own address — a coordinate picked anywhere
@@ -725,6 +744,30 @@ const atDistrict=d=>{
   const [la,ln]=DISTRICT[d]||[3.1390,101.6869];
   return {lat:(la+(R()-0.5)*0.012).toFixed(6), lng:(ln+(R()-0.5)*0.012).toFixed(6)};
 };
+
+/* ---------- VAN STOCK ------------------------------------------------------
+   Stock sits in a salesman's van, not on the product. A single shared counter
+   meant one salesman's sale silently drew down another's stock — invisible
+   while the demo had one user, wrong the moment the team logs in.
+
+   VAN[salesmanId][productId] = units on that van.
+   ------------------------------------------------------------------------- */
+const VAN={};
+SALESMEN.forEach(s=>{
+  VAN[s.id]={};
+  PRODUCTS.forEach(p=>{
+    /* Split the seeded fleet stock across the vans, unevenly, so the demo
+       shows a realistic spread rather than five identical vans. */
+    VAN[s.id][p.id]=Math.max(0,Math.round(p.seed/SALESMEN.length*(0.6+R()*0.8)));
+  });
+});
+const vanOf =(pid,uid)=>(VAN[uid||ME.id]||{})[pid]||0;          /* one van */
+const vanAll= pid      =>SALESMEN.reduce((a,s)=>a+((VAN[s.id]||{})[pid]||0),0); /* whole fleet */
+const takeVan=(pid,qty,uid)=>{const u=uid||ME.id;VAN[u]=VAN[u]||{};VAN[u][pid]=Math.max(0,(VAN[u][pid]||0)-qty)};
+const putVan =(pid,qty,uid)=>{const u=uid||ME.id;VAN[u]=VAN[u]||{};VAN[u][pid]=(VAN[u][pid]||0)+qty};
+/* Lines a salesman cannot actually cover from his own van. */
+const shortOn=(lines,uid)=>lines.filter(l=>l.qty>vanOf(l.productId,uid))
+  .map(l=>({p:prod(l.productId),want:l.qty,have:vanOf(l.productId,uid)}));
 
 const CUSTOMERS=[
   ["Kedai Maju Sdn Bhd","Ahmad Ismail","Kajang","Selangor","43000","consign",3],
@@ -772,13 +815,13 @@ const TERM={consign:{k:"k-vio",t:"Consignment",s:"CONSIGN"},biltobil:{k:"k-blue"
    Because each document is issued on a different event, the running numbers
    are never in step with each other. That is the point of keeping them apart. */
 function mkDelivery(c,date,lines,salesmanId){
-  const total=lines.reduce((a,l)=>a+l.qty*l.price,0);
+  const total=money(lines.reduce((a,l)=>a+money(l.qty*l.price),0));
   const d={id:nn("DO",++DB.seq.DO),customerId:c.id,salesmanId,date,lines,total};
   DB.dos.push(d);
   return d;
 }
 function mkSale(c,date,lines,salesmanId,payNow,doId,invoiceNow){
-  const total=lines.reduce((a,l)=>a+l.qty*l.price,0);
+  const total=money(lines.reduce((a,l)=>a+money(l.qty*l.price),0));
   const s={id:nn("SO",++DB.seq.SO),doId:doId||null,customerId:c.id,salesmanId,
     date,lines,total,invoiceId:null};
   DB.sos.push(s);
@@ -794,7 +837,7 @@ function mkSale(c,date,lines,salesmanId,payNow,doId,invoiceNow){
   return {s,inv};
 }
 function payInvoice(inv,amt,method,date){
-  inv.paid+=amt;
+  inv.paid=money(inv.paid+amt);
   inv.status = inv.paid>=inv.total-0.01?"paid":"partial";
   const p={id:"PAY"+String(DB.payments.length+1).padStart(4,"0"),invoiceId:inv.id,customerId:inv.customerId,
     amount:amt,method,date,salesmanId:inv.salesmanId};
@@ -1459,13 +1502,13 @@ function mCollect(){
 
 /* ---------- MANAGEMENT: STOCK ---------- */
 function mStock(){
-  const low=PRODUCTS.filter(p=>p.van<=p.low);
+  const low=PRODUCTS.filter(p=>vanAll(p.id)<=p.low*SALESMEN.length);
   const out=DB.consign.filter(c=>c.balance===null);
-  const val=PRODUCTS.reduce((a,p)=>a+p.van*p.price,0);
+  const val=PRODUCTS.reduce((a,p)=>a+vanAll(p.id)*p.price,0);
   return M("stock",`
     <div class="pgh"><div><h1>${T("m.stock")}</h1><p>${PRODUCTS.length} SKU</p></div></div>
     <div class="g g4" style="margin-bottom:18px">
-      ${kpi("Nilai stok",RMk(val),PRODUCTS.reduce((a,p)=>a+p.van,0)+" unit",I.box,"#3B5BFF")}
+      ${kpi("Nilai stok",RMk(val),PRODUCTS.reduce((a,p)=>a+vanAll(p.id),0)+" unit",I.box,"#3B5BFF")}
       ${kpi("Stok rendah",low.length,"SKU bawah paras",I.shield,low.length?"#DC2626":"#0E9F6E")}
       ${kpi("Consignment luar",out.length,"penghantaran terbuka",I.truck,"#8B5CF6")}
       ${kpi("Pulangan",DB.returns.length,"RET direkod",I.ret,"#D97706")}
@@ -1477,10 +1520,10 @@ function mStock(){
       <tbody>${PRODUCTS.map(p=>`<tr>
         <td class="mono" style="color:var(--dim)">${p.sku}</td>
         <td><b>${esc(p.name)}</b></td>
-        <td class="r num"><b>${p.van}</b></td><td class="r num">${p.low}</td>
+        <td class="r num"><b>${vanAll(p.id)}</b></td><td class="r num">${p.low*SALESMEN.length}</td>
         <td class="r num">${RM2(p.price)}</td><td class="r num">${RM2(p.floor)}</td>
-        <td class="r num">${RM(p.van*p.price)}</td>
-        <td>${p.van<=p.low?`<span class="chip k-red">Rendah</span>`:`<span class="chip k-grn">OK</span>`}</td></tr>`).join("")}</tbody>
+        <td class="r num">${RM(vanAll(p.id)*p.price)}</td>
+        <td>${vanAll(p.id)<=p.low*SALESMEN.length?`<span class="chip k-red">Rendah</span>`:`<span class="chip k-grn">OK</span>`}</td></tr>`).join("")}</tbody>
     </table></div>
     <div class="sec">Consignment di luar</div>
     <div class="tw"><table>
@@ -1893,7 +1936,7 @@ function sOrder(cid){
         <span class="chip ${TERM[c.term].k}" style="margin-top:9px">${TERM[c.term].t}</span></a>`).join("")}</div>`);
   const c=cust(cid); if(!c) return sOrder();
   if(!ST.draft||ST.draft.cid!==cid) ST.draft={cid,lines:PRODUCTS.map(p=>({productId:p.id,qty:0,price:p.price}))};
-  const d=ST.draft, total=d.lines.reduce((a,l)=>a+l.qty*l.price,0);
+  const d=ST.draft, total=money(d.lines.reduce((a,l)=>a+money(l.qty*l.price),0));
   const n=d.lines.filter(l=>l.qty>0).length;
   return SM("order",`
     <div class="pgh"><div><a href="#/s/customer/${cid}" style="font-size:12.5px;color:var(--blue);font-weight:700">‹ ${esc(c.name)}</a>
@@ -1906,7 +1949,7 @@ function sOrder(cid){
         <div style="margin-top:8px">${d.lines.map(l=>{const p=prod(l.productId);
           const below=l.price<p.floor;
           return `<div class="li">
-            <span class="n"><b>${esc(p.name)}</b><span>${p.sku} · van ${p.van}</span></span>
+            <span class="n"><b>${esc(p.name)}</b><span>${p.sku} · van ${vanOf(p.id)}</span></span>
             <span style="width:104px;flex:none">
               <input data-a="price" data-p="${p.id}" type="text" inputmode="decimal" value="${l.price.toFixed(2)}"
                 style="width:100%;padding:7px 9px;border:1px solid ${below?"var(--red)":"var(--line2)"};border-radius:8px;font-size:13px;font-weight:700;text-align:right">
@@ -1982,7 +2025,7 @@ function sConsign(cid){
       <h3>Hantar stock baru</h3>
       <div class="f2" style="margin-top:13px">
         <div class="f"><label>${T("l.product")}</label><select id="cgp">
-          ${PRODUCTS.map(p=>`<option value="${p.id}">${esc(p.name)} — ${RM2(p.price)} (van ${p.van})</option>`).join("")}</select></div>
+          ${PRODUCTS.map(p=>`<option value="${p.id}">${esc(p.name)} — ${RM2(p.price)} (van ${vanOf(p.id)})</option>`).join("")}</select></div>
         <div class="f"><label>${T("l.qty")}</label><input id="cgq" type="number" value="100" min="1"></div></div>
       <button class="btn btn-p" data-a="send-stock" data-c="${cid}">${ic(I.truck)} Hantar Stock</button>
     </div>`:""}
@@ -2175,13 +2218,13 @@ function sReturn(cid){
 
 /* ---------- SALESMAN: VAN STOCK ---------- */
 function sStock(){
-  const val=PRODUCTS.reduce((a,p)=>a+p.van*p.price,0);
-  const low=PRODUCTS.filter(p=>p.van<=p.low);
+  const val=PRODUCTS.reduce((a,p)=>a+vanOf(p.id)*p.price,0);
+  const low=PRODUCTS.filter(p=>vanOf(p.id)<=p.low);
   return SM("stock",`
     <div class="pgh"><div><h1>${T("s.stock")}</h1><p>${esc(ME.name)} · ${ME.withStock?"Salesman WITH STOCK":"Tanpa stok"}</p></div>
       <div class="ra"><button class="btn btn-p" data-a="submit-so">${ic(I.truck)} Request Stock</button></div></div>
     <div class="g g4" style="margin-bottom:18px">
-      ${kpi("Nilai stok van",RMk(val),PRODUCTS.reduce((a,p)=>a+p.van,0)+" unit",I.box,"#3B5BFF")}
+      ${kpi("Nilai stok van",RMk(val),PRODUCTS.reduce((a,p)=>a+vanOf(p.id),0)+" unit",I.box,"#3B5BFF")}
       ${kpi("SKU",PRODUCTS.length,"dalam van",I.cart,"#8B5CF6")}
       ${kpi("Stok rendah",low.length,"perlu request",I.shield,low.length?"#DC2626":"#0E9F6E")}
       ${kpi("Consignment luar",S.openConsign().filter(g=>g.salesmanId===ME.id).length,"belum semak",I.truck,"#D97706")}
@@ -2193,10 +2236,10 @@ function sStock(){
       <tbody>${PRODUCTS.map(p=>`<tr>
         <td class="mono" style="color:var(--dim)">${p.sku}</td>
         <td><b>${esc(p.name)}</b></td>
-        <td class="r"><b class="num">${p.van}</b></td><td class="r num">${p.low}</td>
-        <td class="r num">${RM2(p.price)}</td><td class="r num">${RM(p.van*p.price)}</td>
-        <td><div class="prog"><i data-w="${Math.min(100,Math.round(p.van/(p.low*5)*100))}%"
-          style="background:${p.van<=p.low?"var(--red)":"var(--grn)"}"></i></div></td></tr>`).join("")}</tbody>
+        <td class="r"><b class="num">${vanOf(p.id)}</b></td><td class="r num">${p.low}</td>
+        <td class="r num">${RM2(p.price)}</td><td class="r num">${RM(vanOf(p.id)*p.price)}</td>
+        <td><div class="prog"><i data-w="${Math.min(100,Math.round(vanOf(p.id)/(p.low*5)*100))}%"
+          style="background:${vanOf(p.id)<=p.low?"var(--red)":"var(--grn)"}"></i></div></td></tr>`).join("")}</tbody>
     </table></div>`);
 }
 
@@ -2322,7 +2365,7 @@ function aiAnswer(q){
   if(has("order","pesanan","macam mana order"))
     return `Buka Panel Salesman → ${T("s.order")}, pilih outlet, laraskan kuantiti dan harga (dalam had lantai), kemudian hantar. Order → DO → SO → Invoice dijana serentak.`;
   if(has("stock","stok","van"))
-    return `Stok van sekarang bernilai <b>${RM2(PRODUCTS.reduce((a,p)=>a+p.van*p.price,0))}</b> merentas ${PRODUCTS.length} SKU. ${PRODUCTS.filter(p=>p.van<=p.low).length} SKU bawah paras minimum.`;
+    return `Stok van anda bernilai <b>${RM2(PRODUCTS.reduce((a,p)=>a+vanOf(p.id)*p.price,0))}</b> merentas ${PRODUCTS.length} SKU. ${PRODUCTS.filter(p=>vanOf(p.id)<=p.low).length} SKU bawah paras minimum.`;
   if(has("dokumen","document","invoice","resit","receipt","running"))
     return `Setakat ini <b>${S.docCount()}</b> dokumen dijana: ${DB.dos.length} DO · ${DB.sos.length} SO · ${DB.invoices.length} Invoice · ${DB.receipts.length} Receipt · ${DB.returns.length} Return. Lima turutan berasingan, tiada nombor diguna semula. DO hanya untuk consignment, jadi kiraannya kecil; SO dijana bila barang terjual. Sebab itu nombor setiap jenis tidak sama.`;
   if(has("bahasa","language","语言"))
@@ -2386,7 +2429,9 @@ const A={
     ST.chatLog.push({u:1,t:v},{t:aiAnswer(v)});
     paintChrome();scrollChat();
   },
-  "q+"(e){const l=ST.draft.lines.find(x=>x.productId===e.dataset.p);l.qty++;render()},
+  "q+"(e){const l=ST.draft.lines.find(x=>x.productId===e.dataset.p);
+    /* Cap at the van rather than letting the count run past it. */
+    if(l.qty>=vanOf(l.productId,ME.id))return; l.qty++;render()},
   "q-"(e){const l=ST.draft.lines.find(x=>x.productId===e.dataset.p);l.qty=Math.max(0,l.qty-1);render()},
   price(e){const l=ST.draft.lines.find(x=>x.productId===e.dataset.p);const v=parseFloat(e.value);
     if(isNaN(v)||v<=0)return; l.price=v; const raw=e.value,car=e.selectionStart; render();
@@ -2394,7 +2439,21 @@ const A={
     if(f){f.value=raw;f.focus();try{f.setSelectionRange(car,car)}catch(_){}}},
   "submit-order"(e){
     const c=cust(e.dataset.c), lines=ST.draft.lines.filter(l=>l.qty>0).map(l=>({...l}));
-    lines.forEach(l=>{const p=prod(l.productId);p.van=Math.max(0,p.van-l.qty)});
+    /* Refuse rather than clamp. The old code did max(0, van - qty), which let a
+       salesman sell 500 units out of a van holding 80 and simply showed 0 after.
+       Stock has to be a hard stop, not a floor. */
+    const short=shortOn(lines,ME.id);
+    if(short.length){
+      modal(`<h3>Stok van tidak mencukupi</h3>
+        <p style="color:var(--mut);font-size:13.5px;margin-bottom:13px">Order ini tidak boleh dihantar. Kurangkan kuantiti atau request stok dahulu.</p>
+        <div class="card" style="padding:14px;margin-bottom:14px">
+          ${short.map(x=>`<div style="display:flex;justify-content:space-between;padding:5px 0">
+            <span>${esc(x.p.name)}</span><b>minta ${x.want} · ada <span style="color:var(--red)">${x.have}</span></b></div>`).join("")}
+        </div>
+        <button class="btn btn-p btn-w" data-a="close">OK</button>`);
+      return;
+    }
+    lines.forEach(l=>takeVan(l.productId,l.qty,ME.id));
     const {s,inv}=mkSale(c,TODAY,lines,ME.id,c.term==="cash");
     ST.draft=null;
     modal(`<h3>Order berjaya</h3><p style="color:var(--mut);font-size:13.5px;margin-bottom:14px">${TERM[c.term].t} — SO dan Invoice dijana. Tiada DO, sebab barang dan jualan berlaku serentak.</p>
@@ -2433,12 +2492,22 @@ const A={
     const c=cust(e.dataset.c), pid=$("#cgp").value, qty=parseInt($("#cgq").value);
     if(!qty||qty<1) return;
     const p=prod(pid);
+    /* Same hard stop as an order: consignment stock still has to come off a van
+       that actually holds it. */
+    const have=vanOf(pid,ME.id);
+    if(qty>have){
+      modal(`<h3>Stok van tidak mencukupi</h3>
+        <p style="color:var(--mut);font-size:13.5px;margin:11px 0">
+          ${esc(p.name)} — minta <b>${qty}</b> unit, van ada <b style="color:var(--red)">${have}</b>.</p>
+        <button class="btn btn-p btn-w" data-a="close">OK</button>`);
+      return;
+    }
     /* Delivering the stock is what issues the DO. Nothing is billed yet — the
        SO and Invoice wait until the next visit tells us what actually sold. */
     const d=mkDelivery(c,TODAY,[{productId:pid,qty,price:p.price}],ME.id);
     DB.consign.push({id:"CG"+(DB.consign.length+1),customerId:c.id,productId:pid,qty,price:p.price,
       date:TODAY,doId:d.id,balance:null,checkedAt:null,sold:0,invoiceId:null,salesmanId:ME.id});
-    p.van=Math.max(0,p.van-qty);
+    takeVan(pid,qty,ME.id);
     modal(`<h3>Stock dihantar</h3><div class="okbox" style="margin:13px 0"><span>📦</span>
       <span><b>${qty} unit ${esc(p.name)}</b> direkod sebagai consignment stock di ${esc(c.name)}.<br>
       Lawatan berikut masukkan baki untuk kira barang terjual.</span></div>
@@ -2462,7 +2531,7 @@ const A={
     if(!qty||qty<1) return;
     const r={id:nn("RET",++DB.seq.RET),customerId:c.id,productId:pid,qty,reason:$("#rtr").value,
       date:TODAY,salesmanId:ME.id,remark:$("#rtm").value};
-    DB.returns.push(r); prod(pid).van+=qty;
+    DB.returns.push(r); putVan(pid,qty);
     go("/s/doc/Return/"+r.id);
   },
   /* On a phone this reads the device. In the demo it resolves from the district
