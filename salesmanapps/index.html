@@ -27,28 +27,37 @@
 <meta name="twitter:image:alt" content="Sales Portal — Retail Sales &amp; Distribution">
 <link rel="canonical" href="https://salesmanapps.netlify.app/">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<!-- Structured data describes the PRODUCT, not the agency that built it.
+     The operating company's real details are not known yet — they arrive with
+     the client's data — so no Organization is claimed here rather than
+     publishing a placeholder name to search engines.
+     When CO (further down this file) is filled in with the real company,
+     add a matching Organization node and set it as the publisher. -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@graph": [
     {
-      "@type": "Organization",
-      "name": "KOBIS Berhad",
-      "url": "https://www.kobisberhad.com",
-      "logo": "https://salesmanapps.netlify.app/favicon.svg",
-      "sameAs": ["https://www.kobisberhad.com"]
-    },
-    {
       "@type": "WebSite",
       "name": "Sales Portal",
       "url": "https://salesmanapps.netlify.app/",
       "description": "Web-based Retail Sales & Distribution Portal — Management Panel, Salesman Panel and Public Panel. 16 modules, 3 transaction models, AI-assisted.",
+      "inLanguage": ["ms", "en", "zh-Hans", "iba"]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Sales Portal",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "url": "https://salesmanapps.netlify.app/",
       "inLanguage": ["ms", "en", "zh-Hans", "iba"],
-      "publisher": {
-        "@type": "Organization",
-        "name": "KOBIS Berhad",
-        "url": "https://www.kobisberhad.com"
-      }
+      "featureList": [
+        "Consignment, Bil to Bil and Cash transaction models",
+        "Delivery Order, Sales Order, Invoice, Receipt and Return documents",
+        "Collections and debt ageing",
+        "Van stock per salesman",
+        "Sales ranking and commission"
+      ]
     }
   ]
 }
