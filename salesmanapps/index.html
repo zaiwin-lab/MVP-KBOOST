@@ -925,8 +925,15 @@ CUSTOMERS.forEach((c,i)=>{ c.salesmanId=SALESMEN[BOOK[i]].id; });
 CUSTOMERS.forEach(c=>{ if(c.id==="c4"||c.id==="c10") c.dormant=true; });
 
 const DB={dos:[],sos:[],invoices:[],payments:[],receipts:[],returns:[],consign:[],
-  schedule:[],referrals:[],seq:{DO:0,SO:0,INV:0,RET:0,REC:0}};
+  schedule:[],referrals:[],seq:{DO:0,SO:0,INV:0,RET:0,REC:0,CUST:CUSTOMERS.length}};
 const nn=(k,n)=>k+String(n).padStart(6,"0");
+/* Records the database will key itself. Deriving an id from array length —
+   "CG"+(DB.consign.length+1) — collides the moment two salesmen hold their own
+   copy of the list and both create the thirteenth. Unique per device now,
+   replaced by the database's own key when it lands. */
+const newId=k=>k+"-"+(self.crypto&&crypto.randomUUID
+  ? crypto.randomUUID().slice(0,8)
+  : Math.random().toString(36).slice(2,10));
 const cust=id=>CUSTOMERS.find(c=>c.id===id);
 const prod=id=>PRODUCTS.find(p=>p.id===id);
 const sm=id=>SALESMEN.find(s=>s.id===id);
@@ -966,7 +973,7 @@ function mkSale(c,date,lines,salesmanId,payNow,doId,invoiceNow){
 function payInvoice(inv,amt,method,date){
   inv.paid=money(inv.paid+amt);
   inv.status = inv.paid>=inv.total-0.01?"paid":"partial";
-  const p={id:"PAY"+String(DB.payments.length+1).padStart(4,"0"),invoiceId:inv.id,customerId:inv.customerId,
+  const p={id:newId("PAY"),invoiceId:inv.id,customerId:inv.customerId,
     amount:amt,method,date,salesmanId:inv.salesmanId};
   DB.payments.push(p);
   const r={id:nn("REC",++DB.seq.REC),paymentId:p.id,invoiceId:inv.id,customerId:inv.customerId,
@@ -981,7 +988,7 @@ CUSTOMERS.forEach(c=>{
       const p=pick(PRODUCTS), qty=bt(60,140);
       /* DO is cut here, at the drop — not later when the stock is billed. */
       const d=mkDelivery(c,date,[{productId:p.id,qty,price:p.price}],c.salesmanId);
-      const cg={id:"CG"+(DB.consign.length+1),customerId:c.id,productId:p.id,qty,price:p.price,date,
+      const cg={id:newId("CG"),customerId:c.id,productId:p.id,qty,price:p.price,date,
         doId:d.id,balance:null,checkedAt:null,sold:0,invoiceId:null,salesmanId:c.salesmanId};
       DB.consign.push(cg);
       if(k>1){
@@ -1040,14 +1047,20 @@ SALESMEN.forEach(sm=>{
       remark:i===0?"Kutip payment overdue":i===2?"Check baki stock consignment":""});
   });
 });
-DB.referrals=[["Kedai Ehsan Jaya","verified",4200],["Mini Market Aman","verified",2800],
-  ["Pasar Mini Setia","pending",0],["Kedai Borong Utara","verified",6500],["Runcit Bahagia","pending",0]]
-  .map(([name,status,val],i)=>({id:"RF"+(i+1),name,status,value:val,date:ago(bt(5,90)),commission:val*0.05}));
+/* A referral is earned by the salesman who made it — without an owner every
+   salesman saw the same five, and the same commission. */
+DB.referrals=[["Kedai Ehsan Jaya","verified",4200,0],["Mini Market Aman","verified",2800,1],
+  ["Pasar Mini Setia","pending",0,0],["Kedai Borong Utara","verified",6500,2],
+  ["Runcit Bahagia","pending",0,3],["Kedai Sinar Baru","verified",3100,4],
+  ["Mini Market Damai","pending",0,0]]
+  .map(([name,status,val,si],i)=>({id:"RF"+(i+1),name,status,value:val,salesmanId:SALESMEN[si].id,
+    date:ago(bt(5,90)),commission:money(val*0.05)}));
 
 /* ---------- SELECTORS ---------- */
 const S={
   myCust:()=>CUSTOMERS.filter(c=>c.salesmanId===ME.id),
   mySched:()=>DB.schedule.filter(x=>x.salesmanId===ME.id).sort((a,b)=>a.order-b.order),
+  myRefer:()=>DB.referrals.filter(r=>r.salesmanId===ME.id),
   invOf:cid=>DB.invoices.filter(i=>i.customerId===cid).sort((a,b)=>b.date-a.date),
   outstanding:cid=>DB.invoices.filter(i=>(!cid||i.customerId===cid)&&i.status!=="paid").reduce((a,i)=>a+(i.total-i.paid),0),
   overdue:cid=>DB.invoices.filter(i=>(!cid||i.customerId===cid)&&i.status!=="paid"&&i.due<TODAY).reduce((a,i)=>a+(i.total-i.paid),0),
@@ -2430,20 +2443,21 @@ function sRank(){
 
 /* ---------- SALESMAN: REFER & EARN ---------- */
 function sRefer(){
-  const v=DB.referrals.filter(r=>r.status==="verified");
+  const mine=S.myRefer();
+  const v=mine.filter(r=>r.status==="verified");
   const com=v.reduce((a,r)=>a+r.commission,0);
   return SM("refer",`
     <div class="pgh"><div><h1>${T("s.refer")}</h1><p>Kod anda: <b class="mono">AZ-${ME.code}-2026</b></p></div>
       <div class="ra"><button class="btn btn-g" data-a="share-ref">${ic(I.wa)} Share</button></div></div>
     <div class="g g3" style="margin-bottom:18px">
-      ${kpi("Referral",DB.referrals.length,"dihantar",I.gift,"#8B5CF6")}
+      ${kpi("Referral",mine.length,"dihantar",I.gift,"#8B5CF6")}
       ${kpi("Disahkan",v.length,"outlet aktif",I.shield,"#0E9F6E")}
       ${kpi("Komisen",RM2(com),"5% nilai jualan",I.cash,"#D97706")}
     </div>
     <div class="tw"><table>
       <thead><tr><th>${T("l.outlet")}</th><th>${T("l.date")}</th><th>${T("l.status")}</th>
         <th class="r">Nilai jualan</th><th class="r">Komisen</th></tr></thead>
-      <tbody>${DB.referrals.map(r=>`<tr>
+      <tbody>${mine.map(r=>`<tr>
         <td><b>${esc(r.name)}</b></td><td>${fd(r.date)}</td>
         <td>${r.status==="verified"?`<span class="chip k-grn">Disahkan</span>`:`<span class="chip k-mut">Menunggu</span>`}</td>
         <td class="r num">${r.value?RM(r.value):"—"}</td>
@@ -2669,7 +2683,7 @@ const A={
     /* Delivering the stock is what issues the DO. Nothing is billed yet — the
        SO and Invoice wait until the next visit tells us what actually sold. */
     const d=mkDelivery(c,TODAY,[{productId:pid,qty,price:p.price}],ME.id);
-    DB.consign.push({id:"CG"+(DB.consign.length+1),customerId:c.id,productId:pid,qty,price:p.price,
+    DB.consign.push({id:newId("CG"),customerId:c.id,productId:pid,qty,price:p.price,
       date:TODAY,doId:d.id,balance:null,checkedAt:null,sold:0,invoiceId:null,salesmanId:ME.id});
     takeVan(pid,qty,ME.id);
     modal(`<h3>Stock dihantar</h3><div class="okbox" style="margin:13px 0"><span>📦</span>
@@ -2715,7 +2729,10 @@ const A={
   "save-cust"(){
     const n=$("#rn").value.trim();
     if(!n){ modal(`<h3>Nama outlet diperlukan</h3><p style="color:var(--mut);font-size:13.5px;margin:11px 0">Sila isi nama outlet sebelum simpan.</p><button class="btn btn-p btn-w" data-a="close">OK</button>`); return; }
-    const c={id:"c"+(CUSTOMERS.length+1),code:"C"+String(CUSTOMERS.length+1).padStart(4,"0"),name:n,
+    /* The outlet code is a business identifier that has to be unique across the
+       whole company, so it comes off a counter rather than this device's list
+       length. It becomes next_doc_no('CUST') once the database is in. */
+    const c={id:newId("c"),code:"C"+String(++DB.seq.CUST).padStart(4,"0"),name:n,
       pic:$("#rp").value||"—",phone:$("#rph").value||"—",wa:$("#rw").value||"—",addr:$("#ra").value||"—",
       dist:$("#rd").value||"—",state:$("#rs").value,pos:$("#rpo").value||"—",ssm:$("#rssm").value||"—",
       type:$("#rt").value,term:$("#rterm").value,months:$("#rterm").value==="cash"?0:2,
