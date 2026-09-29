@@ -1,13 +1,21 @@
-# KOBIS Sales Portal — static, nothing to build.
+# Sales Portal — static, nothing to build.
 # Its own Netlify project, completely separate from the earlier demo at the
 # repo root.
 #
-# Only the two client-facing pages are published. README.md stays in the
-# repository for the engineer and is never served — it documents which parts
-# of the portal are simulated, which is not something to leave at a guessable
-# URL during a pitch.
+# Only client-facing files are published. README.md stays in the repository for
+# the engineer and is never served — it documents which parts of the portal are
+# simulated, which is not something to leave at a guessable URL during a pitch.
+#
+# The asset list is explicit rather than a wildcard copy, so adding a file to
+# the repository never publishes it by accident. It must stay in step with what
+# the pages reference: og.png and favicon.svg are named in the social tags,
+# robots.txt and sitemap.xml are fetched by crawlers.
 [build]
-  command = "mkdir -p _site && cp index.html playbook.html _site/"
+  command = """
+    mkdir -p _site/share && \
+    cp index.html playbook.html og.png favicon.svg robots.txt sitemap.xml _site/ && \
+    cp share/index.html _site/share/
+  """
   publish = "_site"
 
 [[headers]]
@@ -16,6 +24,13 @@
     X-Frame-Options = "SAMEORIGIN"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Long cache for the social image — it is content-addressed by the ?v= query
+# the meta tags carry, so a new image means a new query string.
+[[headers]]
+  for = "/og.png"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
 
 # The proposal page was renamed to the playbook; keep the old link alive.
 [[redirects]]

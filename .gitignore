@@ -2,3 +2,4 @@ _site/
 .netlify/
 node_modules/
 .gstack/
+salesmanapps/_site/
