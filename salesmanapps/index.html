@@ -637,7 +637,7 @@ const sb=(self.supabase&&supabase.createClient)
    What must never happen is falling into demo silently. If the client library
    cannot load, the honest answer is an error — a salesman seeing invented
    figures and believing they are his own is worse than a broken page. */
-let AUTH={session:null,profile:null,ready:false,err:""};
+let AUTH={session:null,profile:null,ready:false,err:"",email:""};
 const LIVE=()=>!!AUTH.profile;
 const DEMO=()=>{ try{ return sessionStorage.getItem("sp.demo")==="1" }catch(_){ return false } };
 const setDemo=v=>{ try{ v?sessionStorage.setItem("sp.demo","1"):sessionStorage.removeItem("sp.demo") }catch(_){} };
@@ -798,6 +798,11 @@ const DICT={
  "lg.go":         ["Log masuk","Sign in","登录","Tama"],
  "lg.going":      ["Sedang masuk…","Signing in…","登录中…","Benung tama…"],
  "lg.wait":       ["Menyemak sesi…","Checking your session…","正在检查登录状态…","Benung ngelala sesi…"],
+ "lg.need":       ["Sila isi e-mel dan kata laluan.","Please fill in both your email and password.","请输入电邮与密码。","Isi e-mel enggau kata laluan."],
+ "lg.bad":        ["E-mel atau kata laluan salah. Cuba lagi.","That email or password is not right. Please try again.","电邮或密码不正确，请重试。","E-mel tauka kata laluan salah. Uji baru."],
+ "lg.unconfirmed":["Akaun ini belum disahkan. Hubungi pentadbir.","This account has not been confirmed yet. Contact your administrator.","此账户尚未验证，请联系管理员。","Akaun tu apin disahka. Kelala ngagai pentadbir."],
+ "lg.net":        ["Tiada sambungan. Semak internet anda dan cuba lagi.","No connection. Check your internet and try again.","无网络连接，请检查网络后重试。","Nadai sambungan. Peda internet nuan lalu uji baru."],
+ "lg.rate":       ["Terlalu banyak cubaan. Tunggu seminit sebelum cuba lagi.","Too many attempts. Wait a minute before trying again.","尝试次数过多，请稍候再试。","Mayuh amat cubaan. Entap seminit lalu uji baru."],
  "lg.out":        ["Log keluar","Sign out","退出登录","Pansut"],
  "lg.demoh":      ["Hanya nak lihat?","Just looking around?","只是想看看？","Semina deka meda?"],
  "lg.demod":      ["Panel Awam menunjukkan keseluruhan sistem tanpa akaun.","The Public panel shows the whole system without an account.","公开面板无需账户即可浏览整个系统。","Panel Awam mandangka sistem nya magang, nadai akaun."],
@@ -2750,9 +2755,15 @@ function modal(h){$("#modal").innerHTML=`<div class="mask" data-a="close"><div c
 const A={
   lang(e){setLang(e.dataset.v)},
   async login(el){
+    const em=($("#lgE")||{}).value||"", pw=($("#lgP")||{}).value||"";
+    /* Answer an empty form ourselves. Asking the server produces "missing
+       email or phone", which is its vocabulary, not the user's. */
+    if(!em.trim()||!pw){ AUTH.email=em; AUTH.err=T("lg.need"); return render(); }
     const b=$("#lgB"); if(b){b.disabled=true;b.textContent=T("lg.going")}
-    const ok=await signIn($("#lgE").value,$("#lgP").value);
-    if(ok){ const t=el.dataset.t; location.hash = t&&t!=="#/" ? t : "#/s/home"; render(); }
+    /* Kept so a wrong password does not also cost the person their email. */
+    AUTH.email=em;
+    const ok=await signIn(em,pw);
+    if(ok){ AUTH.email=""; const t=el.dataset.t; location.hash = t&&t!=="#/" ? t : "#/s/home"; render(); }
     else render();
   },
   async signout(){
@@ -2966,10 +2977,16 @@ document.addEventListener("click",e=>{
   const a=el.dataset.a;
   if((a==="close"||a==="closechat")&&e.target.closest("[data-stop]")&&e.target.dataset.a!==a) return;
   if(el.tagName==="INPUT"||el.tagName==="SELECT"||el.tagName==="TEXTAREA") return;
+  /* A form's data-a is its SUBMIT action and belongs to the submit listener
+     only. Without this, clicking anything inside a form — the input, its
+     label, the padding — bubbles up to the form and runs the action with the
+     fields still empty, and clicking the submit button runs it twice: once
+     here and once on the real submit. */
+  if(el.tagName==="FORM") return;
   // Links keep their navigation. A link may also carry data-a="close" so the
   // sheet dismisses on the way out — preventing default there would swallow
   // the href and strand the user on the modal.
-  if(el.tagName!=="A"&&el.tagName!=="FORM") e.preventDefault();
+  if(el.tagName!=="A") e.preventDefault();
   A[a]&&A[a](el);
 });
 document.addEventListener("submit",e=>{
@@ -3058,10 +3075,24 @@ async function authBoot(){
   });
 }
 
+/* The server's wording is written for whoever integrated it, not for a salesman
+   at a counter. The two messages that actually reach a person in normal use get
+   a sentence in their own language; anything unexpected is passed through
+   rather than flattened, so a real fault stays diagnosable. */
+function authMsg(m){
+  const s=(m||"").toLowerCase();
+  if(s.includes("invalid login credentials")) return T("lg.bad");
+  if(s.includes("missing email")||s.includes("missing phone")) return T("lg.need");
+  if(s.includes("email not confirmed")) return T("lg.unconfirmed");
+  if(s.includes("failed to fetch")||s.includes("networkerror")) return T("lg.net");
+  if(s.includes("too many requests")||s.includes("rate limit")) return T("lg.rate");
+  return m;
+}
+
 async function signIn(email,pw){
   AUTH.err="";
   const {data,error}=await sb.auth.signInWithPassword({email:email.trim(),password:pw});
-  if(error){ AUTH.err=error.message; return false; }
+  if(error){ AUTH.err=authMsg(error.message); return false; }
   AUTH.session=data.session;
   if(!await loadLive()){ await sb.auth.signOut(); AUTH.session=null; return false; }
   return true;
@@ -3075,11 +3106,13 @@ function vLogin(target,offline){
     <button class="btn btn-p btn-w" onclick="location.reload()">${T("lg.retry")}</button>`
   : `
     ${AUTH.err?`<div class="lg-err">${esc(AUTH.err)}</div>`:""}
-    <form data-a="login" data-t="${esc(target||"")}">
-      <div class="f"><label>${T("lg.email")}</label>
-        <input id="lgE" type="email" autocomplete="username" required placeholder="nama@syarikat.com"></div>
-      <div class="f"><label>${T("lg.pw")}</label>
-        <input id="lgP" type="password" autocomplete="current-password" required placeholder="••••••••"></div>
+    <form data-a="login" data-t="${esc(target||"")}" novalidate>
+      <div class="f"><label for="lgE">${T("lg.email")}</label>
+        <input id="lgE" type="email" autocomplete="username" inputmode="email"
+               autocapitalize="off" spellcheck="false"
+               value="${esc(AUTH.email||"")}" placeholder="nama@syarikat.com"></div>
+      <div class="f"><label for="lgP">${T("lg.pw")}</label>
+        <input id="lgP" type="password" autocomplete="current-password" placeholder="••••••••"></div>
       <button class="btn btn-p btn-w" type="submit" id="lgB">${T("lg.go")}</button>
     </form>`;
   return `<div class="lgwrap"><div class="lgcard">
@@ -3118,7 +3151,10 @@ function render(){
     if(!LIVE()){
       $("#app").innerHTML=vLogin(location.hash);
       paintChrome();
-      const e=$("#lgE"); if(e) e.focus();
+      /* Land the cursor where the work is: the password, once the email is
+         already filled in from a failed attempt. */
+      const f=$("#lgE")&&$("#lgE").value ? $("#lgP") : $("#lgE");
+      if(f) f.focus();
       return;
     }
   }
