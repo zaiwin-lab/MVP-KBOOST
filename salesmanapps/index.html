@@ -419,6 +419,36 @@ td b{font-weight:700}
 .aic .out{margin-top:12px;padding:11px;border-radius:9px;background:rgba(0,0,0,.28);font-size:12px;line-height:1.55;
   border-left:2px solid var(--cyan);color:rgba(255,255,255,.9)}
 
+/* ---------- SIGN IN ---------- */
+.lgwrap{min-height:100vh;display:grid;place-items:center;padding:26px 18px;
+  background:linear-gradient(155deg,#080E1E 0%,#131C3E 45%,#1E1A46 78%,#0C1327 100%)}
+.lgcard{width:100%;max-width:398px;background:var(--card);border-radius:var(--r-l);
+  padding:30px 28px;box-shadow:0 30px 80px -30px rgba(0,0,0,.7)}
+.lgcard .brand{color:var(--ink);margin-bottom:22px}
+.lgcard .brand small{color:var(--mut)}
+.lgcard h1{font-size:23px;letter-spacing:-.02em;margin:0 0 6px}
+.lgcard .sub{font-size:13px;color:var(--mut);line-height:1.55;margin-bottom:19px}
+.lgcard .f{margin-bottom:13px}
+.lgcard .btn-w{margin-top:5px}
+.lg-err{background:var(--red-lo);color:var(--red);border:1px solid var(--red);
+  border-radius:var(--r-s);padding:9px 12px;font-size:12.5px;font-weight:600;margin-bottom:15px}
+.lg-demo{margin-top:21px;padding-top:17px;border-top:1px solid var(--line);text-align:center}
+.lg-demo b{display:block;font-size:13px;margin-bottom:3px}
+.lg-demo span{display:block;font-size:12px;color:var(--mut);line-height:1.5;margin-bottom:11px}
+.spin{width:26px;height:26px;border-radius:50%;margin:0 auto;
+  border:2.5px solid var(--line2);border-top-color:var(--blue);animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.spin{animation-duration:2.4s}}
+
+/* A banner the live panels carry until transaction history is migrated, so an
+   empty ledger reads as "not yet" rather than "broken". */
+.livebar{display:flex;gap:10px;align-items:flex-start;background:var(--amb-lo);
+  border:1px solid var(--amb);border-radius:var(--r-s);padding:10px 13px;margin-bottom:16px;
+  font-size:12.5px;line-height:1.5;color:var(--ink)}
+.livebar b{display:block;color:var(--amb-d,#8A5204)}
+.livebar.demo{background:var(--vio-lo);border-color:var(--vio);align-items:center}
+.livebar.demo b{color:var(--vio)}
+
 /* ---------- WHO IS USING THE PORTAL ----------
    A demo affordance, styled to read as a account chip rather than a control
    panel, with an explicit note that it is not security. */
@@ -574,8 +604,46 @@ td b{font-weight:700}
 <div id="chrome"></div>
 <div id="modal"></div>
 
+<!-- Supabase client. The portal remains one self-contained file with no build
+     step; this is the only external dependency it carries. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.min.js"></script>
 <script>
 "use strict";
+
+/* ==========================================================================
+   BACKEND
+   The publishable key is meant to ship in the page — it identifies the project,
+   it does not grant anything. Access is decided by row level security in the
+   database, so a signed-in salesman physically cannot read another salesman's
+   rows however he asks. See db/README.md.
+   ========================================================================== */
+const SB_URL="https://ebjsyramwnyekufvowft.supabase.co";
+const SB_KEY="sb_publishable_UmBCtnNufjCfi0S1eaw6jw_NjtW5xej";
+const sb=(self.supabase&&supabase.createClient)
+  ? supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}})
+  : null;
+
+/* Two ways the portal can run, and entering demo is always a deliberate act.
+
+   LIVE  — signed in. Identity, outlets, products and van stock come from the
+           database, and the panels show only what that person is allowed.
+   DEMO  — explicitly chosen from the sign-in screen. Figures come from the
+           seeded dataset in this file, and every screen carries a badge
+           saying so.
+
+   Both fill the same structures, so every screen and selector below is
+   unchanged either way.
+
+   What must never happen is falling into demo silently. If the client library
+   cannot load, the honest answer is an error — a salesman seeing invented
+   figures and believing they are his own is worse than a broken page. */
+let AUTH={session:null,profile:null,ready:false,err:""};
+const LIVE=()=>!!AUTH.profile;
+const DEMO=()=>{ try{ return sessionStorage.getItem("sp.demo")==="1" }catch(_){ return false } };
+const setDemo=v=>{ try{ v?sessionStorage.setItem("sp.demo","1"):sessionStorage.removeItem("sp.demo") }catch(_){} };
+/* Configured but unreachable — a broken dependency, not a reason to invent data. */
+const BACKEND_DOWN=()=>!sb;
+
 /* ---------- utils ---------- */
 const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -723,6 +791,26 @@ const DICT={
 
  "bub.ai":        ["Bantuan AI","AI Help","AI 帮助","Tulung AI"],
  "bub.ai2":       ["24/7 · Sedia membantu","24/7 · Always on","24/7 · 全天候","24/7 · Sedia nulung"],
+ "lg.title":      ["Log masuk","Sign in","登录","Tama"],
+ "lg.sub":        ["Panel Pengurusan dan Panel Salesman memerlukan akaun. Panel Awam terbuka tanpa log masuk.","The Management and Salesman panels need an account. The Public panel is open to everyone.","管理面板与业务员面板需要账户。公开面板无需登录。","Panel Pengurusan enggau Panel Salesman beguna akaun. Panel Awam tebuka ke semua."],
+ "lg.email":      ["E-mel","Email","电邮","E-mel"],
+ "lg.pw":         ["Kata laluan","Password","密码","Kata laluan"],
+ "lg.go":         ["Log masuk","Sign in","登录","Tama"],
+ "lg.going":      ["Sedang masuk…","Signing in…","登录中…","Benung tama…"],
+ "lg.wait":       ["Menyemak sesi…","Checking your session…","正在检查登录状态…","Benung ngelala sesi…"],
+ "lg.out":        ["Log keluar","Sign out","退出登录","Pansut"],
+ "lg.demoh":      ["Hanya nak lihat?","Just looking around?","只是想看看？","Semina deka meda?"],
+ "lg.demod":      ["Panel Awam menunjukkan keseluruhan sistem tanpa akaun.","The Public panel shows the whole system without an account.","公开面板无需账户即可浏览整个系统。","Panel Awam mandangka sistem nya magang, nadai akaun."],
+ "lg.demob":      ["Buka Panel Awam","Open the Public panel","打开公开面板","Buka Panel Awam"],
+ "lg.livehead":   ["Data langsung","Live data","实时数据","Data idup"],
+ "lg.nohist":     ["Outlet, produk dan stok van adalah data sebenar. Sejarah transaksi belum dipindahkan — jualan, invois dan kutipan akan kosong sehingga langkah seterusnya siap.","Outlets, products and van stock are live. Transaction history has not been migrated yet — sales, invoices and collections stay empty until the next step is done.","门店、产品与车载库存为实时数据。交易历史尚未迁移，销售、发票与收款暂为空。","Kedai, produk enggau stock van endang data bendar. Sejarah transaksi apin dipindah — jualan, invois enggau kutipan agi kosong."],
+ "lg.offtitle":   ["Tidak dapat disambung","Cannot connect","无法连接","Enda ulih disambung"],
+ "lg.offsub":     ["Portal tidak dapat menghubungi pelayan data.","The portal could not reach the data server.","门户无法连接数据服务器。","Portal enda ulih nemu server data."],
+ "lg.offline":    ["Sambungan ke pelayan gagal. Angka sebenar tidak boleh dipaparkan sekarang.","The connection to the server failed. Real figures cannot be shown right now.","服务器连接失败，暂时无法显示真实数据。","Sambungan ngagai server enda ulih. Nambor bendar enda ulih dipandangka diatu."],
+ "lg.retry":      ["Cuba lagi","Try again","重试","Uji baru"],
+ "lg.demobadge":  ["Data contoh","Sample data","示例数据","Data chunto"],
+ "lg.demobody":   ["Angka di skrin ini dijana untuk tunjuk cara. Ia bukan rekod sebenar.","The figures on this screen are generated for demonstration. They are not real records.","本页数据为演示生成，并非真实记录。","Nambor ba skrin tu digaga ke chunto. Ukai rekod bendar."],
+ "lg.demoexit":   ["Keluar","Exit","退出","Pansut"],
  "sw.head":       ["Lihat portal sebagai","View the portal as","以此身分检视","Peda portal nya baka"],
  "sw.all":        ["Semua pasukan, semua outlet","Whole team, every outlet","全team、全部门店","Semua pasukan, semua kedai"],
  "sw.note":       ["Penukar demo — bukan kawalan akses. Login sebenar menyusul.","Demo switcher — not access control. Real login follows.","演示切换器，非权限控制。正式登录稍后推出。","Penukar demo — ukai kawal akses. Login bendar deka datai."],
@@ -1214,6 +1302,13 @@ function topbar(kind){
         <span class="cv" aria-hidden="true">▾</span>
       </button>
       ${ST.userMenu?`<div class="umenu">
+        ${LIVE()?`
+          <div class="uh">${T("lg.livehead")}</div>
+          <button data-a="signout">
+            <span class="av" style="background:var(--red)">${ic(I.arrow)}</span>
+            <span><b>${T("lg.out")}</b><span>${esc(AUTH.session?.user?.email||"")}</span></span>
+          </button>`
+        :`
         <div class="uh">${T("sw.head")}</div>
         <button data-a="user" data-v="mgmt" class="${mgmt?"on":""}">
           <span class="av" style="background:var(--vio)">${ini(BOSS.name)}</span>
@@ -1228,7 +1323,7 @@ function topbar(kind){
             <span class="av">${ini(u.name)}</span>
             <span><b>${esc(u.name)}</b><span>${u.code} · ${u.zone} · ${n} ${T("l.outlet").toLowerCase()}</span></span>
             ${on?`<span class="tk">✓</span>`:""}</button>`}).join("")}
-        <div class="unote">${T("sw.note")}</div>
+        <div class="unote">${T("sw.note")}</div>`}
       </div>`:""}
     </div>`;
   return `<header class="top${dark?" dark":""}">
@@ -1476,7 +1571,7 @@ const MITEMS=()=>{
     {k:"ai",t:T("m.ai"),i:I.bolt,h:"#/m/ai"}
   ];
 };
-const M=(active,inner)=>panelShell("mgmt",MITEMS(),active,inner);
+const M=(active,inner)=>panelShell("mgmt",MITEMS(),active,liveBar()+inner);
 
 const kpi=(l,v,d,icon,col)=>`<div class="kpi"><div class="l">${l}</div><div class="v num">${v}</div>
   ${d?`<div class="d">${d}</div>`:""}
@@ -1873,7 +1968,16 @@ const SITEMS=()=>[
   {k:"rank",t:T("s.rank"),i:I.rank,h:"#/s/rank"},
   {k:"refer",t:T("s.refer"),i:I.gift,h:"#/s/refer"}
 ];
-const SM=(active,inner)=>panelShell("sm",SITEMS(),active,inner);
+/* Until transaction history is migrated, every live panel says so — an empty
+   ledger should read as "not yet", never as a broken screen. */
+const liveBar=()=>{
+  if(DEMO()) return `<div class="livebar demo"><span>⬤</span><span><b>${T("lg.demobadge")}</b>${T("lg.demobody")}</span>
+    <button class="btn btn-s" data-a="leavedemo" style="margin-left:auto;flex:none">${T("lg.demoexit")}</button></div>`;
+  if(LIVE()&&!DB.invoices.length)
+    return `<div class="livebar"><span>⬤</span><span><b>${T("lg.livehead")}</b>${T("lg.nohist")}</span></div>`;
+  return "";
+};
+const SM=(active,inner)=>panelShell("sm",SITEMS(),active,liveBar()+inner);
 
 function sHome(){
   const r=ST.range, uid=ME.id;
@@ -2575,6 +2679,22 @@ function chatDrawer(){
 function modal(h){$("#modal").innerHTML=`<div class="mask" data-a="close"><div class="sheet" data-stop>${h}</div></div>`;}
 const A={
   lang(e){setLang(e.dataset.v)},
+  async login(el){
+    const b=$("#lgB"); if(b){b.disabled=true;b.textContent=T("lg.going")}
+    const ok=await signIn($("#lgE").value,$("#lgP").value);
+    if(ok){ const t=el.dataset.t; location.hash = t&&t!=="#/" ? t : "#/s/home"; render(); }
+    else render();
+  },
+  async signout(){
+    ST.userMenu=false; setDemo(false);
+    /* Clear our own state first. Waiting on the auth event would leave someone
+       looking signed in after their token is already gone if it never fires. */
+    AUTH.session=null; AUTH.profile=null; AUTH.err="";
+    try{ if(sb) await sb.auth.signOut(); }catch(_){}
+    location.hash="#/"; location.reload();
+  },
+  demo(el){ setDemo(true); const t=el.dataset.t; location.hash = t&&t!=="#/" ? t : "#/s/home"; render(); },
+  leavedemo(){ setDemo(false); ST.userMenu=false; location.hash="#/"; render(); },
   usermenu(){ST.userMenu=!ST.userMenu;render()},
   user(e){
     const v=e.dataset.v;
@@ -2783,6 +2903,8 @@ document.addEventListener("click",e=>{
   A[a]&&A[a](el);
 });
 document.addEventListener("submit",e=>{
+  const lg=e.target.closest('[data-a="login"]');
+  if(lg){ e.preventDefault(); A.login(lg); return; }
   const el=e.target.closest('[data-a="send"]'); if(!el) return;
   e.preventDefault(); A.send(el);
 });
@@ -2797,10 +2919,136 @@ function scrollChat(){requestAnimationFrame(()=>{const b=$("#cbd");if(b)b.scroll
    RENDER
    ========================================================================== */
 function paintChrome(){ $("#chrome").innerHTML=chrome()+chatDrawer(); }
+/* ==========================================================================
+   AUTHENTICATION
+   ========================================================================== */
+
+/* Pull the signed-in person's profile, then the reference data they are
+   allowed to see. Row level security does the filtering, so this is the same
+   query for everyone — a salesman simply gets fewer rows back. */
+async function loadLive(){
+  const {data:prof,error:pe}=await sb.from("profiles")
+    .select("id,role,name,code,zone,with_stock").eq("id",AUTH.session.user.id).maybeSingle();
+  if(pe||!prof){ AUTH.err="No profile is linked to this account."; return false; }
+
+  const [{data:co},{data:prods},{data:custs},{data:van}]=await Promise.all([
+    sb.from("company").select("*").maybeSingle(),
+    sb.from("products").select("*").eq("active",true).order("name"),
+    sb.from("customers").select("*").eq("active",true).order("code"),
+    sb.from("van_stock").select("salesman_id,product_id,qty")
+  ]);
+
+  AUTH.profile=prof;
+  ME={id:prof.id,name:prof.name,code:prof.code||"",zone:prof.zone||"",
+      phone:prof.phone||"",withStock:prof.with_stock!==false};
+
+  if(co){ CO.name=co.name; CO.trade=co.trade; CO.ssm=co.ssm; CO.addr=co.address; CO.phone=co.phone; }
+
+  /* Replace the seeded arrays in place: every view and selector below reads
+     these same structures, so nothing downstream needs to know the difference. */
+  PRODUCTS.length=0;
+  (prods||[]).forEach(r=>PRODUCTS.push({id:r.id,name:r.name,sku:r.sku,
+    price:+r.price,floor:+r.floor_price,low:r.low_at}));
+
+  CUSTOMERS.length=0;
+  (custs||[]).forEach(r=>CUSTOMERS.push({id:r.id,code:r.code,name:r.name,pic:r.pic,
+    phone:r.phone,wa:r.whatsapp,addr:r.address,dist:r.district,state:r.state,pos:r.postcode,
+    ssm:r.ssm,type:r.outlet_type,term:r.term,months:r.term_months,
+    lat:r.lat,lng:r.lng,salesmanId:r.salesman_id,regAt:new Date(r.registered_at),status:"Active"}));
+
+  Object.keys(VAN).forEach(k=>delete VAN[k]);
+  (van||[]).forEach(r=>{ VAN[r.salesman_id]=VAN[r.salesman_id]||{}; VAN[r.salesman_id][r.product_id]=r.qty; });
+  VAN[ME.id]=VAN[ME.id]||{};
+
+  /* Transaction history has not been migrated yet — the panels show the live
+     outlets and vans against an empty ledger, and say so rather than looking
+     broken. That is Phase 2 day three. */
+  ["dos","sos","invoices","payments","receipts","returns","consign","schedule","referrals"]
+    .forEach(k=>{ DB[k].length=0; });
+  return true;
+}
+
+async function authBoot(){
+  if(!sb){ AUTH.ready=true; return render(); }
+  const {data}=await sb.auth.getSession();
+  AUTH.session=data.session||null;
+  if(AUTH.session){ try{ await loadLive(); }catch(e){ AUTH.err=e.message||String(e); } }
+  AUTH.ready=true;
+  render();
+  sb.auth.onAuthStateChange((evt,sess)=>{
+    if(evt==="SIGNED_OUT"){ location.reload(); }
+  });
+}
+
+async function signIn(email,pw){
+  AUTH.err="";
+  const {data,error}=await sb.auth.signInWithPassword({email:email.trim(),password:pw});
+  if(error){ AUTH.err=error.message; return false; }
+  AUTH.session=data.session;
+  if(!await loadLive()){ await sb.auth.signOut(); AUTH.session=null; return false; }
+  return true;
+}
+
+/* A panel that is not the public one needs a session. Not a screen hiding
+   things — the database returns nothing to an anonymous caller either. */
+function vLogin(target,offline){
+  const form = offline ? `
+    <div class="lg-err">${T("lg.offline")}</div>
+    <button class="btn btn-p btn-w" onclick="location.reload()">${T("lg.retry")}</button>`
+  : `
+    ${AUTH.err?`<div class="lg-err">${esc(AUTH.err)}</div>`:""}
+    <form data-a="login" data-t="${esc(target||"")}">
+      <div class="f"><label>${T("lg.email")}</label>
+        <input id="lgE" type="email" autocomplete="username" required placeholder="nama@syarikat.com"></div>
+      <div class="f"><label>${T("lg.pw")}</label>
+        <input id="lgP" type="password" autocomplete="current-password" required placeholder="••••••••"></div>
+      <button class="btn btn-p btn-w" type="submit" id="lgB">${T("lg.go")}</button>
+    </form>`;
+  return `<div class="lgwrap"><div class="lgcard">
+    <a class="brand" href="#/"><span class="mk">SP</span>
+      <span>${T("app.name")}<small>${T("app.tag")}</small></span></a>
+    <h1>${offline?T("lg.offtitle"):T("lg.title")}</h1>
+    <p class="sub">${offline?T("lg.offsub"):T("lg.sub")}</p>
+    ${form}
+    <div class="lg-demo">
+      <b>${T("lg.demoh")}</b>
+      <span>${T("lg.demod")}</span>
+      <button class="btn btn-s" data-a="demo" data-t="${esc(target||"")}">${T("lg.demob")}</button>
+    </div>
+  </div></div>`;
+}
+
 function render(){
   const p=parts();
   let h;
+  const priv = p[0]==="m"||p[0]==="s";
+
+  if(priv && !DEMO()){
+    /* The library failed to load. Say so; do not quietly substitute invented
+       figures for a person who believes they are looking at their own. */
+    if(BACKEND_DOWN()){
+      $("#app").innerHTML=vLogin(location.hash,true);
+      paintChrome(); return;
+    }
+    /* Hold until the session is checked, so a signed-in person never sees a
+       login flash on reload. */
+    if(!AUTH.ready){
+      $("#app").innerHTML=`<div class="lgwrap"><div class="lgcard" style="text-align:center">
+        <div class="spin"></div><p class="sub" style="margin-top:14px">${T("lg.wait")}</p></div></div>`;
+      return;
+    }
+    if(!LIVE()){
+      $("#app").innerHTML=vLogin(location.hash);
+      paintChrome();
+      const e=$("#lgE"); if(e) e.focus();
+      return;
+    }
+  }
+
   if(p[0]==="m"){
+    /* A salesman who types a management URL is sent back to his own panel.
+       Cosmetic only — the database already refuses him the rows. */
+    if(LIVE() && AUTH.profile.role!=="management"){ location.hash="#/s/home"; return; }
     switch(p[1]){
       case "team":    h=mTeam(); break;
       case "cust":    h=mCust(); break;
@@ -2842,4 +3090,5 @@ function render(){
 }
 document.body.dataset.lang=LANG;
 render();
+authBoot();
 </script>
