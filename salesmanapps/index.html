@@ -1024,7 +1024,10 @@ const newId=k=>k+"-"+(self.crypto&&crypto.randomUUID
   : Math.random().toString(36).slice(2,10));
 const cust=id=>CUSTOMERS.find(c=>c.id===id);
 const prod=id=>PRODUCTS.find(p=>p.id===id);
-const sm=id=>SALESMEN.find(s=>s.id===id);
+/* Never returns undefined. A document referencing a salesman who has since
+   left, or a profile that failed to load, must not take the whole screen
+   down on a property read. */
+const sm=id=>SALESMEN.find(s=>s.id===id)||{id,name:"—",code:"",zone:"",withStock:false};
 const TERM={consign:{k:"k-vio",t:"Consignment",s:"CONSIGN"},biltobil:{k:"k-blue",t:"Bil to Bil",s:"BIL-TO-BIL"},cash:{k:"k-grn",t:"Cash",s:"CASH"}};
 
 /* Payment term decides which documents exist, so there is no one chain builder.
@@ -1699,7 +1702,7 @@ function mCust(){
         <th>${T("l.salesman")}</th><th class="r">${T("k.sales")}</th><th class="r">${T("k.outstanding")}</th><th class="r">${T("k.overdue")}</th></tr></thead>
       <tbody>${list.map(c=>{const od=S.overdue(c.id);return `<tr>
         <td class="mono" style="color:var(--dim)">${c.code}</td>
-        <td><a class="lk" href="#/s/customer/${c.id}"><b>${esc(c.name)}</b></a><br>
+        <td><a class="lk" href="#/m/customer/${c.id}"><b>${esc(c.name)}</b></a><br>
           <span style="font-size:11.5px;color:var(--dim)">${esc(c.type)}</span></td>
         <td>${esc(c.pic)}<br><span style="font-size:11.5px;color:var(--dim)" class="mono">${esc(c.phone)}</span></td>
         <td>${esc(c.dist)}</td>
@@ -1710,6 +1713,73 @@ function mCust(){
         <td class="r">${od>0?`<b style="color:var(--red)">${RM(od)}</b>`:`<span style="color:var(--dim)">—</span>`}</td></tr>`}).join("")
         ||`<tr><td colspan="9"><div class="empty"><b>${T("l.none")}</b></div></td></tr>`}</tbody>
     </table></div>`);
+}
+
+/* ---------- MANAGEMENT: ONE OUTLET ----------
+   The management outlet rows used to link into the salesman panel, which put a
+   manager in someone else's shell holding Take Order and Payment buttons for an
+   outlet that is not his round. Management reads an outlet; it does not trade
+   on it. */
+function mCustomer(id){
+  const c=cust(id); if(!c) return mCust();
+  const inv=S.invOf(id), od=S.overdue(id), open=S.openConsign(id), pay=AI.payer(id);
+  const hist=S.histOf(id);
+  const tabs=["All","DO","SO","Invoice","Receipt","Return"];
+  const h=ST.histTab==="All"?hist:hist.filter(x=>x.t===ST.histTab);
+  const owner=sm(c.salesmanId);
+  return M("cust",`
+    <div class="pgh"><div>
+      <a href="#/m/cust" style="font-size:12.5px;color:var(--blue);font-weight:700">‹ ${T("m.cust")}</a>
+      <h1 style="margin-top:5px">${esc(c.name)}</h1>
+      <p><span class="mono">${c.code}</span> · ${esc(c.type||"—")} · ${esc(c.dist||"—")}${c.state?", "+esc(c.state):""}</p></div>
+      <div class="ra"><span class="chip ${TERM[c.term].k}" style="font-size:12.5px;padding:6px 13px">${TERM[c.term].t}${c.months?` · ${c.months} bulan`:""}</span></div></div>
+    <div class="g g4" style="margin-bottom:18px">
+      ${kpi(T("k.sales"),RM(S.totalSales(id)),inv.length+" invoice",I.chart,"#3B5BFF")}
+      ${kpi(T("k.outstanding"),RM(S.outstanding(id)),inv.filter(i=>i.status!=="paid").length+" belum jelas",I.doc,"#D97706")}
+      ${kpi(T("k.overdue"),RM(od),od>0?"perlu kutipan":"bersih",I.shield,od>0?"#DC2626":"#0E9F6E")}
+      ${kpi("Consignment",open.length,"belum semak baki",I.box,"#8B5CF6")}
+    </div>
+    <div class="g g23">
+      <div class="card p">
+        <h3>Sejarah dokumen</h3>
+        <div class="tabs" style="margin:12px 0">${tabs.map(t=>
+          `<button data-a="hist" data-v="${t}" class="${ST.histTab===t?"on":""}">${t}</button>`).join("")}</div>
+        <div style="max-height:430px;overflow-y:auto">${h.length?h.slice(0,40).map(x=>`
+          <a href="#/m/doc/${x.t}/${x.id}" style="display:flex;gap:11px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)">
+            <span class="chip ${x.k}" style="width:66px;justify-content:center">${x.t}</span>
+            <span style="flex:1;min-width:0"><b class="mono" style="font-size:12.5px">${x.id}</b><br>
+              <span style="font-size:11.5px;color:var(--dim)">${fd(x.d)}</span></span>
+            <b class="num">${x.amt?RM2(x.amt):"—"}</b>
+          </a>`).join(""):`<div class="empty"><b>${T("l.none")}</b></div>`}</div>
+      </div>
+      <div class="g" style="gap:14px;align-content:start">
+        <div class="card p">
+          <h3>Dipegang oleh</h3>
+          <div style="display:flex;align-items:center;gap:11px;margin-top:11px">
+            <span class="av" style="width:36px;height:36px;font-size:13px">${ini(owner.name)}</span>
+            <span><b style="font-size:14px">${esc(owner.name)}</b>
+              <span style="display:block;font-size:12px;color:var(--mut)">${esc(owner.code||"—")}${owner.zone?" · "+esc(owner.zone):""}</span></span>
+          </div>
+          <a class="btn btn-s btn-w" style="margin-top:13px" href="#/m/team">${T("m.team")} ${ic(I.arrow)}</a>
+        </div>
+        <div class="card p">
+          <h3>Maklumat</h3>
+          <div style="margin-top:11px;font-size:13px;line-height:2">
+            ${[["PIC",c.pic],["Telefon",c.phone],["WhatsApp",c.wa],["SSM",c.ssm],
+               ["Alamat",(c.addr||"—")+(c.pos?", "+c.pos:"")],["GPS",(c.lat||"—")+", "+(c.lng||"—")],
+               ["Daftar",c.regAt?fd(c.regAt):"—"]].map(([l,v])=>
+              `<div style="display:flex;gap:12px"><span style="color:var(--dim);width:82px;flex:none">${l}</span>
+                <span style="flex:1;min-width:0;font-weight:600">${esc(v==null?"—":v)}</span></div>`).join("")}
+          </div>
+        </div>
+        ${pay?`<div class="aip">
+          <span class="ai-pill"><span class="dot"></span>${T("ai.k")}</span>
+          <h3>Kelakuan bayaran</h3>
+          <p>Purata <b style="color:#fff">${pay.avg} hari</b> dari invois ke resit${pay.term?`, term ${pay.term} hari`:""}.
+          ${pay.onTime?"Outlet ini membayar dalam term.":"Outlet ini biasanya lewat — pertimbang kutipan lebih awal."}</p>
+        </div>`:""}
+      </div>
+    </div>`);
 }
 
 /* ---------- MANAGEMENT: COLLECTIONS & DEBT ---------- */
@@ -1792,7 +1862,7 @@ function mStock(){
       <thead><tr><th>${T("l.outlet")}</th><th>${T("l.product")}</th><th class="r">Dihantar</th><th>${T("l.date")}</th>
         <th class="r">Hari</th><th>${T("l.salesman")}</th><th>${T("l.status")}</th></tr></thead>
       <tbody>${out.map(g=>{const c=cust(g.customerId);return `<tr>
-        <td><a class="lk" href="#/s/consign/${c.id}">${esc(c.name)}</a></td>
+        <td><a class="lk" href="#/m/customer/${c.id}">${esc(c.name)}</a></td>
         <td>${esc(prod(g.productId).name)}</td>
         <td class="r num"><b>${g.qty}</b></td>
         <td>${fds(g.date)}</td>
@@ -1930,7 +2000,7 @@ function mAI(){
               color:${i===0?"#fff":"var(--mut)"};display:grid;place-items:center;font-weight:800;font-size:12px;flex:none">${i+1}</span>
             <span style="flex:1;min-width:0"><b style="font-size:13.5px">${esc(x.c.name)}</b><br>
               ${x.why.map(w=>`<span class="chip ${w.k}" style="margin-top:4px">${w.t}</span>`).join(" ")}</span>
-            <a class="btn btn-s" href="#/s/customer/${x.c.id}">${T("l.view")}</a>
+            <a class="btn btn-s" href="#/m/customer/${x.c.id}">${T("l.view")}</a>
           </div>`).join("")}</div>
       </div>
       <div class="card p">
@@ -1941,7 +2011,7 @@ function mAI(){
             <span style="flex:1;min-width:0"><b style="font-size:13.5px">${esc(q.c.name)}</b><br>
               <span style="font-size:12px;color:var(--mut)">${q.since} ${T("ai.days")} · ${T("ai.usual")} ${q.avg}</span></span>
             <span class="chip ${q.risk>75?"k-red":"k-amb"}">${q.risk}%</span>
-            <a class="btn btn-s" href="#/s/customer/${q.c.id}">${T("l.view")}</a>
+            <a class="btn btn-s" href="#/m/customer/${q.c.id}">${T("l.view")}</a>
           </div>`).join(""):`<div class="empty"><b>Semua outlet mengikut irama biasa</b>
             <span>Tiada outlet yang tersasar daripada corak pesanan mereka.</span></div>`}</div>
       </div>
@@ -2931,11 +3001,12 @@ async function loadLive(){
     .select("id,role,name,code,zone,with_stock").eq("id",AUTH.session.user.id).maybeSingle();
   if(pe||!prof){ AUTH.err="No profile is linked to this account."; return false; }
 
-  const [{data:co},{data:prods},{data:custs},{data:van}]=await Promise.all([
+  const [{data:co},{data:prods},{data:custs},{data:van},{data:team}]=await Promise.all([
     sb.from("company").select("*").maybeSingle(),
     sb.from("products").select("*").eq("active",true).order("name"),
     sb.from("customers").select("*").eq("active",true).order("code"),
-    sb.from("van_stock").select("salesman_id,product_id,qty")
+    sb.from("van_stock").select("salesman_id,product_id,qty"),
+    sb.from("profiles").select("id,name,code,zone,with_stock,role").eq("role","salesman").order("code")
   ]);
 
   AUTH.profile=prof;
@@ -2946,6 +3017,13 @@ async function loadLive(){
 
   /* Replace the seeded arrays in place: every view and selector below reads
      these same structures, so nothing downstream needs to know the difference. */
+  /* The team roster has to come across too. Leaving the seeded u1..u5 in place
+     meant every sm() lookup missed once outlets carried real ids, and reading
+     .name off the miss took the management outlet table down. */
+  SALESMEN.length=0;
+  (team||[]).forEach(r=>SALESMEN.push({id:r.id,name:r.name,code:r.code||"",zone:r.zone||"",
+    withStock:r.with_stock!==false}));
+
   PRODUCTS.length=0;
   (prods||[]).forEach(r=>PRODUCTS.push({id:r.id,name:r.name,sku:r.sku,
     price:+r.price,floor:+r.floor_price,low:r.low_at}));
@@ -3052,6 +3130,7 @@ function render(){
     switch(p[1]){
       case "team":    h=mTeam(); break;
       case "cust":    h=mCust(); break;
+      case "customer":h=mCustomer(p[2]); break;
       case "collect": h=mCollect(); break;
       case "stock":   h=mStock(); break;
       case "docs":    h=mDocs(); break;
