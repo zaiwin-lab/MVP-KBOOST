@@ -77,7 +77,7 @@
   --cyan:#22D3EE; --cyan-lo:#E4FAFE;
   --grn:#0E9F6E; --grn-lo:#E3F7EF;
   --amb:#D97706; --amb-lo:#FDF1E1;
-  --red:#DC2626; --red-lo:#FDECEC;
+  --red:#DC2626; --red-lo:#FDECEC; --red-ln:#F7CFCF;
   --ink:#0B1224; --ink2:#141D36; --mut:#57678A; --dim:#93A0BC;
   --page:#F5F7FC; --card:#FFFFFF; --s2:#FAFBFE; --s3:#EFF3FA;
   --line:#E4EAF4; --line2:#CDD8EA;
@@ -159,9 +159,17 @@ img,svg{max-width:100%}
 .who span{font-size:10.5px;color:var(--mut);display:block;line-height:1.2}
 .top.dark .who{background:rgba(255,255,255,.12)}
 .top.dark .who span{color:rgba(255,255,255,.6)}
-.exit{padding:7px 13px;border-radius:var(--pill);background:var(--s3);font-size:12.5px;font-weight:700;color:var(--mut)}
+.exit{padding:7px 13px;border-radius:var(--pill);background:var(--s3);font-size:12.5px;font-weight:700;
+  color:var(--mut);border:1px solid transparent;cursor:pointer;font-family:inherit;
+  display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .exit:hover{background:var(--line);color:var(--ink)}
+.exit:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .top.dark .exit{background:rgba(255,255,255,.12);color:#fff}
+/* Signing out ends the session, so it carries its own weight rather than
+   sitting in the bar as one more grey pill. */
+.exit.out{background:var(--red-lo);color:var(--red);border-color:var(--red-ln)}
+.exit.out:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.exit.out svg{width:14px;height:14px;flex:none}
 
 /* ---------- 4-PANE LANGUAGE SWITCH ---------- */
 .lang{display:flex;background:var(--s3);border-radius:var(--pill);padding:3px;gap:2px;flex:none}
@@ -175,7 +183,9 @@ img,svg{max-width:100%}
 /* ---------- LAYOUT ---------- */
 .shell{display:flex;min-height:calc(100vh - 62px);align-items:flex-start}
 .rail{width:236px;flex:none;padding:18px 12px 40px;border-right:1px solid var(--line);background:#fff;
-  position:sticky;top:62px;height:calc(100vh - 62px);overflow-y:auto;scrollbar-width:thin}
+  position:sticky;top:62px;height:calc(100vh - 62px);overflow-y:auto;scrollbar-width:thin;
+  display:flex;flex-direction:column}
+.rail a,.rail .gp{flex:none}
 .rail::-webkit-scrollbar{width:4px}.rail::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px}
 .rail .gp{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);font-weight:800;margin:16px 12px 7px}
 .rail a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r-s);font-size:13.5px;font-weight:700;color:var(--mut);transition:.14s}
@@ -457,6 +467,22 @@ td b{font-weight:700}
   border:1px solid transparent;background:transparent;cursor:pointer;font:inherit;color:inherit;
   transition:background .16s,border-color .16s}
 .whobtn:hover,.whobtn.on{background:var(--blue-lo);border-color:var(--line2)}
+/* Signed in there is no menu behind the chip, so it must not invite a click. */
+.whobtn.flat{cursor:default}
+.whobtn.flat:hover{background:transparent;border-color:transparent}
+
+/* Who you are and the way out, at the foot of the rail. */
+.railout{margin-top:auto;padding:14px 12px calc(16px + env(safe-area-inset-bottom,0px));
+  border-top:1px solid var(--line);display:grid;gap:10px}
+.railout .rw{display:flex;align-items:center;gap:9px;min-width:0}
+.railout .av{width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;
+  display:grid;place-items:center;font-weight:800;font-size:11.5px;flex:none}
+.railout .rw b{display:block;font-size:12.5px;line-height:1.25;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.railout .rw span span{display:block;font-size:10.5px;color:var(--mut);line-height:1.25;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.railout .rw > span{min-width:0}
+.railout .exit{justify-content:center;width:100%}
 .top.dark .whobtn:hover,.top.dark .whobtn.on{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2)}
 .whobtn .cv{font-size:10px;opacity:.5;flex:none}
 .whobtn:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
@@ -586,10 +612,14 @@ td b{font-weight:700}
   .who{display:none}
   .lang button{padding:5px 8px;font-size:11px}
 }
-@media(max-width:520px){
+@media(max-width:560px){
   .brand>span:not(.mk){display:none}
   .exit{padding:6px 11px;font-size:12px}
   .sig .brand>span:not(.mk){display:block}
+  /* The bar cannot hold the language switch, the identity chip and a named way
+     out at this width, and the way out is the one that must never be clipped.
+     The rail foot carries the identity instead. */
+  .top .whosw{display:none}
 }
 .burger{display:none;width:34px;height:34px;border-radius:9px;background:var(--s3);place-items:center;flex:none}
 .burger svg{width:18px;height:18px}
@@ -1305,7 +1335,18 @@ function topbar(kind){
       <a href="playbook.html">${T("nav.play")}</a>
     </nav>` : "";
   const mgmt = kind==="mgmt";
-  const who = kind==="pub" ? "" : `
+  /* Signed in, the chip is identity and nothing else — the dropdown it used to
+     open held one item, Sign out, which is now a button of its own in the bar.
+     On the demo path the dropdown is a real control: it switches which salesman
+     you are looking at, which is the whole point of that path. */
+  const who = kind==="pub" ? "" : LIVE() ? `
+    <div class="whosw">
+      <div class="whobtn flat">
+        <span class="av"${mgmt?' style="background:var(--vio)"':""}>${ini(mgmt?BOSS.name:ME.name)}</span>
+        <span class="who"><b>${esc(mgmt?BOSS.name:ME.name)}</b>
+          <span>${mgmt?esc(BOSS.role):ME.code+" · "+T("tick.sm")}</span></span>
+      </div>
+    </div>` : `
     <div class="whosw">
       <button class="whobtn${ST.userMenu?" on":""}" data-a="usermenu" aria-haspopup="true" aria-expanded="${!!ST.userMenu}">
         <span class="av"${mgmt?' style="background:var(--vio)"':""}>${ini(mgmt?BOSS.name:ME.name)}</span>
@@ -1314,13 +1355,6 @@ function topbar(kind){
         <span class="cv" aria-hidden="true">▾</span>
       </button>
       ${ST.userMenu?`<div class="umenu">
-        ${LIVE()?`
-          <div class="uh">${T("lg.livehead")}</div>
-          <button data-a="signout">
-            <span class="av" style="background:var(--red)">${ic(I.arrow)}</span>
-            <span><b>${T("lg.out")}</b><span>${esc(AUTH.session?.user?.email||"")}</span></span>
-          </button>`
-        :`
         <div class="uh">${T("sw.head")}</div>
         <button data-a="user" data-v="mgmt" class="${mgmt?"on":""}">
           <span class="av" style="background:var(--vio)">${ini(BOSS.name)}</span>
@@ -1335,7 +1369,7 @@ function topbar(kind){
             <span class="av">${ini(u.name)}</span>
             <span><b>${esc(u.name)}</b><span>${u.code} · ${u.zone} · ${n} ${T("l.outlet").toLowerCase()}</span></span>
             ${on?`<span class="tk">✓</span>`:""}</button>`}).join("")}
-        <div class="unote">${T("sw.note")}</div>`}
+        <div class="unote">${T("sw.note")}</div>
       </div>`:""}
     </div>`;
   return `<header class="top${dark?" dark":""}">
@@ -1346,7 +1380,13 @@ function topbar(kind){
     <div class="tright">
       ${langSwitch()}
       ${who}
-      ${kind!=="pub"?`<a class="exit" href="#/">${T("nav.exit")}</a>`:""}
+      ${kind==="pub" ? "" : LIVE()
+        /* This used to be a link to the public page labelled "Keluar". It looked
+           exactly like a sign-out, so people pressed it, landed on the public
+           page still signed in, and could not find a way out of the account. It
+           is the real sign-out now. */
+        ? `<button class="exit out" data-a="signout">${ic(I.arrow)}<span>${T("lg.out")}</span></button>`
+        : `<button class="exit" data-a="leavedemo">${T("nav.exit")}</button>`}
     </div>
   </header>`;
 }
@@ -1561,9 +1601,19 @@ function panelShell(kind,items,active,inner){
   const rail=items.map(it=>it.gp
     ? `<div class="gp">${it.gp}</div>`
     : `<a href="${it.h}" class="${active===it.k?"on":""}">${ic(it.i)}${it.t}${it.b?`<span class="bg">${it.b}</span>`:""}</a>`).join("");
+  /* The top bar runs out of room on a phone, so the rail carries its own way
+     out — named, at the foot of the navigation, where a phone user looks for
+     it. It also says who is signed in, which the bar drops at that width. */
+  const foot = LIVE() ? `
+    <div class="railout">
+      <div class="rw"><span class="av">${ini(kind==="mgmt"?BOSS.name:ME.name)}</span>
+        <span><b>${esc(kind==="mgmt"?BOSS.name:ME.name)}</b>
+          <span>${esc(AUTH.session?.user?.email||"")}</span></span></div>
+      <button class="exit out" data-a="signout">${ic(I.arrow)}<span>${T("lg.out")}</span></button>
+    </div>` : "";
   return `${topbar(kind)}
     <div class="shell">
-      <aside class="rail">${rail}</aside>
+      <aside class="rail">${rail}${foot}</aside>
       <div class="main">${inner}</div>
     </div>${footer()}`;
 }
