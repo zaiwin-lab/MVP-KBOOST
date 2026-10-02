@@ -696,9 +696,15 @@ const money=n=>Math.round((n+Number.EPSILON)*100)/100;
 const ago=n=>new Date(TODAY.getTime()-n*DAY);
 const fd=d=>d.toLocaleDateString("en-MY",{day:"2-digit",month:"short",year:"numeric"});
 const fds=d=>d.toLocaleDateString("en-MY",{day:"2-digit",month:"short"});
-const dbet=(a,b)=>Math.round((b-a)/DAY);
-const sameDay=(a,b)=>a&&new Date(a).toDateString()===new Date(b).toDateString();
 const d0=x=>{const y=new Date(x);y.setHours(0,0,0,0);return y};
+/* Whole calendar days between two dates, counted from midnight to midnight.
+   The seeded dates were all generated at midnight, so a plain subtraction
+   worked; documents from the database carry a real time of day, and a delivery
+   made at two in the afternoon then read as "-1 hari" old. Every caller wants
+   days on the calendar — stock age, overdue days, ageing buckets, payment lag
+   — so both ends are normalised here rather than at eleven call sites. */
+const dbet=(a,b)=>Math.round((d0(b)-d0(a))/DAY);
+const sameDay=(a,b)=>a&&new Date(a).toDateString()===new Date(b).toDateString();
 
 /* ==========================================================================
    4-PANE LANGUAGE
