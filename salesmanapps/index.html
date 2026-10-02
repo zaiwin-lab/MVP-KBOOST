@@ -1105,7 +1105,7 @@ const DICT={
  "lg.rate":       ["Terlalu banyak cubaan. Tunggu seminit sebelum cuba lagi.","Too many attempts. Wait a minute before trying again.","尝试次数过多，请稍候再试。","Mayuh amat cubaan. Entap seminit lalu uji baru."],
  "lg.out":        ["Log keluar","Sign out","退出登录","Pansut"],
  "lg.demoh":      ["Hanya nak lihat?","Just looking around?","只是想看看？","Semina deka meda?"],
- "lg.demod":      ["Panel Awam menunjukkan keseluruhan sistem tanpa akaun.","The Public panel shows the whole system without an account.","公开面板无需账户即可浏览整个系统。","Panel Awam mandangka sistem nya magang, nadai akaun."],
+ "lg.demod":      ["Lihat keseluruhan sistem dengan data contoh, tanpa akaun. Setiap skrin ditanda.","Browse the whole system on sample data, no account needed. Every screen is marked.","无需账户，即可浏览使用示例数据的完整系统。每个页面均有标示。","Peda sistem nya magang ngena data chunto, nadai akaun. Tiap skrin ditanda."],
  "lg.demob":      ["Buka Panel Awam","Open the Public panel","打开公开面板","Buka Panel Awam"],
  "lg.livehead":   ["Data langsung","Live data","实时数据","Data idup"],
  "lg.nohist":     ["Outlet, produk dan stok van adalah data sebenar. Sejarah transaksi belum dipindahkan — jualan, invois dan kutipan akan kosong sehingga langkah seterusnya siap.","Outlets, products and van stock are live. Transaction history has not been migrated yet — sales, invoices and collections stay empty until the next step is done.","门店、产品与车载库存为实时数据。交易历史尚未迁移，销售、发票与收款暂为空。","Kedai, produk enggau stock van endang data bendar. Sejarah transaksi apin dipindah — jualan, invois enggau kutipan agi kosong."],
@@ -3326,7 +3326,14 @@ const A={
     try{ if(sb) await sb.auth.signOut(); }catch(_){}
     location.hash="#/"; location.reload();
   },
-  demo(el){ setDemo(true); const t=el.dataset.t; location.hash = t&&t!=="#/" ? t : "#/s/home"; render(); },
+  /* A button that says it opens the Public panel opens the Public panel. It
+     used to carry the visitor on to whichever private panel they had been
+     trying to reach, and with no such target it landed them on the Salesman
+     panel with a seeded salesman's name in the top bar — which reads as being
+     signed in as that person. Sample mode stays on, so from the public page
+     they can still walk into Management or Salesman and see the whole system;
+     every one of those screens carries the Sample data badge. */
+  demo(){ setDemo(true); location.hash="#/"; render(); },
   leavedemo(){ setDemo(false); ST.userMenu=false; location.hash="#/"; render(); },
   usermenu(){ST.userMenu=!ST.userMenu;render()},
   user(e){
@@ -4042,7 +4049,7 @@ function vLogin(target,offline){
     <div class="lg-demo">
       <b>${T("lg.demoh")}</b>
       <span>${T("lg.demod")}</span>
-      <button class="btn btn-s" data-a="demo" data-t="${esc(target||"")}">${T("lg.demob")}</button>
+      <button class="btn btn-s" data-a="demo">${T("lg.demob")}</button>
     </div>
   </div></div>`;
 }
