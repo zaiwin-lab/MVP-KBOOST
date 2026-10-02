@@ -627,7 +627,19 @@ td b{font-weight:700}
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
   html{scroll-behavior:auto}
 }
-@media print{.top,.rail,.bub,.sig,.dact,.wsel{display:none!important}.main{padding:0}}
+/* Printing a document means printing the receipt and nothing else: the chrome,
+   the navigation, the bubbles, the width picker and the action buttons all go.
+   The page is cut to the selected roll width so a thermal printer feeds it at
+   its real size rather than scaling it onto A4; @page size is set from script
+   when the width is switched. */
+@media print{
+  .top,.rail,.bub,.sig,.dact,.wsel,.chat,.livebar,.railout,.pgh a{display:none!important}
+  .main,.shell{padding:0!important;margin:0!important;display:block!important}
+  body{background:#fff!important}
+  .thm{box-shadow:none!important;border:0!important;margin:0!important;
+       width:auto!important;max-width:none!important;padding:0!important}
+  .thm,.thm *{color:#000!important}
+}
 </style>
 
 <div id="app"></div>
@@ -2527,26 +2539,159 @@ function sDocs(cid){
 }
 
 /* ---------- SHARED: THERMAL DOCUMENT ---------- */
+/* wa.me needs a number in international form with no punctuation. Malaysian
+   numbers are written every possible way on a customer card — 012-345 6789,
+   +6012 3456789, 60123456789 — so they are all reduced to the same thing.
+   A placeholder like "—" has no digits and yields nothing, which is what tells
+   the caller there is no number to send to. */
+function waNumber(raw){
+  const n=String(raw||"").replace(/\D/g,"");
+  if(n.length<8) return "";
+  if(n.startsWith("60")) return n;
+  if(n.startsWith("0"))  return "60"+n.slice(1);
+  return "60"+n;
+}
+
+/* The document as a WhatsApp message. Plain text, because that is what arrives
+   readable on a shop owner's phone without them having to open anything. */
+function docText(m){
+  const L=[];
+  L.push("*"+CO.name+"*");
+  L.push(m.type.toUpperCase()+"  "+m.id);
+  L.push("");
+  m.rows.filter(([l])=>l!=="No").forEach(([l,v])=>L.push(l+": "+v));
+  if(m.lines.length){
+    L.push("");
+    m.lines.forEach(l=>{ const p=prod(l.productId);
+      L.push("• "+(p?p.name:"—")+"  "+l.qty+(l.price?" x "+RM2(l.price)+"  = "+RM2(l.qty*l.price):" unit")); });
+  }
+  if(m.amt){ L.push(""); L.push("*"+m.totalLabel+": "+RM2(m.amt)+"*"); }
+  m.extra.forEach(([l,v])=>L.push(l+": "+v));
+  if(m.stamp) L.push("["+m.stamp+"]");
+  L.push("");
+  L.push("Terima kasih atas sokongan anda.");
+  return L.join("\n");
+}
+
+/* A real PDF file, drawn at the selected roll width so it prints at its true
+   size. The text is drawn rather than screenshotted: the file stays a few KB,
+   the figures stay selectable, and no second library is needed. */
+let PDFLIB=null;
+function loadPDF(){
+  if(PDFLIB) return Promise.resolve(PDFLIB);
+  if(self.jspdf&&self.jspdf.jsPDF) return Promise.resolve(PDFLIB=self.jspdf.jsPDF);
+  return new Promise((res,rej)=>{
+    const s=document.createElement("script");
+    s.src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+    s.onload=()=>{ if(self.jspdf&&self.jspdf.jsPDF) res(PDFLIB=self.jspdf.jsPDF);
+                   else rej(new Error("Pustaka PDF tidak dapat dimuatkan.")); };
+    s.onerror=()=>rej(new Error("Tiada sambungan untuk memuatkan pustaka PDF."));
+    document.head.appendChild(s);
+  });
+}
+async function docPDF(m){
+  const jsPDF=await loadPDF();
+  const W = ST.width==="58" ? 58 : 80;      /* roll width in mm */
+  const PAD=4, CW=W-PAD*2, LH=4;
+
+  /* A receipt's height depends on its own content — how many lines, how far a
+     long outlet name wraps. A page cannot be resized once drawn, so the whole
+     receipt is laid out twice: once on a scratch page to find where it ends,
+     then on a page cut to exactly that length. On a thermal roll the
+     difference is paper. */
+  function layout(doc){
+    let y=8;
+    const line=(t,o)=>{ o=o||{};
+      doc.setFontSize(o.size||7.5);
+      doc.setFont("courier",o.bold?"bold":"normal");
+      doc.splitTextToSize(String(t),CW).forEach(p=>{
+        doc.text(p, o.center?W/2:PAD, y, o.center?{align:"center"}:undefined); y+=LH; });
+    };
+    const pair=(l,v)=>{ doc.setFontSize(7.5);
+      doc.setFont("courier","normal"); doc.text(String(l),PAD,y);
+      doc.setFont("courier","bold");   doc.text(String(v),W-PAD,y,{align:"right"});
+      y+=LH; };
+    const rule=()=>{ doc.setLineDashPattern([0.6,0.6],0); doc.setLineWidth(0.15);
+      doc.line(PAD,y-2.4,W-PAD,y-2.4); doc.setLineDashPattern([],0); y+=1.4; };
+
+    line(CO.name,{bold:true,size:9,center:true});
+    line(CO.addr,{size:6,center:true});
+    line(CO.phone+"  SSM "+CO.ssm,{size:6,center:true});
+    y+=1.6; rule();
+    line(m.type.toUpperCase(),{bold:true,center:true});
+    y+=1.6; rule();
+    m.rows.forEach(([l,v])=>pair(l,v));
+    if(m.lines.length){
+      y+=1.6; rule();
+      m.lines.forEach(l=>{ const p=prod(l.productId);
+        line(p?p.name:"—");
+        pair(l.qty+(l.price?" x "+RM2(l.price):" unit"), l.price?RM2(l.qty*l.price):""); });
+    }
+    if(m.amt){ y+=1.6; rule();
+      doc.setFontSize(9); doc.setFont("courier","bold");
+      doc.text(m.totalLabel,PAD,y); doc.text(RM2(m.amt),W-PAD,y,{align:"right"}); y+=LH+1; }
+    m.extra.forEach(([l,v])=>pair(l,v));
+    if(m.stamp){ y+=1.4; line(m.stamp,{bold:true,center:true,size:9}); }
+    y+=2.4; rule();
+    line("Terima kasih atas sokongan anda.",{size:6,center:true});
+    line("Dokumen dijana oleh "+CO.name,{size:6,center:true});
+    line(fd(TODAY)+"  e-Invoice ready (LHDN)",{size:6,center:true});
+    return y;
+  }
+
+  const H=Math.max(50,layout(new jsPDF({unit:"mm",format:[W,600]}))+6);
+  const doc=new jsPDF({unit:"mm",format:[W,H],compress:true});
+  layout(doc);
+  doc.setProperties({title:m.type+" "+m.id, author:CO.name, subject:m.c?m.c.name:""});
+  doc.save(m.type+"-"+m.id+".pdf");
+}
+
+const DOCSET={DO:"dos",SO:"sos",Invoice:"invoices",Receipt:"receipts",Return:"returns"};
+function docFind(type,id){ const k=DOCSET[type]; return k?DB[k].find(x=>x.id===id):null; }
+
+/* One description of a document, read by the receipt on screen, the PDF and the
+   WhatsApp message. Three renderings of the same paperwork must not be allowed
+   to disagree about what is on it, so none of them builds its own. */
+function docModel(type,d){
+  const c=cust(d.customerId);
+  /* An invoice holds a total, not a line list — the goods are described once,
+     on the SO it was raised from. The customer being charged has to see what
+     for, so the lines are read back through that link rather than left off the
+     one document they actually receive. A receipt reaches them the same way. */
+  let own=d.lines;
+  if(!own&&type==="Invoice"&&d.soId){ const so=DB.sos.find(x=>x.id===d.soId); own=so&&so.lines; }
+  if(!own&&type==="Receipt"&&d.invoiceId){
+    const inv=DB.invoices.find(x=>x.id===d.invoiceId);
+    const so=inv&&inv.soId&&DB.sos.find(x=>x.id===inv.soId);
+    own=so&&so.lines;
+  }
+  const lines=own||(d.productId?[{productId:d.productId,qty:d.qty,price:0}]:[]);
+  const rows=[["No",d.id],[T("l.date"),fd(d.date)],[T("l.customer"),c?c.name:"—"],["Kod",c?c.code:"—"]];
+  /* Show where each document came from. Under this model a document's parents
+     differ by payment term, so the trail is worth printing on the paperwork. */
+  if(type==="DO")      rows.push([T("l.term"),"Consignment"]);
+  if(type==="SO"){     if(d.doId) rows.push(["Dari DO",d.doId]);
+                       rows.push(["Invoice",d.invoiceId||"Menunggu invoice"]); }
+  if(type==="Invoice"){rows.push([T("l.due"),fd(d.due)],[T("l.term"),TERM[d.kind]?TERM[d.kind].t:"—"]);
+                       if(d.doId) rows.push(["Dari DO",d.doId]);
+                       rows.push(["Dari SO",d.soId]); }
+  if(type==="Receipt") rows.push(["Kaedah",d.method],["Invoice",d.invoiceId]);
+  if(type==="Return")  rows.push(["Sebab",d.reason]);
+  if(d.salesmanId)     rows.push([T("l.salesman"),sm(d.salesmanId).name]);
+  const amt=d.total!=null?d.total:d.amount||0;
+  const extra=[];
+  if(type==="Invoice"&&d.paid>0){ extra.push(["Dibayar",RM2(d.paid)],["Baki",RM2(d.total-d.paid)]); }
+  const stamp = type==="Receipt" ? "SAH / PAID"
+              : (type==="Invoice"&&d.status==="paid") ? "SETTLED" : "";
+  return {type,id:d.id,d,c,rows,lines,amt,extra,stamp,
+    totalLabel: type==="Receipt"?"DITERIMA":"JUMLAH"};
+}
+
 function vDoc(pfx,type,id){
-  const find={DO:DB.dos,SO:DB.sos,Invoice:DB.invoices,Receipt:DB.receipts,Return:DB.returns}[type];
-  const d=find&&find.find(x=>x.id===id);
+  const d=docFind(type,id);
   const inner=(()=>{
     if(!d) return `<div class="empty"><b>${T("l.none")}</b><span>${esc(type||"")} ${esc(id||"")}</span></div>`;
-    const c=cust(d.customerId), w=ST.width;
-    const lines=d.lines||(d.productId?[{productId:d.productId,qty:d.qty,price:0}]:[]);
-    const rows=[["No",d.id],[T("l.date"),fd(d.date)],[T("l.customer"),c.name],["Kod",c.code]];
-    /* Show where each document came from. Under this model a document's parents
-       differ by payment term, so the trail is worth printing on the paperwork. */
-    if(type==="DO")      rows.push([T("l.term"),"Consignment"]);
-    if(type==="SO"){     if(d.doId) rows.push(["Dari DO",d.doId]);
-                         rows.push(["Invoice",d.invoiceId||"Menunggu invoice"]); }
-    if(type==="Invoice"){rows.push([T("l.due"),fd(d.due)],[T("l.term"),TERM[d.kind]?TERM[d.kind].t:"—"]);
-                         if(d.doId) rows.push(["Dari DO",d.doId]);
-                         rows.push(["Dari SO",d.soId]); }
-    if(type==="Receipt") rows.push(["Kaedah",d.method],["Invoice",d.invoiceId]);
-    if(type==="Return") rows.push(["Sebab",d.reason]);
-    if(d.salesmanId) rows.push([T("l.salesman"),sm(d.salesmanId).name]);
-    const amt=d.total!=null?d.total:d.amount||0;
+    const m=docModel(type,d), c=m.c, w=ST.width, rows=m.rows, lines=m.lines, amt=m.amt;
     return `
     <div class="wsel">${[["58","58mm"],["80","80mm"]].map(([v,l])=>
       `<button data-a="w" data-v="${v}" class="${w===v?"on":""}">${l}</button>`).join("")}</div>
@@ -2558,18 +2703,16 @@ function vDoc(pfx,type,id){
       ${lines.length?`<div class="sc">${lines.map(l=>{const p=prod(l.productId);return `
         <div style="padding:3px 0"><div>${esc(p.name)}</div>
         <div class="r"><span>${l.qty} ${l.price?"× "+RM2(l.price):"unit"}</span><b>${l.price?RM2(l.qty*l.price):""}</b></div></div>`}).join("")}</div>`:""}
-      ${amt?`<div class="gt"><span>${type==="Receipt"?"DITERIMA":"JUMLAH"}</span><span>${RM2(amt)}</span></div>`:""}
-      ${type==="Invoice"&&d.paid>0?`<div class="r" style="margin-top:6px"><span>Dibayar</span><b>${RM2(d.paid)}</b></div>
-        <div class="r"><span>Baki</span><b>${RM2(d.total-d.paid)}</b></div>`:""}
-      ${type==="Receipt"?`<div class="st">SAH / PAID</div>`:""}
-      ${type==="Invoice"&&d.status==="paid"?`<div class="st">SETTLED</div>`:""}
+      ${amt?`<div class="gt"><span>${m.totalLabel}</span><span>${RM2(amt)}</span></div>`:""}
+      ${m.extra.map(([l,v])=>`<div class="r" style="margin-top:6px"><span>${esc(l)}</span><b>${esc(v)}</b></div>`).join("")}
+      ${m.stamp?`<div class="st">${esc(m.stamp)}</div>`:""}
       <div class="ft">Terima kasih atas sokongan anda.<br>Dokumen dijana oleh ${esc(CO.name)}<br>
         ${fd(TODAY)} · e-Invoice ready (LHDN)</div>
     </div>
     <div class="dact" style="max-width:302px;margin:15px auto 0">
-      <button data-a="pdf">${ic(I.pdf)} PDF</button>
-      <button data-a="wa-doc" data-c="${c.id}" data-id="${d.id}">${ic(I.wa)} WhatsApp</button>
-      <button data-a="print">${ic(I.prn)} Print</button>
+      <button data-a="pdf" data-t="${esc(type)}" data-id="${esc(d.id)}">${ic(I.pdf)} PDF</button>
+      <button data-a="wa-doc" data-t="${esc(type)}" data-id="${esc(d.id)}">${ic(I.wa)} WhatsApp</button>
+      <button data-a="print" data-t="${esc(type)}" data-id="${esc(d.id)}">${ic(I.prn)} Print</button>
     </div>
     ${type==="Invoice"&&d.status!=="paid"?`
       <div style="max-width:302px;margin:12px auto 0">
@@ -2884,7 +3027,7 @@ const A={
   rank(e){ST.rankRange=e.dataset.v;render()},
   doctab(e){ST.docTab=e.dataset.v;render()},
   hist(e){ST.histTab=e.dataset.v;render()},
-  w(e){ST.width=e.dataset.v;render()},
+  w(e){ST.width=e.dataset.v;setPaper();render()},
   q(e){ST.q=e.value;render();const i=$('[data-a="q"]');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},
   mq(e){ST.mq=e.value;render();const i=$('[data-a="mq"]');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},
   chat(e){
@@ -3118,19 +3261,42 @@ const A={
   "submit-so"(){modal(`<h3>Stock Order dihantar</h3><div class="okbox" style="margin:13px 0"><span>🚚</span>
     <span>Request dihantar ke Main Warehouse. Status boleh disemak di ${T("s.stock")}.</span></div>
     <button class="btn btn-p btn-w" data-a="close">OK</button>`)},
+  /* Opens WhatsApp with the document written out. A web page cannot attach a
+     file to a WhatsApp message — only the operating system can — so the
+     document travels as readable text, which is what a shop owner reads off
+     their phone anyway. The PDF button is there for when a file is wanted. */
   "wa-doc"(e){
-    const c=cust(e.dataset.c);
-    modal(`<h3>Hantar ke WhatsApp</h3><p style="color:var(--mut);font-size:13px;margin-bottom:13px">Kepada ${esc(c.pic)} · ${esc(c.wa)}</p>
-      <div style="background:#ECE5DD;border-radius:12px;padding:15px">
-        <div style="background:#D9FDD3;border-radius:9px 9px 2px 9px;padding:12px 14px;font-size:13.5px;line-height:1.6;margin-left:auto;max-width:88%">
-          Terima kasih ${esc(c.pic.split(" ")[0])}! Dokumen <b>${esc(e.dataset.id)}</b> untuk ${esc(c.name)}.
-          <span style="display:block;color:#027EB5;font-size:12px;margin-top:5px">majujaya.my/d/${esc(e.dataset.id.toLowerCase())}.pdf</span>
-          <span style="display:block;font-size:10px;color:rgba(17,27,33,.5);text-align:right;margin-top:4px">09:41 ✓✓</span></div></div>
-      <button class="btn btn-p btn-w" style="margin-top:14px" data-a="close">Tutup</button>`);
+    const d=docFind(e.dataset.t,e.dataset.id);
+    if(!d) return;
+    const m=docModel(e.dataset.t,d);
+    const num=waNumber(m.c&&m.c.wa);
+    if(!num){
+      modal(`<h3>Tiada nombor WhatsApp</h3>
+        <p style="color:var(--mut);font-size:13.5px;margin:11px 0">
+          ${esc(m.c?m.c.name:"Outlet ini")} tiada nombor WhatsApp direkod. Kemaskini profil outlet dahulu.</p>
+        <button class="btn btn-p btn-w" data-a="close">OK</button>`);
+      return;
+    }
+    open("https://wa.me/"+num+"?text="+encodeURIComponent(docText(m)),"_blank","noopener");
   },
-  pdf(){modal(`<h3>PDF dijana</h3><div class="okbox" style="margin:13px 0"><span>📄</span><span>Dokumen disimpan sebagai PDF, sedia untuk dihantar ke customer.</span></div><button class="btn btn-p btn-w" data-a="close">OK</button>`)},
-  print(){modal(`<h3>Direct Print</h3><p style="color:var(--mut);font-size:13.5px;margin:11px 0">Menghantar ke thermal printer <b>${ST.width}mm</b> melalui Bluetooth.</p>
-    <div class="okbox" style="margin-bottom:13px"><span>🖨️</span><span>Print job dihantar.</span></div><button class="btn btn-p btn-w" data-a="close">OK</button>`)},
+  async pdf(e){
+    const d=docFind(e.dataset.t,e.dataset.id);
+    if(!d) return;
+    const b=busy(e);
+    try{ await docPDF(docModel(e.dataset.t,d)); }
+    catch(err){
+      modal(`<h3>PDF tidak dapat dijana</h3>
+        <p style="color:var(--mut);font-size:13.5px;margin:11px 0">${esc(err.message||String(err))}</p>
+        <p style="color:var(--mut);font-size:13px">Guna butang Print dan pilih “Save as PDF”.</p>
+        <button class="btn btn-p btn-w" data-a="close">OK</button>`);
+    }
+    finally{ unbusy(b); }
+  },
+  /* The browser's own print path, which is what actually reaches a printer —
+     including a Bluetooth thermal printer paired with the phone. The page is
+     set to the selected roll width so the receipt comes out at its real size
+     instead of being scaled onto A4. */
+  print(){ window.print(); },
   "share-ref"(){modal(`<h3>Share Referral</h3><div style="background:#ECE5DD;border-radius:12px;padding:15px;margin:13px 0">
     <div style="background:#D9FDD3;border-radius:9px 9px 2px 9px;padding:12px 14px;font-size:13.5px;max-width:90%">
       Jom daftar outlet anda dengan ${esc(CO.name)}! Guna kod saya:
@@ -3180,6 +3346,17 @@ function scrollChat(){requestAnimationFrame(()=>{const b=$("#cbd");if(b)b.scroll
    RENDER
    ========================================================================== */
 function paintChrome(){ $("#chrome").innerHTML=chrome()+chatDrawer(); }
+
+/* @page cannot be written from a stylesheet variable, so the rule carrying the
+   roll width is swapped out whenever the width changes. Without it the browser
+   prints the receipt onto A4 and a 58mm layout arrives a third of the page
+   wide with two thirds of it blank. */
+let PAPER=null;
+function setPaper(){
+  if(!PAPER){ PAPER=document.createElement("style"); document.head.appendChild(PAPER); }
+  const w = ST.width==="58" ? "58mm" : "80mm";
+  PAPER.textContent="@media print{@page{size:"+w+" auto;margin:3mm 2mm}}";
+}
 /* ==========================================================================
    AUTHENTICATION
    ========================================================================== */
@@ -3526,6 +3703,7 @@ function render(){
   });
 }
 document.body.dataset.lang=LANG;
+setPaper();
 render();
 authBoot();
 </script>

@@ -134,9 +134,8 @@ which is what keeps those two sequences apart.
 **Simulated — clearly fake, by design**
 - The dataset: 1 company, 5 salesmen, 12 outlets, 8 products, ~120 days of
   trading history, generated from a fixed seed so every run is identical.
-- **PDF, WhatsApp and Direct Print open realistic previews. They do not
-  generate a real PDF, send a real message, or drive a real printer.** The
-  thermal 58mm/80mm layout is real and correct; the transport is not wired.
+- **Request Stock** (restocking the van from the warehouse) confirms and
+  records nothing.
 - The AI Help bubble matches on keywords against live selectors. It is not a
   language model and will fall back to a menu of topics on an unrecognised
   question.
@@ -169,6 +168,32 @@ boundary.
 - **The management panel is read-only.** An outlet opened from there shows who
   holds the account, with no Take Order or Payment commands for someone else's
   customer.
+
+## Documents leave the building
+
+The three actions on a document are real.
+
+- **PDF** generates an actual file, drawn as text at the selected roll width —
+  80mm or 58mm, cut to the length of the receipt rather than padded to A4. The
+  figures stay selectable and the file is about 4KB. The library loads from a
+  CDN on first use; with no connection the button says so and points at Print.
+- **WhatsApp** opens a chat with the outlet's own number, normalised to
+  international form from however it was written on the customer card, with the
+  document written out as readable text. A web page cannot attach a file to a
+  WhatsApp message — only the operating system can — so the document travels as
+  text, which is what a shop owner reads off their phone anyway. An outlet with
+  no number recorded is told so instead of opening a broken link.
+- **Print** is the browser's own print path, which is what actually reaches a
+  printer, including a Bluetooth thermal printer paired with the phone. `@page`
+  is rewritten to the selected roll width whenever it changes, so the receipt
+  feeds at its true size instead of being scaled onto A4, and everything but the
+  receipt is hidden.
+
+`docModel()` describes a document once and the on-screen receipt, the PDF and
+the WhatsApp message all render from it, so the three cannot disagree about what
+is on the paperwork. An invoice carries a total rather than a line list — the
+goods are described on the SO it was raised from — so the lines are read back
+through that link, because a customer being charged has to see what for.
 
 **Still simulated, by design:** the Public panel and the **Sample data** badge.
 Choosing "Open the Public panel" from the login screen runs the whole system on
