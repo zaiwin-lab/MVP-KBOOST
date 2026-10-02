@@ -20,13 +20,14 @@ Salesman" demo at the repository root, which is left untouched.
 | `index.html` | The portal — three access panels, all 16 modules, clickable |
 | `playbook.html` | Operations Playbook — impact, the three models, and how each role uses it |
 
-Open `index.html` in any browser. No install, no build, no server, no login.
+No install and no build step. The Public panel opens without an account; the
+Management and Salesman panels need one.
 
 ## Three access panels
 
 | Panel | Route | For |
 |---|---|---|
-| **Public / Universal** | `#/` | Customers, partners, recruits — what the system does, no login |
+| **Public / Universal** | `#/` | Customers, partners, recruits — what the system does, no account |
 | **Management** | `#/m/dash` | Owners and supervisors — team, collections, ageing, stock, reports, AI |
 | **Salesman** | `#/s/home` | The field — schedule, orders, consignment, collections, documents, ranking |
 
@@ -133,7 +134,6 @@ which is what keeps those two sequences apart.
 **Simulated — clearly fake, by design**
 - The dataset: 1 company, 5 salesmen, 12 outlets, 8 products, ~120 days of
   trading history, generated from a fixed seed so every run is identical.
-- "Today" is pinned to 24 August 2026 so figures never drift.
 - **PDF, WhatsApp and Direct Print open realistic previews. They do not
   generate a real PDF, send a real message, or drive a real printer.** The
   thermal 58mm/80mm layout is real and correct; the transport is not wired.
@@ -144,25 +144,73 @@ which is what keeps those two sequences apart.
   within about 600m of the right town centre — but they are derived, not device
   readings. The registration screen's "Tangkap GPS" resolves from the district
   typed into Kawasan; on a phone this would read the handset.
-- No login. The panel you pick is the panel you get — there is no auth boundary.
-- No database — reload resets everything.
+
+The two items that used to head this list — no login, no database — are done.
+See **Signed in against the database** below.
+
+## Signed in against the database
+
+Opening a management or salesman route asks for an account. Everything behind it
+reads and writes Supabase; see `db/README.md` for the schema and the security
+boundary.
+
+- **Master data is live.** Company, products, outlets, the salesman roster and
+  van stock all come from the database on sign-in.
+- **Transactions are written to the database**, each through one function that is
+  a single transaction. Submitting an order, dropping consignment stock, billing
+  a balance, recording a payment, saving a return and registering an outlet are
+  the six events; each either completes or leaves nothing behind. Reload and the
+  paperwork is still there.
+- **Running numbers come off a shared counter**, so two salesmen submitting at
+  the same instant cannot both be issued `INV000042`.
+- **A salesman sees only his own outlets and paperwork.** Row level security is
+  the boundary, not the screen — the database returns nothing else, however it
+  is asked. Management reads everything and posts nothing.
+- **The management panel is read-only.** An outlet opened from there shows who
+  holds the account, with no Take Order or Payment commands for someone else's
+  customer.
+
+**Still simulated, by design:** the Public panel and the **Sample data** badge.
+Choosing "Open the Public panel" from the login screen runs the whole system on
+generated figures with no account — the seeded 5 salesmen, 12 outlets, 8 products
+and ~120 days of trading. That path never touches the database, and every screen
+on it carries the badge. It is for showing the system, not for recording work.
 
 ## Verified
 
-Checked in a real browser (Chromium) before each deploy:
+Checked in a real browser (Chromium) before each deploy, on the demo path and
+signed in as a real salesman and as management.
 
-- All 30 routes render with no page errors.
-- No horizontal overflow at 360, 390, 768, 1024 and 1440px.
-- All four languages switch and persist across a reload and across pages.
-- Consignment: 81 − 30 = 51 sold → billed RM 918.00, not RM 1,458.00.
-- Document model per term: consignment issues DO → SO → Invoice; Bil to Bil and
-  Cash issue SO → Invoice only, and submitting one leaves the DO count unchanged.
-- Chain integrity: every invoice traces to an SO, every consignment invoice
-  traces to a DO, and no DO exists on a non-consignment outlet.
-- Delivering consignment stock issues a DO on the spot.
-- Floor-price guard fires when a price is edited below the floor.
-- Payment records and routes to the generated `REC` receipt.
-- Search, ranking, ageing buckets and the mobile rail drawer.
+**Demo path** — 25 routes render with no page errors; no horizontal overflow at
+360, 390, 768, 1024 and 1440px; all four languages switch and persist across a
+reload and across pages; an order still runs entirely in memory and writes
+nothing.
+
+**Signed in** — 19 salesman routes and 9 management routes render with no page
+errors, including document views addressed by real running numbers.
+
+**The login itself**, driven with the mouse only: clicking the email box, the
+password box or a label raises nothing; a wrong password keeps the email and
+focuses the password; an empty submit is answered locally and never reaches the
+server; a correct sign-in lands on the right panel.
+
+**Posting, through the actual screens:**
+
+- A Bil to Bil order issues SO → Invoice, no DO, due date on the term, and the
+  van drops by exactly what was sold.
+- A Cash order settles on the spot and issues the receipt with it.
+- A partial payment leaves the invoice `partial` with the right outstanding; the
+  balance settles it and routes to the generated `REC`.
+- Consignment: the drop issues a DO and bills nothing; 40 − 15 = 25 sold, billed
+  RM 120.00 and not RM 192.00 for all 40, with the SO carrying the DO it came
+  from.
+- A return issues a `RET` and puts the stock back on the van.
+- Registering an outlet takes its code off the shared counter.
+- **Reload and every one of them is still there** — the whole point.
+- A second salesman signed in sees none of it, and management sees all of it.
+
+**Refusals** — the nine the database enforces are listed in `db/README.md`, each
+checked against a live signed-in session.
 
 ## Deployment
 
@@ -183,11 +231,22 @@ router.
 
 - **Hash routing** — `#/m/...` is management, `#/s/...` is salesman, bare `#/`
   is public. Every screen is addressable and the back button works.
+- **Two code paths, one set of screens.** Signed in, a mutation goes through
+  `post()` to a database function and the ledger is re-read from the server, so
+  what is on screen is what was stored. On the demo path the same action runs
+  `mkDelivery()` / `mkSale()` / `payInvoice()` in memory. Every action branches
+  on `LIVE()` once, at the top, and both branches feed the same modal.
+- `loadLedger()` reads the transaction tables back into the same `DB.*` arrays
+  the panels already used. The local id stays the **running number**, because
+  that is what the screens print and what the document routes address; the uuid
+  rides along as `.uuid` for the posting functions. Cross-references are
+  rewritten from uuid to running number on the way in, so `inv.soId` is still
+  `"SO000002"` exactly as the seeded data had it.
 - `mkDelivery()` issues a DO and nothing else — consignment drops only.
   `mkSale()` issues the SO and, unless told to hold it, the Invoice. Between
-  them they are the only places a document is created, so a term can never end
-  up with paperwork it should not have. There is no single chain builder,
-  because there is no single chain.
+  them they are the only places a document is created on the demo path, so a
+  term can never end up with paperwork it should not have. There is no single
+  chain builder, because there is no single chain.
 - The **SO is the canonical record that a sale happened**. `ordersIn`, `qtyIn`,
   `custIn` and the product report all read from `DB.sos`. There is no `DB.orders`.
 - `payInvoice()` is the single place that records a payment and issues a receipt.
@@ -197,3 +256,7 @@ router.
   language means adding a fifth column to `DICT`.
 - Navigation clears any open modal — a sheet left standing across a route change
   would sit on top of the new screen and swallow every click.
+- A `<form>`'s `data-a` is its **submit** action and is dispatched only by the
+  submit listener. The click dispatcher skips FORM elements: it resolves an
+  action by walking up from the click target, so without that skip, clicking an
+  input inside a form fires the form's action with the fields still empty.

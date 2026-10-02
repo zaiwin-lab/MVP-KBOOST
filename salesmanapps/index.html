@@ -798,7 +798,11 @@ const DICT={
  "lg.go":         ["Log masuk","Sign in","登录","Tama"],
  "lg.going":      ["Sedang masuk…","Signing in…","登录中…","Benung tama…"],
  "lg.wait":       ["Menyemak sesi…","Checking your session…","正在检查登录状态…","Benung ngelala sesi…"],
- "lg.need":       ["Sila isi e-mel dan kata laluan.","Please fill in both your email and password.","请输入电邮与密码。","Isi e-mel enggau kata laluan."],
+ "lg.noyet":      ["Tiada transaksi direkod lagi. Order, hantaran dan kutipan akan muncul di sini sebaik sahaja direkod.","No transactions recorded yet. Orders, deliveries and collections appear here as soon as they are entered.","尚无交易记录。录入订单、送货与收款后将显示于此。","Nadai transaksi direkod agi. Order, hantaran enggau kutipan deka pegari ditu."],
+ "post.failed":["Tidak dapat disimpan","Could not be saved","无法保存","Enda ulih disimpan"],
+ "post.saving":   ["Menyimpan…","Saving…","保存中…","Benung nyimpan…"],
+ "post.unknown":  ["Transaksi tidak dapat disimpan. Cuba lagi.","The transaction could not be saved. Please try again.","交易无法保存，请重试。","Transaksi enda ulih disimpan. Uji baru."],
+ "lg.need":["Sila isi e-mel dan kata laluan.","Please fill in both your email and password.","请输入电邮与密码。","Isi e-mel enggau kata laluan."],
  "lg.bad":        ["E-mel atau kata laluan salah. Cuba lagi.","That email or password is not right. Please try again.","电邮或密码不正确，请重试。","E-mel tauka kata laluan salah. Uji baru."],
  "lg.unconfirmed":["Akaun ini belum disahkan. Hubungi pentadbir.","This account has not been confirmed yet. Contact your administrator.","此账户尚未验证，请联系管理员。","Akaun tu apin disahka. Kelala ngagai pentadbir."],
  "lg.net":        ["Tiada sambungan. Semak internet anda dan cuba lagi.","No connection. Check your internet and try again.","无网络连接，请检查网络后重试。","Nadai sambungan. Peda internet nuan lalu uji baru."],
@@ -2043,13 +2047,14 @@ const SITEMS=()=>[
   {k:"rank",t:T("s.rank"),i:I.rank,h:"#/s/rank"},
   {k:"refer",t:T("s.refer"),i:I.gift,h:"#/s/refer"}
 ];
-/* Until transaction history is migrated, every live panel says so — an empty
-   ledger should read as "not yet", never as a broken screen. */
+/* A panel reading demo figures says so, loudly. A live panel with nothing in it
+   yet says that too — an empty ledger should read as "no trading recorded",
+   never as a broken screen. Once the first document is posted the bar goes. */
 const liveBar=()=>{
   if(DEMO()) return `<div class="livebar demo"><span>⬤</span><span><b>${T("lg.demobadge")}</b>${T("lg.demobody")}</span>
     <button class="btn btn-s" data-a="leavedemo" style="margin-left:auto;flex:none">${T("lg.demoexit")}</button></div>`;
-  if(LIVE()&&!DB.invoices.length)
-    return `<div class="livebar"><span>⬤</span><span><b>${T("lg.livehead")}</b>${T("lg.nohist")}</span></div>`;
+  if(LIVE()&&!DB.invoices.length&&!DB.dos.length)
+    return `<div class="livebar"><span>⬤</span><span><b>${T("lg.livehead")}</b>${T("lg.noyet")}</span></div>`;
   return "";
 };
 const SM=(active,inner)=>panelShell("sm",SITEMS(),active,liveBar()+inner);
@@ -2816,8 +2821,9 @@ const A={
     if(isNaN(v)||v<=0)return; l.price=v; const raw=e.value,car=e.selectionStart; render();
     const f=document.querySelector(`[data-a="price"][data-p="${e.dataset.p}"]`);
     if(f){f.value=raw;f.focus();try{f.setSelectionRange(car,car)}catch(_){}}},
-  "submit-order"(e){
+  async "submit-order"(e){
     const c=cust(e.dataset.c), lines=ST.draft.lines.filter(l=>l.qty>0).map(l=>({...l}));
+    if(!lines.length) return;
     /* Refuse rather than clamp. The old code did max(0, van - qty), which let a
        salesman sell 500 units out of a van holding 80 and simply showed 0 after.
        Stock has to be a hard stop, not a floor. */
@@ -2832,42 +2838,70 @@ const A={
         <button class="btn btn-p btn-w" data-a="close">OK</button>`);
       return;
     }
-    lines.forEach(l=>takeVan(l.productId,l.qty,ME.id));
-    const {s,inv}=mkSale(c,TODAY,lines,ME.id,c.term==="cash");
+    let soNo,invNo,total,due;
+    if(LIVE()){
+      const b=busy(e);
+      const r=await post("post_sale",{p_customer:c.id,
+        p_lines:lines.map(l=>({product_id:l.productId,qty:l.qty,price:l.price})),
+        p_pay_now:c.term==="cash",p_method:"Cash"});
+      unbusy(b);
+      if(!r) return;
+      soNo=r.so_no; invNo=r.invoice_no; total=r.total; due=new Date(r.due_at);
+    } else {
+      lines.forEach(l=>takeVan(l.productId,l.qty,ME.id));
+      const {s,inv}=mkSale(c,TODAY,lines,ME.id,c.term==="cash");
+      soNo=s.id; invNo=inv.id; total=inv.total; due=inv.due;
+    }
     ST.draft=null;
+    render();
     modal(`<h3>Order berjaya</h3><p style="color:var(--mut);font-size:13.5px;margin-bottom:14px">${TERM[c.term].t} — SO dan Invoice dijana. Tiada DO, sebab barang dan jualan berlaku serentak.</p>
       <div class="card" style="padding:14px;margin-bottom:14px">
-        ${[["SO",s.id],["Invoice",inv.id]].map(([t,n])=>
+        ${[["SO",soNo],["Invoice",invNo]].map(([t,n])=>
           `<div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--mut)">${t}</span><b class="mono" style="font-size:12.5px">${n}</b></div>`).join("")}
-        <div style="display:flex;justify-content:space-between;padding:9px 0 0;border-top:1px solid var(--line);margin-top:7px"><b>Total</b><b>${RM2(inv.total)}</b></div>
+        <div style="display:flex;justify-content:space-between;padding:9px 0 0;border-top:1px solid var(--line);margin-top:7px"><b>Total</b><b>${RM2(total)}</b></div>
       </div>
       ${c.term==="cash"?`<div class="okbox" style="margin-bottom:13px"><span>✓</span><span>Cash — payment terus direkod. Receipt sudah dijana.</span></div>`
-        :`<div class="note" style="margin-bottom:13px">${TERM[c.term].t} — payment ikut term ${c.months} bulan. Due ${fd(inv.due)}.</div>`}
-      <a class="btn btn-p btn-w" href="#/s/doc/Invoice/${inv.id}" data-a="close">Lihat Invoice</a>`);
+        :`<div class="note" style="margin-bottom:13px">${TERM[c.term].t} — payment ikut term ${c.months} bulan. Due ${fd(due)}.</div>`}
+      <a class="btn btn-p btn-w" href="#/s/doc/Invoice/${invNo}" data-a="close">Lihat Invoice</a>`);
   },
   bal(e){const g=DB.consign.find(x=>x.id===e.dataset.g);const v=parseInt(e.value);
     g.tmp=isNaN(v)?null:v; const raw=e.value; render();
     const f=document.querySelector(`[data-a="bal"][data-g="${e.dataset.g}"]`);if(f){f.value=raw;f.focus()}},
-  "gen-bill"(e){
-    const g=DB.consign.find(x=>x.id===e.dataset.g), c=cust(g.customerId), p=prod(g.productId);
-    g.balance=g.tmp; g.sold=g.qty-g.balance; g.checkedAt=TODAY;
-    /* The SO carries the DO it came from, so the paperwork traces back to the
-       drop even though the two were issued weeks apart. */
-    const {s,inv}=mkSale(c,TODAY,[{productId:p.id,qty:g.sold,price:g.price}],ME.id,false,g.doId);
-    inv.kind="consign"; g.invoiceId=inv.id; delete g.tmp;
+  async "gen-bill"(e){
+    const g=DB.consign.find(x=>x.id===e.dataset.g);
+    if(!g||g.tmp==null) return;
+    const c=cust(g.customerId), p=prod(g.productId);
+    const qty=g.qty, bal=g.tmp;
+    let soNo,invNo,sold,total;
+    if(LIVE()){
+      const b=busy(e);
+      const r=await post("post_consign_bill",{p_consignment:g.uuid||g.id,p_balance:bal});
+      unbusy(b);
+      if(!r) return;
+      soNo=r.so_no; invNo=r.invoice_no; sold=r.sold; total=r.total;
+    } else {
+      g.balance=bal; g.sold=qty-bal; g.checkedAt=TODAY;
+      /* The SO carries the DO it came from, so the paperwork traces back to the
+         drop even though the two were issued weeks apart. */
+      const {s,inv}=mkSale(c,TODAY,[{productId:p.id,qty:g.sold,price:g.price}],ME.id,false,g.doId);
+      inv.kind="consign"; g.invoiceId=inv.id; delete g.tmp;
+      soNo=s.id; invNo=inv.id; sold=g.sold; total=inv.total;
+    }
+    const doNo=g.doId;
+    render();
     modal(`<h3>Bill dijana</h3>
       <div class="card" style="padding:14px;margin:13px 0">
-        ${g.doId?`<div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">Dari DO</span><b class="mono" style="font-size:12.5px">${g.doId}</b></div>`:""}
-        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">SO dijana</span><b class="mono" style="font-size:12.5px">${s.id}</b></div>
-        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">Stock dihantar</span><b>${g.qty} unit</b></div>
-        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">Baki stock</span><b>${g.balance} unit</b></div>
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid var(--line);margin-top:5px"><b>Terjual</b><b style="color:var(--vio)">${g.sold} unit</b></div>
-        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">${g.sold} × ${RM2(g.price)}</span><b>${RM2(inv.total)}</b></div>
+        ${doNo?`<div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">Dari DO</span><b class="mono" style="font-size:12.5px">${doNo}</b></div>`:""}
+        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">SO dijana</span><b class="mono" style="font-size:12.5px">${soNo}</b></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">Stock dihantar</span><b>${qty} unit</b></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">Baki stock</span><b>${bal} unit</b></div>
+        <div style="display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid var(--line);margin-top:5px"><b>Terjual</b><b style="color:var(--vio)">${sold} unit</b></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">${sold} × ${RM2(g.price)}</span><b>${RM2(total)}</b></div>
       </div>
-      <div class="note" style="margin-bottom:13px">Customer dicaj <b>${RM2(inv.total)}</b> — hanya barang yang terjual, bukan ${g.qty} unit yang dihantar.</div>
-      <a class="btn btn-p btn-w" href="#/s/doc/Invoice/${inv.id}" data-a="close">Lihat Bill</a>`);
+      <div class="note" style="margin-bottom:13px">Customer dicaj <b>${RM2(total)}</b> — hanya barang yang terjual, bukan ${qty} unit yang dihantar.</div>
+      <a class="btn btn-p btn-w" href="#/s/doc/Invoice/${invNo}" data-a="close">Lihat Bill</a>`);
   },
-  "send-stock"(e){
+  async "send-stock"(e){
     const c=cust(e.dataset.c), pid=$("#cgp").value, qty=parseInt($("#cgq").value);
     if(!qty||qty<1) return;
     const p=prod(pid);
@@ -2883,31 +2917,60 @@ const A={
     }
     /* Delivering the stock is what issues the DO. Nothing is billed yet — the
        SO and Invoice wait until the next visit tells us what actually sold. */
-    const d=mkDelivery(c,TODAY,[{productId:pid,qty,price:p.price}],ME.id);
-    DB.consign.push({id:newId("CG"),customerId:c.id,productId:pid,qty,price:p.price,
-      date:TODAY,doId:d.id,balance:null,checkedAt:null,sold:0,invoiceId:null,salesmanId:ME.id});
-    takeVan(pid,qty,ME.id);
+    let doNo,total;
+    if(LIVE()){
+      const b=busy(e);
+      const r=await post("post_delivery",{p_customer:c.id,p_product:pid,p_qty:qty,p_price:p.price});
+      unbusy(b);
+      if(!r) return;
+      doNo=r.do_no; total=r.total;
+    } else {
+      const d=mkDelivery(c,TODAY,[{productId:pid,qty,price:p.price}],ME.id);
+      DB.consign.push({id:newId("CG"),customerId:c.id,productId:pid,qty,price:p.price,
+        date:TODAY,doId:d.id,balance:null,checkedAt:null,sold:0,invoiceId:null,salesmanId:ME.id});
+      takeVan(pid,qty,ME.id);
+      doNo=d.id; total=d.total;
+    }
+    render();
     modal(`<h3>Stock dihantar</h3><div class="okbox" style="margin:13px 0"><span>📦</span>
       <span><b>${qty} unit ${esc(p.name)}</b> direkod sebagai consignment stock di ${esc(c.name)}.<br>
       Lawatan berikut masukkan baki untuk kira barang terjual.</span></div>
       <div class="card" style="padding:14px;margin-bottom:13px">
-        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">DO dijana</span><b class="mono" style="font-size:12.5px">${d.id}</b></div>
-        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">Nilai stock dihantar</span><b>${RM2(d.total)}</b></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">DO dijana</span><b class="mono" style="font-size:12.5px">${doNo}</b></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">Nilai stock dihantar</span><b>${RM2(total)}</b></div>
       </div>
       <div class="note" style="margin-bottom:13px">Belum dibil. Invoice hanya dijana untuk unit yang terjual, selepas baki disemak.</div>
-      <a class="btn btn-p btn-w" href="#/s/doc/DO/${d.id}" data-a="close">Lihat DO</a>`);
-    render();
+      <a class="btn btn-p btn-w" href="#/s/doc/DO/${doNo}" data-a="close">Lihat DO</a>`);
   },
-  pay(e){
+  async pay(e){
     const inv=DB.invoices.find(i=>i.id===e.dataset.i);
-    const amt=Math.min(parseFloat($("#pamt").value)||0,inv.total-inv.paid);
+    if(!inv) return;
+    const amt=Math.min(parseFloat($("#pamt").value)||0,money(inv.total-inv.paid));
     if(amt<=0) return;
-    const r=payInvoice(inv,amt,$("#pm").value,TODAY);
+    const method=$("#pm").value;
+    if(LIVE()){
+      const b=busy(e);
+      const r=await post("post_payment",{p_invoice:inv.uuid,p_amount:amt,p_method:method});
+      unbusy(b);
+      if(!r) return;
+      go("/s/doc/Receipt/"+r.receipt_no);
+      return;
+    }
+    const r=payInvoice(inv,amt,method,TODAY);
     go("/s/doc/Receipt/"+r.id);
   },
-  "save-return"(e){
+  async "save-return"(e){
     const c=cust(e.dataset.c), pid=$("#rtp").value, qty=parseInt($("#rtq").value);
     if(!qty||qty<1) return;
+    if(LIVE()){
+      const b=busy(e);
+      const r=await post("post_return",{p_customer:c.id,p_product:pid,p_qty:qty,
+        p_reason:$("#rtr").value,p_remark:$("#rtm").value||null});
+      unbusy(b);
+      if(!r) return;
+      go("/s/doc/Return/"+r.return_no);
+      return;
+    }
     const r={id:nn("RET",++DB.seq.RET),customerId:c.id,productId:pid,qty,reason:$("#rtr").value,
       date:TODAY,salesmanId:ME.id,remark:$("#rtm").value};
     DB.returns.push(r); putVan(pid,qty);
@@ -2927,12 +2990,31 @@ const A={
       : (d?"Kawasan “"+d+"” belum dikenali — guna pusat Kuala Lumpur. Betulkan koordinat jika perlu."
          :"Isi Kawasan dahulu untuk ketepatan yang lebih baik.");
   },
-  "save-cust"(){
+  async "save-cust"(e){
     const n=$("#rn").value.trim();
     if(!n){ modal(`<h3>Nama outlet diperlukan</h3><p style="color:var(--mut);font-size:13.5px;margin:11px 0">Sila isi nama outlet sebelum simpan.</p><button class="btn btn-p btn-w" data-a="close">OK</button>`); return; }
+    /* Fall back to the district centre if the salesman saved without capturing,
+       so the outlet is never stored at a coordinate belonging to another town. */
+    const dist=$("#rd").value||"", g0=atDistrict(dist);
+    if(LIVE()){
+      const b=busy(e);
+      const r=await post("register_customer",{p:{
+        name:n, pic:$("#rp").value, phone:$("#rph").value, whatsapp:$("#rw").value,
+        address:$("#ra").value, district:dist, state:$("#rs").value, postcode:$("#rpo").value,
+        ssm:$("#rssm").value, outlet_type:$("#rt").value, term:$("#rterm").value,
+        term_months:$("#rterm").value==="cash"?0:2,
+        lat:$("#rlat").value.trim()||g0.lat, lng:$("#rlng").value.trim()||g0.lng}});
+      unbusy(b);
+      if(!r) return;
+      /* The outlet is new, so it is not in the cached master list yet. */
+      await loadLive();
+      go("/s/customer/"+r.customer_id);
+      return;
+    }
     /* The outlet code is a business identifier that has to be unique across the
-       whole company, so it comes off a counter rather than this device's list
-       length. It becomes next_doc_no('CUST') once the database is in. */
+       whole company, so it comes off a shared counter rather than this device's
+       list length. Live, that counter is next_doc_no('CUST') inside
+       register_customer; in the demo there is only this device. */
     const c={id:newId("c"),code:"C"+String(++DB.seq.CUST).padStart(4,"0"),name:n,
       pic:$("#rp").value||"—",phone:$("#rph").value||"—",wa:$("#rw").value||"—",addr:$("#ra").value||"—",
       dist:$("#rd").value||"—",state:$("#rs").value,pos:$("#rpo").value||"—",ssm:$("#rssm").value||"—",
@@ -2987,7 +3069,12 @@ document.addEventListener("click",e=>{
   // sheet dismisses on the way out — preventing default there would swallow
   // the href and strand the user on the modal.
   if(el.tagName!=="A") e.preventDefault();
-  A[a]&&A[a](el);
+  if(!A[a]) return;
+  /* The posting actions are async. A rejected promise here would otherwise be
+     swallowed, leaving the salesman looking at a screen that never changed and
+     no reason why. */
+  const r=A[a](el);
+  if(r&&typeof r.catch==="function") r.catch(err=>postErr(err));
 });
 document.addEventListener("submit",e=>{
   const lg=e.target.closest('[data-a="login"]');
@@ -3055,12 +3142,98 @@ async function loadLive(){
   (van||[]).forEach(r=>{ VAN[r.salesman_id]=VAN[r.salesman_id]||{}; VAN[r.salesman_id][r.product_id]=r.qty; });
   VAN[ME.id]=VAN[ME.id]||{};
 
-  /* Transaction history has not been migrated yet — the panels show the live
-     outlets and vans against an empty ledger, and say so rather than looking
-     broken. That is Phase 2 day three. */
-  ["dos","sos","invoices","payments","receipts","returns","consign","schedule","referrals"]
-    .forEach(k=>{ DB[k].length=0; });
+  await loadLedger();
   return true;
+}
+
+/* The transaction tables, read back into the same arrays the panels already
+   use. Two things make that possible without touching a single view:
+
+   - The local id stays the running number, because that is what the screens
+     print, what the document routes address, and what a person reads off a
+     printed invoice. The database uuid is carried alongside as .uuid, and the
+     posting functions are the only things that need it.
+   - Cross-references are rewritten from uuid to running number on the way in,
+     so inv.soId is still "SO000002" exactly as the seeded data had it.
+
+   Every post re-reads this, so what is on screen is what is in the database
+   rather than a local guess at it. */
+async function loadLedger(){
+  const [{data:dos},{data:sos},{data:lines},{data:invs},{data:pays},{data:recs},{data:rets},{data:cgs},{data:sched}]
+    = await Promise.all([
+      sb.from("delivery_orders").select("*").order("issued_at"),
+      sb.from("sales_orders").select("*").order("issued_at"),
+      sb.from("doc_lines").select("kind,doc_id,product_id,qty,unit_price"),
+      sb.from("invoices").select("*").order("issued_at"),
+      sb.from("payments").select("*").order("paid_at"),
+      sb.from("receipts").select("*").order("issued_at"),
+      sb.from("returns").select("*").order("issued_at"),
+      sb.from("consignments").select("*").order("sent_at"),
+      sb.from("visit_schedule").select("*").eq("visit_on",new Date().toISOString().slice(0,10)).order("position")
+    ]);
+
+  /* Lines are fetched once for every document and bucketed here, rather than a
+     query per document — a day's paperwork is one request, not ninety. */
+  const byDoc={};
+  (lines||[]).forEach(l=>{ (byDoc[l.doc_id]=byDoc[l.doc_id]||[])
+    .push({productId:l.product_id,qty:l.qty,price:+l.unit_price}); });
+
+  const noOf={};                                    /* uuid → running number */
+  (dos||[]).forEach(r=>noOf[r.id]=r.doc_no);
+  (sos||[]).forEach(r=>noOf[r.id]=r.doc_no);
+  (invs||[]).forEach(r=>noOf[r.id]=r.doc_no);
+  const put=(arr,rows)=>{ arr.length=0; (rows||[]).forEach(x=>arr.push(x)); };
+
+  put(DB.dos,(dos||[]).map(r=>({id:r.doc_no,uuid:r.id,customerId:r.customer_id,
+    salesmanId:r.salesman_id,date:new Date(r.issued_at),lines:byDoc[r.id]||[],total:+r.total})));
+
+  const invBySo={};
+  (invs||[]).forEach(r=>invBySo[r.so_id]=r.doc_no);
+  put(DB.sos,(sos||[]).map(r=>({id:r.doc_no,uuid:r.id,doId:r.do_id?noOf[r.do_id]||null:null,
+    customerId:r.customer_id,salesmanId:r.salesman_id,date:new Date(r.issued_at),
+    lines:byDoc[r.id]||[],total:+r.total,invoiceId:invBySo[r.id]||null})));
+
+  put(DB.invoices,(invs||[]).map(r=>({id:r.doc_no,uuid:r.id,soId:noOf[r.so_id]||null,
+    doId:r.do_id?noOf[r.do_id]||null:null,customerId:r.customer_id,salesmanId:r.salesman_id,
+    date:new Date(r.issued_at),due:new Date(r.due_at),total:+r.total,paid:+r.paid,
+    status:r.status,kind:r.term})));
+
+  put(DB.payments,(pays||[]).map(r=>({id:r.id,uuid:r.id,invoiceId:noOf[r.invoice_id]||null,
+    customerId:r.customer_id,amount:+r.amount,method:r.method,
+    date:new Date(r.paid_at),salesmanId:r.salesman_id})));
+
+  put(DB.receipts,(recs||[]).map(r=>({id:r.doc_no,uuid:r.id,paymentId:r.payment_id,
+    invoiceId:noOf[r.invoice_id]||null,customerId:r.customer_id,amount:+r.amount,
+    method:r.method,date:new Date(r.issued_at),salesmanId:r.salesman_id})));
+
+  put(DB.returns,(rets||[]).map(r=>({id:r.doc_no,uuid:r.id,customerId:r.customer_id,
+    productId:r.product_id,qty:r.qty,reason:r.reason,remark:r.remark||"",
+    date:new Date(r.issued_at),salesmanId:r.salesman_id})));
+
+  /* A consignment keeps its uuid as its local id: it is a stock position, not a
+     document, so no running number was ever issued for it. */
+  put(DB.consign,(cgs||[]).map(r=>({id:r.id,uuid:r.id,customerId:r.customer_id,
+    productId:r.product_id,qty:r.qty_sent,price:+r.unit_price,date:new Date(r.sent_at),
+    doId:r.do_id?noOf[r.do_id]||null:null,balance:r.balance,
+    checkedAt:r.checked_at?new Date(r.checked_at):null,sold:r.qty_sold||0,
+    invoiceId:r.invoice_id?noOf[r.invoice_id]||null:null,salesmanId:r.salesman_id})));
+
+  put(DB.schedule,(sched||[]).map((r,i)=>({id:r.id,customerId:r.customer_id,
+    salesmanId:r.salesman_id,date:new Date(r.visit_on+"T00:00:00"),order:r.position??i,
+    remark:r.remark||"",doneAt:r.done_at?new Date(r.done_at):null})));
+
+  /* Nobody has planned a route for today, which is the normal state until the
+     planning screen exists. Order the day the way the AI panel already does —
+     outstanding money first — rather than showing an empty schedule. This is
+     derived from live figures, not stored, so it is rebuilt on every load. */
+  if(!DB.schedule.some(s=>s.salesmanId===ME.id))
+    AI.route().slice(0,6).forEach((r,i)=>DB.schedule.push({
+      id:"auto-"+r.c.id,customerId:r.c.id,salesmanId:ME.id,date:TODAY,order:i,
+      remark:r.od>0?T("ai.od"):r.open?T("ai.chk"):"",doneAt:null,derived:true}));
+
+  /* Referrals were seeded against the demo roster, so in live mode they belong
+     to salesmen who do not exist. Nothing has been recorded yet; show nothing. */
+  DB.referrals.length=0;
 }
 
 async function authBoot(){
@@ -3088,6 +3261,68 @@ function authMsg(m){
   if(s.includes("too many requests")||s.includes("rate limit")) return T("lg.rate");
   return m;
 }
+
+/* ==========================================================================
+   POSTING
+   ==========================================================================
+   Six business events, one database function each, each one a single
+   transaction. The client does not insert rows: an order is four inserts and a
+   stock movement, and doing that over five requests means a van can be
+   decremented for an invoice that was never written. These are money
+   documents, so the event either lands completely or not at all.
+
+   The running numbers also have to come off a shared counter rather than this
+   device, or two salesmen both issue INV000042 on the same afternoon.
+
+   post() returns the function's result, or null if it refused — in which case
+   it has already told the user why. Every caller re-reads the ledger after a
+   success, so the screen shows what the database holds rather than a local
+   guess at it. */
+const POST_MSG={
+  insufficient_van_stock:  ["Stok van tidak mencukupi.","Not enough stock on the van.","车载库存不足。","Stock van enda chukup."],
+  below_floor_price:       ["Harga di bawah harga minimum.","That price is below the floor price.","价格低于最低限价。","Rega baruh ari rega pemadu baruh."],
+  already_billed:          ["Consignment ini sudah dibil.","This consignment has already been billed.","此寄售已开单。","Consignment tu udah dibil."],
+  already_paid:            ["Invoice ini sudah dijelaskan.","This invoice is already settled.","此发票已结清。","Invois tu udah dibayar abis."],
+  over_payment:            ["Jumlah melebihi baki tertunggak.","The amount is more than the outstanding balance.","金额超过未付余额。","Jumlah lebih ari baki."],
+  wrong_term_for_sale:     ["Outlet consignment dibil selepas semak baki, bukan dari order.","A consignment outlet is billed after its balance check, not from an order.","寄售门店在盘点余额后开单，而非下单时。","Outlet consignment dibil udah semak baki."],
+  wrong_term_for_delivery: ["Hanya outlet consignment menerima hantaran stock.","Only a consignment outlet takes a stock drop.","只有寄售门店可收寄售库存。","Semina outlet consignment nerima stock."]
+};
+function postErr(e){
+  /* The database raises a stable detail code alongside its message, so the
+     wording a person reads is ours and translated, while anything unforeseen
+     still surfaces verbatim instead of being swallowed. */
+  const key=(e&&(e.details||e.detail))||"";
+  const t=POST_MSG[key] ? POST_MSG[key][LI()] : null;
+  const body=t||(e&&e.message)||T("post.unknown");
+  modal(`<h3>${T("post.failed")}</h3>
+    <p style="color:var(--mut);font-size:13.5px;margin:11px 0">${esc(body)}</p>
+    <button class="btn btn-p btn-w" data-a="close">OK</button>`);
+  return null;
+}
+let POSTING=false;
+async function post(fn,args){
+  if(POSTING) return null;          /* a double tap must not post twice */
+  POSTING=true;
+  try{
+    const {data,error}=await sb.rpc(fn,args);
+    if(error) return postErr(error);
+    await loadLedger();
+    const {data:van}=await sb.from("van_stock").select("salesman_id,product_id,qty");
+    Object.keys(VAN).forEach(k=>delete VAN[k]);
+    (van||[]).forEach(r=>{ VAN[r.salesman_id]=VAN[r.salesman_id]||{}; VAN[r.salesman_id][r.product_id]=r.qty; });
+    VAN[ME.id]=VAN[ME.id]||{};
+    return data;
+  }catch(e){ return postErr(e); }
+  finally{ POSTING=false; }
+}
+/* Mark the button busy, so a slow connection looks like work in progress
+   rather than a dead screen. */
+function busy(sel){
+  const b=typeof sel==="string"?$(sel):sel;
+  if(b){ b.disabled=true; b.dataset.was=b.textContent; b.textContent=T("post.saving"); }
+  return b;
+}
+function unbusy(b){ if(b){ b.disabled=false; if(b.dataset.was) b.textContent=b.dataset.was; } }
 
 async function signIn(email,pw){
   AUTH.err="";

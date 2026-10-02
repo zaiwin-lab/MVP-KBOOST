@@ -17,8 +17,42 @@ why, so the repository is not silent about where the data lives.
 | 4 | `consignment_and_working_data` | `consignments`, `visit_schedule`, `referrals`, `company` |
 | 5 | `row_level_security` | RLS enabled on all 16 tables, with policies |
 | 6 | `lock_down_security_definer_functions` | Revokes anonymous access to the three privileged functions |
+| 7 | `transaction_posting_functions` | `acting_salesman()`, `van_take()`, `van_put()`, `line_total()` — the shared guards |
+| 8 | `post_sale_and_delivery` | `post_sale()`, `post_delivery()`, `post_consign_bill()` |
+| 9 | `post_payment_return_customer` | `post_payment()`, `post_return()`, `register_customer()`, and the grants |
+| 10 | `doc_lines_generated_total` | `doc_lines.line_total` is generated, so the three writers stop setting it |
 
-## Three decisions worth knowing
+## Four decisions worth knowing
+
+**One function per business event, each a single transaction.** An order is two
+document numbers, four inserts and a stock movement. Done from the browser that
+is five requests with no way to roll back, so a crash between them leaves a van
+decremented for an invoice that was never written, or an SO with no invoice
+against it. `post_sale`, `post_delivery`, `post_consign_bill`, `post_payment`,
+`post_return` and `register_customer` are the entire write surface, and each one
+either completes or leaves nothing behind.
+
+They are `SECURITY DEFINER` because they take numbers off the shared counter and
+move van stock, so they carry their own authorisation: `acting_salesman()`
+refuses unless the caller holds the outlet, and locks the customer row so
+ownership cannot change mid-transaction. Management reads everything and posts
+nothing — it has no van for stock to come out of.
+
+What each one refuses, proved against a live signed-in session:
+
+| Attempt | Result |
+|---|---|
+| Selling at another salesman's outlet | `this outlet is held by another salesman` |
+| More units than the van holds | `van holds 12 of this product, 99999 requested` |
+| A price below the floor | `price 0.01 is below the floor price 1.36` |
+| An ordinary order at a consignment outlet | refused — consignment bills from its balance check |
+| A stock drop at a cash outlet | refused — only consignment takes a drop |
+| Billing one consignment twice | `this consignment has already been billed` |
+| A balance above what was delivered | refused with the delivered quantity |
+| Paying a settled invoice, or overpaying | `already settled` / exceeds outstanding |
+| Calling `next_doc_no` or `move_van_stock` directly | `permission denied for function` |
+
+## Three further decisions worth knowing
 
 **Documents follow the payment term.** `delivery_orders` exists as its own
 table and consignment is its only source. Bil to Bil and Cash go straight to
@@ -46,18 +80,39 @@ asks.
 read and write. `next_doc_no()` is the only way in. The Supabase linter reports
 this as INFO; it is the intended state.
 
-The three `SECURITY DEFINER` functions bypass RLS by design, so anonymous
-`EXECUTE` is revoked on all of them — PostgREST publishes every public function
-as an RPC endpoint, which had left `next_doc_no()` and `move_van_stock()`
-callable by anyone holding the project URL. `move_van_stock()` additionally
-refuses to move stock for a salesman other than the caller unless the caller is
-management, since the salesman is a parameter.
+PostgREST publishes every public function as an RPC endpoint, so a
+`SECURITY DEFINER` function is reachable by anyone the grant allows. The counter
+and the stock movers — `next_doc_no()`, `move_van_stock()`, `van_take()`,
+`van_put()`, `line_total()`, `acting_salesman()` — now have `EXECUTE` revoked
+from `anon`, `authenticated` and `public` alike. Nothing client-side calls them;
+the six posting functions reach them as their own definer. A signed-in user
+therefore has no way to burn document numbers or move stock outside a posted
+transaction. Verified from a live session: `permission denied for function`.
 
-Verified by attempting both as the anonymous role: `permission denied`.
+`is_management()` stays executable by `authenticated` because the RLS policies
+evaluate it as the querying role; revoking it would break every policy. It
+discloses nothing but a boolean about the caller.
+
+The Supabase linter still reports the six posting functions under
+`authenticated_security_definer_function_executable`. That is the intended
+state — they are the write API, and their authorisation is inside them.
 
 ## Still to do
 
 - `company` holds one row with the operating company's real details. It is
   empty: the portal still prints placeholders, including `[SSM NO. — NOT SET]`.
-- No data has been loaded. The client's outlets, products, salesmen and opening
-  balances are still outstanding.
+- No business data has been loaded. The client's outlets, products, salesmen and
+  opening balances are still outstanding; the 12 outlets, 8 products and 5
+  salesmen currently in the tables are stand-ins for testing.
+- Leaked-password protection is off in Auth settings. It is a dashboard toggle,
+  not a migration, and worth switching on before real accounts are handed out.
+- `visit_schedule` is empty and nothing writes to it yet. Until a planning
+  screen exists the portal derives the day's route from outstanding money, in
+  the browser, and rebuilds it on every load rather than storing it.
+
+## Test data
+
+The transaction tables were emptied and the document counters reset to zero
+after the posting functions were verified, so the first real document issued
+will be `DO000001` / `SO000001` / `INV000001`. Van stock sits at 80 units per
+salesman per product.
