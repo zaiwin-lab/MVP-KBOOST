@@ -134,8 +134,8 @@ which is what keeps those two sequences apart.
 **Simulated — clearly fake, by design**
 - The dataset: 1 company, 5 salesmen, 12 outlets, 8 products, ~120 days of
   trading history, generated from a fixed seed so every run is identical.
-- **Request Stock** (restocking the van from the warehouse) confirms and
-  records nothing.
+- The **daily schedule** cannot be planned or ticked off; the day is ordered by
+  outstanding money and rebuilt on each load.
 - The AI Help bubble matches on keywords against live selectors. It is not a
   language model and will fall back to a menu of topics on an unrecognised
   question.
@@ -200,6 +200,28 @@ Choosing "Open the Public panel" from the login screen runs the whole system on
 generated figures with no account — the seeded 5 salesmen, 12 outlets, 8 products
 and ~120 days of trading. That path never touches the database, and every screen
 on it carries the badge. It is for showing the system, not for recording work.
+
+## Van stock goes back up
+
+Selling draws a van down, a consignment drop draws it down, and a return puts a
+little back. Nothing else did, so every van drained toward zero and would have
+refused all orders within about a week of real trading.
+
+Restocking has two sides, because both happen in distribution:
+
+- A salesman opens **Request Stock** on Stok Van. The sheet arrives pre-filled
+  with whatever is at or under its minimum level, topped up to five times that —
+  the products running out are the point of the screen, so they are not typed
+  out again. Each line becomes a request, with an optional note.
+- Management sees the queue on **Stok**, with the salesman, the product, what
+  was asked for and what is currently in that van, and supplies it or rejects
+  it. It can also load any van directly without a request, which is what loading
+  a van in the morning actually is.
+
+Every issue is recorded in `stock_issues`, so a van balance can be explained —
+who put stock in it, when, and against which request — rather than just
+asserted. `issue_stock()` is management-only: a salesman able to issue to his
+own van could conjure the stock that every sale is then checked against.
 
 ## Verified
 

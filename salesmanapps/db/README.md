@@ -21,6 +21,7 @@ why, so the repository is not silent about where the data lives.
 | 8 | `post_sale_and_delivery` | `post_sale()`, `post_delivery()`, `post_consign_bill()` |
 | 9 | `post_payment_return_customer` | `post_payment()`, `post_return()`, `register_customer()`, and the grants |
 | 10 | `doc_lines_generated_total` | `doc_lines.line_total` is generated, so the three writers stop setting it |
+| 11 | `van_restocking` | `stock_requests`, `stock_issues`, `request_stock()`, `issue_stock()`, `reject_stock_request()` |
 
 ## Four decisions worth knowing
 

@@ -1070,7 +1070,7 @@ CUSTOMERS.forEach((c,i)=>{ c.salesmanId=SALESMEN[BOOK[i]].id; });
 CUSTOMERS.forEach(c=>{ if(c.id==="c4"||c.id==="c10") c.dormant=true; });
 
 const DB={dos:[],sos:[],invoices:[],payments:[],receipts:[],returns:[],consign:[],
-  schedule:[],referrals:[],seq:{DO:0,SO:0,INV:0,RET:0,REC:0,CUST:CUSTOMERS.length}};
+  schedule:[],referrals:[],stockReq:[],seq:{DO:0,SO:0,INV:0,RET:0,REC:0,CUST:CUSTOMERS.length}};
 const nn=(k,n)=>k+String(n).padStart(6,"0");
 /* Records the database will key itself. Deriving an id from array length —
    "CG"+(DB.consign.length+1) — collides the moment two salesmen hold their own
@@ -1914,15 +1914,46 @@ function mStock(){
   const low=PRODUCTS.filter(p=>vanAll(p.id)<=p.low*SALESMEN.length);
   const out=DB.consign.filter(c=>c.balance===null);
   const val=PRODUCTS.reduce((a,p)=>a+vanAll(p.id)*p.price,0);
+  const pend=DB.stockReq.filter(r=>r.status==="pending");
   return M("stock",`
     <div class="pgh"><div><h1>${T("m.stock")}</h1><p>${PRODUCTS.length} SKU</p></div></div>
     <div class="g g4" style="margin-bottom:18px">
       ${kpi("Nilai stok",RMk(val),PRODUCTS.reduce((a,p)=>a+vanAll(p.id),0)+" unit",I.box,"#3B5BFF")}
       ${kpi("Stok rendah",low.length,"SKU bawah paras",I.shield,low.length?"#DC2626":"#0E9F6E")}
+      ${kpi("Request menunggu",pend.length,"dari salesman",I.truck,pend.length?"#D97706":"#0E9F6E")}
       ${kpi("Consignment luar",out.length,"penghantaran terbuka",I.truck,"#8B5CF6")}
-      ${kpi("Pulangan",DB.returns.length,"RET direkod",I.ret,"#D97706")}
     </div>
     ${low.length?`<div class="warn" style="margin-bottom:16px"><b>${low.length} SKU</b> sudah bawah paras minimum: ${low.map(p=>esc(p.name)).join(", ")}.</div>`:""}
+
+    <div class="sec">Request stok dari salesman (${pend.length})</div>
+    ${pend.length?`<div class="tw" style="margin-bottom:18px"><table>
+      <thead><tr><th>${T("l.salesman")}</th><th>${T("l.product")}</th><th class="r">Minta</th>
+        <th class="r">Dalam van</th><th style="width:100px">Bekal</th><th style="width:180px"></th></tr></thead>
+      <tbody>${pend.map(r=>{const p=prod(r.productId), s=sm(r.salesmanId);return `<tr>
+        <td><b>${esc(s.name)}</b><div style="font-size:11.5px;color:var(--dim)">${esc(s.code)} · ${fd(r.date)}</div>
+          ${r.note?`<div style="font-size:11.5px;color:var(--mut)">“${esc(r.note)}”</div>`:""}</td>
+        <td>${esc(p?p.name:"—")}</td>
+        <td class="r num"><b>${r.qty}</b></td>
+        <td class="r num" style="color:${vanOf(r.productId,r.salesmanId)<=(p?p.low:0)?"var(--red)":"var(--mut)"}">${vanOf(r.productId,r.salesmanId)}</td>
+        <td><input id="iq-${esc(r.id)}" type="number" min="1" value="${r.qty}"></td>
+        <td class="r" style="white-space:nowrap">
+          <button class="btn btn-g" data-a="issue-stock" data-r="${esc(r.id)}">${ic(I.truck)} Bekal</button>
+          <button class="btn btn-s" data-a="reject-req" data-r="${esc(r.id)}">Tolak</button></td>
+      </tr>`}).join("")}</tbody>
+    </table></div>`
+    :`<div class="empty" style="margin-bottom:18px"><b>Tiada request menunggu</b>
+       <span>Request dari salesman akan muncul di sini untuk dibekalkan atau ditolak.</span></div>`}
+
+    <div class="sec">Muat van</div>
+    <div class="g g3" style="margin-bottom:18px">${SALESMEN.map(s=>{
+      const units=PRODUCTS.reduce((a,p)=>a+vanOf(p.id,s.id),0);
+      const lo=PRODUCTS.filter(p=>vanOf(p.id,s.id)<=p.low).length;
+      return `<div class="card p">
+        <b style="font-size:14.5px;display:block">${esc(s.name)}</b>
+        <span style="font-size:12px;color:var(--mut)">${esc(s.code)} · ${units} unit dalam van</span>
+        ${lo?`<div><span class="chip k-red" style="margin-top:8px">${lo} SKU rendah</span></div>`:""}
+        <button class="btn btn-s" style="margin-top:10px" data-a="load-open" data-s="${esc(s.id)}">${ic(I.truck)} Muat stok</button>
+      </div>`}).join("")}</div>
     <div class="tw"><table>
       <thead><tr><th>SKU</th><th>${T("l.product")}</th><th class="r">Stok van</th><th class="r">Paras min</th>
         <th class="r">${T("l.price")}</th><th class="r">Harga lantai</th><th class="r">Nilai</th><th>${T("l.status")}</th></tr></thead>
@@ -2416,6 +2447,8 @@ function sCollect(){
   const lateAmt=late.reduce((a,x)=>a+(x.i.total-x.i.paid),0);
   const today=DB.payments.filter(p=>p.salesmanId===ME.id&&sameDay(p.date,TODAY))
     .reduce((a,p)=>a+p.amount,0);
+  const mine=DB.receipts.filter(r=>r.salesmanId===ME.id)
+    .slice().sort((a,b)=>b.date-a.date);
   return SM("collect",`
     <div class="pgh"><div><h1>${T("s.collect")}</h1><p>${T("s.collect.d")}</p></div></div>
     <div class="g g3" style="margin-bottom:18px">
@@ -2436,7 +2469,28 @@ function sCollect(){
         <td class="r"><a class="btn btn-s" href="#/s/payment/${c.id}/${i.id}">${ic(I.cash)} Rekod</a></td>
       </tr>`}).join("")}</tbody>
     </table></div>`
-    :`<div class="empty"><b>Tiada invois tertunggak</b><div>Semua outlet anda sudah menjelaskan bayaran.</div></div>`}
+    :`<div class="empty"><b>Tiada invois tertunggak</b>
+       <div>${DB.invoices.length
+         ? "Semua outlet anda sudah menjelaskan bayaran. Kutipan yang sudah direkod ada di bawah."
+         : "Belum ada invois direkod. Ambil order dahulu — invois akan muncul di sini untuk dikutip."}</div></div>`}
+
+    <div class="sec">Kutipan diterima (${mine.length})</div>
+    ${mine.length?`<div class="tw"><table>
+      <thead><tr><th>${T("l.date")}</th><th>${T("l.customer")}</th><th>Resit</th><th>Invois</th>
+        <th>Kaedah</th><th class="r">${T("l.amount")}</th></tr></thead>
+      <tbody>${mine.slice(0,40).map(r=>{const c=cust(r.customerId);return `<tr>
+        <td>${fd(r.date)}</td>
+        <td>${c?`<a class="lk" href="#/s/customer/${c.id}">${esc(c.name)}</a>`:"—"}</td>
+        <td><a class="lk mono" href="#/s/doc/Receipt/${r.id}">${r.id}</a></td>
+        <td><a class="lk mono" href="#/s/doc/Invoice/${r.invoiceId}">${r.invoiceId||"—"}</a></td>
+        <td>${esc(r.method||"—")}</td>
+        <td class="r"><b>${RM2(r.amount)}</b></td></tr>`}).join("")}</tbody>
+    </table></div>`
+    /* The collections worklist shows what is still owed, so it empties as the
+       money comes in. Without this list a salesman who had collected everything
+       saw a blank screen and no evidence any payment had ever been recorded. */
+    :`<div class="empty"><b>Belum ada kutipan</b>
+       <div>Setiap bayaran yang direkod muncul di sini dengan resitnya.</div></div>`}
     <div class="note" style="margin-top:13px">Resit dijana automatik selepas setiap bayaran direkod, penuh atau separa.</div>`);
 }
 
@@ -2801,9 +2855,25 @@ function sReturn(cid){
 function sStock(){
   const val=PRODUCTS.reduce((a,p)=>a+vanOf(p.id)*p.price,0);
   const low=PRODUCTS.filter(p=>vanOf(p.id)<=p.low);
+  const mine=DB.stockReq.filter(r=>r.salesmanId===ME.id);
+  const open=mine.filter(r=>r.status==="pending");
   return SM("stock",`
     <div class="pgh"><div><h1>${T("s.stock")}</h1><p>${esc(ME.name)} · ${ME.withStock?"Salesman WITH STOCK":"Tanpa stok"}</p></div>
-      <div class="ra"><button class="btn btn-p" data-a="submit-so">${ic(I.truck)} Request Stock</button></div></div>
+      <div class="ra"><button class="btn btn-p" data-a="req-open">${ic(I.truck)} Request Stock</button></div></div>
+    ${mine.length?`<div class="card p" style="margin-bottom:18px">
+      <h3>Request stok saya (${open.length} menunggu)</h3>
+      <div class="tw" style="margin-top:12px"><table>
+        <thead><tr><th>${T("l.product")}</th><th class="r">Minta</th><th class="r">Dibekal</th>
+          <th>Status</th><th>Tarikh</th></tr></thead>
+        <tbody>${mine.slice(0,12).map(r=>{const p=prod(r.productId);return `<tr>
+          <td>${esc(p?p.name:"—")}</td>
+          <td class="r num">${r.qty}</td>
+          <td class="r num">${r.status==="issued"?r.issued:"—"}</td>
+          <td><span class="chip ${r.status==="issued"?"k-grn":r.status==="rejected"?"k-red":"k-amb"}">${
+            r.status==="issued"?"Dibekal":r.status==="rejected"?"Ditolak":"Menunggu"}</span>
+            ${r.note?`<div style="font-size:11px;color:var(--dim);margin-top:2px">${esc(r.note)}</div>`:""}</td>
+          <td style="font-size:12px;color:var(--mut)">${fd(r.date)}</td></tr>`}).join("")}</tbody>
+      </table></div></div>`:""}
     <div class="g g4" style="margin-bottom:18px">
       ${kpi("Nilai stok van",RMk(val),PRODUCTS.reduce((a,p)=>a+vanOf(p.id),0)+" unit",I.box,"#3B5BFF")}
       ${kpi("SKU",PRODUCTS.length,"dalam van",I.cart,"#8B5CF6")}
@@ -3258,9 +3328,104 @@ const A={
     CUSTOMERS.push(c);
     go("/s/customer/"+c.id);
   },
-  "submit-so"(){modal(`<h3>Stock Order dihantar</h3><div class="okbox" style="margin:13px 0"><span>🚚</span>
-    <span>Request dihantar ke Main Warehouse. Status boleh disemak di ${T("s.stock")}.</span></div>
-    <button class="btn btn-p btn-w" data-a="close">OK</button>`)},
+  /* Opens pre-filled with whatever is at or under its minimum level, topped up
+     to five times that — the whole point of the screen is the products that are
+     running out, so they should not have to be found and typed again. */
+  "req-open"(){
+    const low=PRODUCTS.filter(p=>vanOf(p.id)<=p.low);
+    modal(`<h3>Request stok dari warehouse</h3>
+      <p style="color:var(--mut);font-size:13.5px;margin:8px 0 13px">
+        ${low.length?`${low.length} SKU sudah bawah paras minimum dan sudah diisi di bawah.`
+                    :"Isi kuantiti untuk produk yang anda perlukan."}</p>
+      <div class="tw" style="max-height:46vh;overflow:auto"><table>
+        <thead><tr><th>${T("l.product")}</th><th class="r">Dalam van</th><th style="width:96px">Minta</th></tr></thead>
+        <tbody>${PRODUCTS.map(p=>{const have=vanOf(p.id), lo=have<=p.low;
+          return `<tr>
+            <td><b>${esc(p.name)}</b>${lo?`<span class="chip k-red" style="margin-left:6px">rendah</span>`:""}</td>
+            <td class="r num" style="color:${lo?"var(--red)":"var(--mut)"}">${have}</td>
+            <td><input class="rq" data-p="${p.id}" type="number" min="0" placeholder="0"
+                 value="${lo?Math.max(p.low*5-have,1):""}"></td></tr>`}).join("")}</tbody>
+      </table></div>
+      <div class="f" style="margin-top:12px"><label>Nota (pilihan)</label>
+        <input id="rqn" placeholder="cth. perlu sebelum Isnin"></div>
+      <button class="btn btn-p btn-w" data-a="req-send">${ic(I.truck)} Hantar request</button>`);
+  },
+  async "req-send"(e){
+    const lines=Array.from(document.querySelectorAll(".rq"))
+      .map(i=>({product_id:i.dataset.p,qty:parseInt(i.value)||0}))
+      .filter(l=>l.qty>0);
+    if(!lines.length){
+      modal(`<h3>Tiada kuantiti diisi</h3>
+        <p style="color:var(--mut);font-size:13.5px;margin:11px 0">Isi sekurang-kurangnya satu produk.</p>
+        <button class="btn btn-p btn-w" data-a="close">OK</button>`); return;
+    }
+    const note=($("#rqn")||{}).value||"";
+    if(LIVE()){
+      const b=busy(e);
+      const r=await post("request_stock",{p_lines:lines,p_note:note||null});
+      unbusy(b);
+      if(!r) return;
+    } else {
+      lines.forEach(l=>DB.stockReq.unshift({id:newId("RQ"),salesmanId:ME.id,productId:l.product_id,
+        qty:l.qty,issued:0,status:"pending",note:note,date:TODAY}));
+    }
+    A.close(); render();
+    modal(`<h3>Request dihantar</h3><div class="okbox" style="margin:13px 0"><span>🚚</span>
+      <span><b>${lines.length} produk</b> diminta dari warehouse. Status boleh disemak di ${T("s.stock")}.</span></div>
+      <button class="btn btn-p btn-w" data-a="close">OK</button>`);
+  },
+  /* Management side: load a van, either against a request or straight off the
+     warehouse floor, because both happen. */
+  async "issue-stock"(e){
+    const rq=DB.stockReq.find(r=>r.id===e.dataset.r);
+    if(!rq) return;
+    const qty=parseInt(($("#iq-"+rq.id)||{}).value)||rq.qty;
+    if(qty<=0) return;
+    if(LIVE()){
+      const b=busy(e);
+      const r=await post("issue_stock",{p_salesman:rq.salesmanId,p_product:rq.productId,
+        p_qty:qty,p_request:rq.uuid||rq.id});
+      unbusy(b);
+      if(!r) return;
+    } else {
+      putVan(rq.productId,qty,rq.salesmanId);
+      rq.status="issued"; rq.issued=qty;
+    }
+    render();
+  },
+  async "reject-req"(e){
+    const rq=DB.stockReq.find(r=>r.id===e.dataset.r);
+    if(!rq) return;
+    if(LIVE()){
+      const b=busy(e);
+      const r=await post("reject_stock_request",{p_request:rq.uuid||rq.id,p_reason:null});
+      unbusy(b);
+      if(!r) return;
+    } else { rq.status="rejected"; }
+    render();
+  },
+  "load-open"(e){
+    const sid=e.dataset.s, s=sm(sid);
+    modal(`<h3>Muat stok ke van</h3>
+      <p style="color:var(--mut);font-size:13.5px;margin:8px 0 13px">${esc(s.name)} · ${esc(s.code)}</p>
+      <div class="f2">
+        <div class="f"><label>${T("l.product")}</label><select id="lsp">
+          ${PRODUCTS.map(p=>`<option value="${p.id}">${esc(p.name)} (van ${vanOf(p.id,sid)})</option>`).join("")}</select></div>
+        <div class="f"><label>${T("l.qty")}</label><input id="lsq" type="number" min="1" value="100"></div>
+      </div>
+      <button class="btn btn-p btn-w" data-a="load-send" data-s="${esc(sid)}">${ic(I.truck)} Muat van</button>`);
+  },
+  async "load-send"(e){
+    const sid=e.dataset.s, pid=$("#lsp").value, qty=parseInt($("#lsq").value)||0;
+    if(qty<=0) return;
+    if(LIVE()){
+      const b=busy(e);
+      const r=await post("issue_stock",{p_salesman:sid,p_product:pid,p_qty:qty,p_request:null});
+      unbusy(b);
+      if(!r) return;
+    } else { putVan(pid,qty,sid); }
+    A.close(); render();
+  },
   /* Opens WhatsApp with the document written out. A web page cannot attach a
      file to a WhatsApp message — only the operating system can — so the
      document travels as readable text, which is what a shop owner reads off
@@ -3423,7 +3588,7 @@ async function loadLive(){
    Every post re-reads this, so what is on screen is what is in the database
    rather than a local guess at it. */
 async function loadLedger(){
-  const [{data:dos},{data:sos},{data:lines},{data:invs},{data:pays},{data:recs},{data:rets},{data:cgs},{data:sched}]
+  const [{data:dos},{data:sos},{data:lines},{data:invs},{data:pays},{data:recs},{data:rets},{data:cgs},{data:sched},{data:sreq}]
     = await Promise.all([
       sb.from("delivery_orders").select("*").order("issued_at"),
       sb.from("sales_orders").select("*").order("issued_at"),
@@ -3433,7 +3598,8 @@ async function loadLedger(){
       sb.from("receipts").select("*").order("issued_at"),
       sb.from("returns").select("*").order("issued_at"),
       sb.from("consignments").select("*").order("sent_at"),
-      sb.from("visit_schedule").select("*").eq("visit_on",new Date().toISOString().slice(0,10)).order("position")
+      sb.from("visit_schedule").select("*").eq("visit_on",new Date().toISOString().slice(0,10)).order("position"),
+      sb.from("stock_requests").select("*").order("requested_at",{ascending:false}).limit(200)
     ]);
 
   /* Lines are fetched once for every document and bucketed here, rather than a
@@ -3494,6 +3660,10 @@ async function loadLedger(){
     AI.route().slice(0,6).forEach((r,i)=>DB.schedule.push({
       id:"auto-"+r.c.id,customerId:r.c.id,salesmanId:ME.id,date:TODAY,order:i,
       remark:r.od>0?T("ai.od"):r.open?T("ai.chk"):"",doneAt:null,derived:true}));
+
+  put(DB.stockReq,(sreq||[]).map(r=>({id:r.id,uuid:r.id,salesmanId:r.salesman_id,
+    productId:r.product_id,qty:r.qty,issued:r.qty_issued||0,status:r.status,
+    note:r.note||"",date:new Date(r.requested_at)})));
 
   /* Referrals were seeded against the demo roster, so in live mode they belong
      to salesmen who do not exist. Nothing has been recorded yet; show nothing. */
