@@ -23,6 +23,33 @@ why, so the repository is not silent about where the data lives.
 | 10 | `doc_lines_generated_total` | `doc_lines.line_total` is generated, so the three writers stop setting it |
 | 11 | `van_restocking` | `stock_requests`, `stock_issues`, `request_stock()`, `issue_stock()`, `reject_stock_request()` |
 
+## Edge function: `admin-users`
+
+Opening a login, changing someone's password and revoking access all need the
+**service role key**, which bypasses row level security completely. That key can
+never reach a browser, so it lives as a function secret and this function is the
+only thing that holds it.
+
+Every request is authorised twice: the caller's own token must be valid, and the
+profile behind it must be `management` and active. A salesman calling the
+endpoint directly gets `403` on all five actions — `create`, `set_password`,
+`set_active`, `set_email`, `list` — as does an anonymous caller.
+
+Two rules inside it are worth knowing:
+
+- **Only salesman rows are touched.** Management accounts are deliberately out
+  of reach, including the caller's own: locking out the last management account
+  would leave nobody able to unlock anything.
+- **A failed profile insert deletes the login it just made.** A login with no
+  profile behind it can sign in and then see nothing, which is worse than a
+  clean failure.
+
+Revoking sets both an auth ban and `profiles.active = false`. The ban stops a
+new sign-in; the flag is what the portal reads, so a session already open cannot
+carry on either. The row is never deleted — documents already issued carry that
+salesman's name, and a document that cannot name who raised it is worse than one
+naming someone who has left.
+
 ## Four decisions worth knowing
 
 **One function per business event, each a single transaction.** An order is two

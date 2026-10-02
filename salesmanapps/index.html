@@ -253,6 +253,9 @@ td b{font-weight:700}
 .btn:hover{background:var(--s2);border-color:var(--dim)}
 .btn-p{background:var(--blue);color:#fff;border-color:transparent;box-shadow:0 3px 12px rgba(59,91,255,.3)}
 .btn-p:hover{background:var(--blue-d);border-color:transparent}
+/* Destructive: revoking access locks a person out, so the control says so. */
+.btn-r{background:var(--red);color:#fff;border-color:var(--red)}
+.btn-r:hover{filter:brightness(.92)}
 .btn-g{background:var(--grn);color:#fff;border-color:transparent}
 .btn-g:hover{background:#0B8459;border-color:transparent}
 .btn-ai{background:var(--ai);color:#fff;border-color:transparent;box-shadow:0 4px 16px rgba(91,92,246,.36)}
@@ -1094,6 +1097,41 @@ const DICT={
  "k.cgout":       ["Consignment luar","Consignment out","在外寄售","Consignment di luar"],
  "m.sopending":   ["{n} SO masih menunggu invoice.","{n} SOs are still waiting to be invoiced.","{n} 份 SO 仍待开票。","{n} SO agi nganti invoice."],
  "m.docnote2":    ["Sebab itu setiap turutan bergerak sendiri.","That is why each sequence moves at its own pace.","因此各套编号各自推进。","Nya kebuah tiap turutan bejalai diri empu."],
+ "m.users":         ["Akaun Salesman","Salesman Accounts","业务员账户","Akaun Salesman"],
+ "u.sub":           ["Tambah, kemaskini dan tarik balik akses. Akaun yang ditarik balik kekal dalam rekod — dokumen lama masih atas namanya.","Add, update and revoke access. A revoked account stays on the record — its past documents keep their name.","新增、更新与撤销访问权限。被撤销的账户仍保留在记录中，其过往单据仍署其名。","Tambah, ubah enggau ambi baru akses. Akaun ti diambi baru agi ba rekod — dokumen lama agi ba nama iya."],
+ "u.add":           ["Tambah salesman","Add a salesman","新增业务员","Tambah salesman"],
+ "u.email":         ["E-mel log masuk","Login email","登录电邮","E-mel tama"],
+ "u.pw":            ["Kata laluan sementara","Temporary password","临时密码","Kata laluan sementara"],
+ "u.pwhint":        ["Sekurang-kurangnya 8 aksara. Beritahu salesman dan minta dia tukar selepas log masuk pertama.","At least 8 characters. Give it to the salesman and ask them to change it after their first sign-in.","至少 8 个字符。交给业务员并请他们首次登录后更改。","Sekurang-kurang 8 aksara. Beri ngagai salesman lalu minta iya nukar udah tama ti keterubah."],
+ "u.name":          ["Nama penuh","Full name","姓名","Nama penuh"],
+ "u.code":          ["Kod salesman","Salesman code","业务员代码","Kod salesman"],
+ "u.zone":          ["Kawasan","Zone","区域","Kawasan"],
+ "u.phone":         ["Telefon","Phone","电话","Telefon"],
+ "u.withstock":     ["Bawa stok dalam van","Carries stock in a van","车上携带库存","Mai stock dalam van"],
+ "u.create":        ["Buka akaun","Create account","创建账户","Buka akaun"],
+ "u.created":       ["Akaun dibuka","Account created","账户已创建","Akaun udah dibuka"],
+ "u.createdb":      ["Beri e-mel dan kata laluan ini kepada {n}. Minta dia tukar kata laluan selepas log masuk pertama.","Give this email and password to {n}. Ask them to change the password after their first sign-in.","请将此电邮与密码交给 {n}，并请他们首次登录后更改密码。","Beri e-mel enggau kata laluan tu ngagai {n}. Minta iya nukar kata laluan udah tama ti keterubah."],
+ "u.resetpw":       ["Tukar kata laluan","Change password","更改密码","Tukar kata laluan"],
+ "u.resetok":       ["Kata laluan ditukar","Password changed","密码已更改","Kata laluan udah ditukar"],
+ "u.resetokb":      ["Kata laluan baharu untuk {n}. Kata laluan lama tidak lagi berfungsi.","The new password for {n}. The old one no longer works.","{n} 的新密码。旧密码已失效。","Kata laluan baru ke {n}. Kata laluan lama nadai guna agi."],
+ "u.revoke":        ["Tarik balik akses","Revoke access","撤销访问","Ambi baru akses"],
+ "u.restore":       ["Pulihkan akses","Restore access","恢复访问","Pulaika akses"],
+ "u.revokeq":       ["Tarik balik akses {n}?","Revoke access for {n}?","撤销 {n} 的访问权限？","Ambi baru akses {n}?"],
+ "u.revokeb":       ["Dia tidak akan boleh log masuk lagi. Outlet, dokumen dan rekod jualannya kekal — tiada apa dipadam.","They will not be able to sign in again. Their outlets, documents and sales record stay — nothing is deleted.","他们将无法再登录。其门店、单据与销售记录均保留，不会删除任何内容。","Iya enda ulih tama agi. Outlet, dokumen enggau rekod jualan iya agi — nadai utai dibuai."],
+ "u.active":        ["Aktif","Active","启用","Aktif"],
+ "u.inactive":      ["Ditarik balik","Revoked","已撤销","Diambi baru"],
+ "u.outlets":       ["Outlet","Outlets","门店","Outlet"],
+ "u.vanunits":      ["Unit dalam van","Units in van","车上件数","Iti dalam van"],
+ "u.edit":          ["Kemaskini","Update","更新","Ubah"],
+ "u.saved":         ["Disimpan","Saved","已保存","Udah disimpan"],
+ "u.chgemail":      ["Tukar e-mel","Change email","更改电邮","Tukar e-mel"],
+ "u.none":          ["Belum ada salesman","No salesmen yet","尚无业务员","Apin bisi salesman"],
+ "u.noneb":         ["Tambah salesman pertama untuk memberi dia akses kepada portal.","Add the first salesman to give them access to the portal.","新增第一位业务员，让他们可以使用本门户。","Tambah salesman ti keterubah ke meri iya akses ngagai portal."],
+ "u.selfnote":      ["Akaun pengurusan tidak diurus di sini. Hubungi pentadbir sistem untuk menukarnya.","Management accounts are not handled here. Contact your system administrator to change one.","管理账户不在此处管理。如需更改请联系系统管理员。","Akaun pengurusan ukai diurus ditu. Kelala ngagai pentadbir sistem ke nukar iya."],
+ "u.failed":        ["Tidak dapat disimpan","Could not be saved","无法保存","Enda ulih disimpan"],
+ "l.yes":         ["Ya","Yes","是","Iya"],
+ "l.no":          ["Tidak","No","否","Enda"],
+ "lg.revoked":    ["Akses akaun ini sudah ditarik balik. Hubungi pengurusan.","Access for this account has been revoked. Contact management.","此账户的访问权限已被撤销，请联系管理层。","Akses akaun tu udah diambi baru. Kelala ngagai pengurusan."],
  "lg.noyet":      ["Tiada transaksi direkod lagi. Order, hantaran dan kutipan akan muncul di sini sebaik sahaja direkod.","No transactions recorded yet. Orders, deliveries and collections appear here as soon as they are entered.","尚无交易记录。录入订单、送货与收款后将显示于此。","Nadai transaksi direkod agi. Order, hantaran enggau kutipan deka pegari ditu."],
  "post.failed":["Tidak dapat disimpan","Could not be saved","无法保存","Enda ulih disimpan"],
  "post.saving":   ["Menyimpan…","Saving…","保存中…","Benung nyimpan…"],
@@ -1899,7 +1937,9 @@ const MITEMS=()=>{
     {k:"docs",t:T("m.docs"),i:I.doc,h:"#/m/docs"},
     {k:"reports",t:T("m.reports"),i:I.chart,h:"#/m/reports"},
     {gp:T("ai.k")},
-    {k:"ai",t:T("m.ai"),i:I.bolt,h:"#/m/ai"}
+    {k:"ai",t:T("m.ai"),i:I.bolt,h:"#/m/ai"},
+    {gp:T("nav.mgmt")},
+    {k:"users",t:T("m.users"),i:I.users,h:"#/m/users"}
   ];
 };
 const M=(active,inner)=>panelShell("mgmt",MITEMS(),active,liveBar()+inner);
@@ -2196,7 +2236,7 @@ function mStock(){
        <span>${T("st.noreqb")}</span></div>`}
 
     <div class="sec">${T("st.loadvan")}</div>
-    <div class="g g3" style="margin-bottom:18px">${SALESMEN.map(s=>{
+    <div class="g g3" style="margin-bottom:18px">${SALESMEN.filter(s=>s.active!==false).map(s=>{
       const units=PRODUCTS.reduce((a,p)=>a+vanOf(p.id,s.id),0);
       const lo=PRODUCTS.filter(p=>vanOf(p.id,s.id)<=p.low).length;
       return `<div class="card p">
@@ -2329,6 +2369,44 @@ function mReports(){
 }
 
 /* ---------- MANAGEMENT: AI CENTER ---------- */
+/* ---------- MANAGEMENT: SALESMAN ACCOUNTS ---------- */
+/* Opening a login, changing a password and revoking access all need the service
+   role key, which bypasses row level security and so can never sit in a
+   browser. Those three go through the admin-users function, which holds the key
+   as a secret and checks the caller is management before doing anything. The
+   ordinary profile fields are a plain table write — management already has that
+   right through RLS, so they do not need the privileged path. */
+function mUsers(){
+  const team=SALESMEN.slice().sort((a,b)=>String(a.code||"").localeCompare(String(b.code||"")));
+  return M("users",`
+    <div class="pgh"><div><h1>${T("m.users")}</h1><p>${T("u.sub")}</p></div>
+      <div class="ra"><button class="btn btn-p" data-a="u-add">${ic(I.users)} ${T("u.add")}</button></div></div>
+    ${team.length?`<div class="tw"><table>
+      <thead><tr><th>${T("u.name")}</th><th>${T("u.email")}</th><th>${T("u.zone")}</th>
+        <th class="r">${T("u.outlets")}</th><th class="r">${T("u.vanunits")}</th>
+        <th>${T("st.status")}</th><th></th></tr></thead>
+      <tbody>${team.map(s=>{
+        const outlets=CUSTOMERS.filter(c=>c.salesmanId===s.id).length;
+        const units=PRODUCTS.reduce((a,p)=>a+vanOf(p.id,s.id),0);
+        const on=s.active!==false;
+        return `<tr${on?"":' style="opacity:.6"'}>
+          <td><b>${esc(s.name)}</b>
+            <div style="font-size:11.5px;color:var(--dim)">${esc(s.code||"—")}</div></td>
+          <td class="mono" style="font-size:12px">${esc(USER_EMAIL[s.id]||"—")}</td>
+          <td>${esc(s.zone||"—")}</td>
+          <td class="r num">${outlets}</td>
+          <td class="r num">${units}</td>
+          <td><span class="chip ${on?"k-grn":"k-red"}">${on?T("u.active"):T("u.inactive")}</span></td>
+          <td class="r" style="white-space:nowrap">
+            <button class="btn btn-s" data-a="u-edit" data-i="${esc(s.id)}">${T("u.edit")}</button>
+            <button class="btn btn-s" data-a="u-pw" data-i="${esc(s.id)}">${T("u.resetpw")}</button>
+            <button class="btn ${on?"btn-s":"btn-g"}" data-a="u-active" data-i="${esc(s.id)}" data-v="${on?"0":"1"}">${on?T("u.revoke"):T("u.restore")}</button>
+          </td></tr>`}).join("")}</tbody>
+    </table></div>`
+    :`<div class="empty"><b>${T("u.none")}</b><span>${T("u.noneb")}</span></div>`}
+    <div class="note" style="margin-top:13px">${T("u.selfnote")}</div>`);
+}
+
 function mAI(){
   const b=AI.brief(ST.mrange), route=AI.route(), quiet=AI.quiet();
   return M("ai",`
@@ -3723,6 +3801,121 @@ const A={
       Jom daftar outlet anda dengan ${esc(CO.name)}! Guna kod saya:
       <b>AZ-${ME.code}-2026</b><span style="display:block;color:#027EB5;font-size:12px;margin-top:5px">majujaya.my/r/AZ-${ME.code}-2026</span></div></div>
     <button class="btn btn-p btn-w" data-a="close">${T("msg.close")}</button>`)},
+  /* ---- salesman accounts (management) ---- */
+  "u-add"(){
+    modal(`<h3>${T("u.add")}</h3>
+      <div class="f2" style="margin-top:12px">
+        <div class="f"><label>${T("u.name")} *</label><input id="unm" autocomplete="off"></div>
+        <div class="f"><label>${T("u.code")}</label><input id="ucd" autocomplete="off" placeholder="SM06"></div>
+      </div>
+      <div class="f2">
+        <div class="f"><label>${T("u.zone")}</label><input id="uzn" autocomplete="off"></div>
+        <div class="f"><label>${T("u.phone")}</label><input id="uph" autocomplete="off"></div>
+      </div>
+      <div class="f"><label>${T("u.email")} *</label>
+        <input id="uem" type="email" autocomplete="off" inputmode="email" autocapitalize="off" spellcheck="false"></div>
+      <div class="f"><label>${T("u.pw")} *</label><input id="upw" autocomplete="new-password">
+        <div class="hint">${T("u.pwhint")}</div></div>
+      <button class="btn btn-p btn-w" data-a="u-create">${T("u.create")}</button>`);
+  },
+  async "u-create"(e){
+    const pw=($("#upw")||{}).value||"";
+    const b=busy(e);
+    const r=await adminCall({action:"create",
+      name:(($("#unm")||{}).value||"").trim(), email:(($("#uem")||{}).value||"").trim(), password:pw,
+      code:($("#ucd")||{}).value||"", zone:($("#uzn")||{}).value||"", phone:($("#uph")||{}).value||""});
+    unbusy(b);
+    if(!r) return;
+    await loadLive(); render();
+    modal(`<h3>${T("u.created")}</h3>
+      <p style="color:var(--mut);font-size:13.5px;margin:10px 0 13px">${esc(TF("u.createdb",{n:r.name}))}</p>
+      <div class="card" style="padding:14px;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0">
+          <span style="color:var(--mut)">${T("u.email")}</span><b class="mono" style="font-size:12.5px">${esc(r.email)}</b></div>
+        <div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0">
+          <span style="color:var(--mut)">${T("u.pw")}</span><b class="mono" style="font-size:12.5px">${esc(pw)}</b></div>
+      </div>
+      <button class="btn btn-p btn-w" data-a="close">${T("msg.ok")}</button>`);
+  },
+  "u-edit"(e){
+    const s=sm(e.dataset.i);
+    modal(`<h3>${esc(s.name)}</h3>
+      <div class="f2" style="margin-top:12px">
+        <div class="f"><label>${T("u.name")}</label><input id="unm" value="${esc(s.name||"")}"></div>
+        <div class="f"><label>${T("u.code")}</label><input id="ucd" value="${esc(s.code||"")}"></div>
+      </div>
+      <div class="f2">
+        <div class="f"><label>${T("u.zone")}</label><input id="uzn" value="${esc(s.zone||"")}"></div>
+        <div class="f"><label>${T("u.phone")}</label><input id="uph" value="${esc(s.phone||"")}"></div>
+      </div>
+      <div class="f"><label>${T("u.email")}</label>
+        <input id="uem" type="email" autocapitalize="off" spellcheck="false" value="${esc(USER_EMAIL[s.id]||"")}"></div>
+      <div class="f"><label>${T("u.withstock")}</label>
+        <select id="uws"><option value="1"${s.withStock!==false?" selected":""}>${T("l.yes")}</option>
+          <option value="0"${s.withStock===false?" selected":""}>${T("l.no")}</option></select></div>
+      <button class="btn btn-p btn-w" data-a="u-save" data-i="${esc(s.id)}">${T("u.edit")}</button>`);
+  },
+  async "u-save"(e){
+    const id=e.dataset.i, b=busy(e);
+    const em=(($("#uem")||{}).value||"").trim();
+    if(LIVE()){
+      const {error}=await sb.from("profiles").update({
+        name:(($("#unm")||{}).value||"").trim(),
+        code:(($("#ucd")||{}).value||"").trim()||null,
+        zone:(($("#uzn")||{}).value||"").trim()||null,
+        phone:(($("#uph")||{}).value||"").trim()||null,
+        with_stock:(($("#uws")||{}).value)==="1"
+      }).eq("id",id);
+      if(error){ unbusy(b); return postErr(error); }
+      /* The address lives in the auth record, not the profile, so it only
+         changes through the privileged path — and only when it really differs,
+         so an unchanged address is never re-confirmed. */
+      if(em && em!==(USER_EMAIL[id]||"")){
+        const r=await adminCall({action:"set_email",id,email:em});
+        if(!r){ unbusy(b); return; }
+      }
+      await loadLive();
+    }
+    unbusy(b); A.close(); render();
+  },
+  "u-pw"(e){
+    const s=sm(e.dataset.i);
+    modal(`<h3>${T("u.resetpw")}</h3>
+      <p style="color:var(--mut);font-size:13.5px;margin:9px 0 12px">${esc(s.name)} · ${esc(USER_EMAIL[s.id]||"")}</p>
+      <div class="f"><label>${T("u.pw")}</label><input id="upw" autocomplete="new-password">
+        <div class="hint">${T("u.pwhint")}</div></div>
+      <button class="btn btn-p btn-w" data-a="u-pwsave" data-i="${esc(s.id)}">${T("u.resetpw")}</button>`);
+  },
+  async "u-pwsave"(e){
+    const id=e.dataset.i, pw=($("#upw")||{}).value||"", b=busy(e);
+    const r=await adminCall({action:"set_password",id,password:pw});
+    unbusy(b);
+    if(!r) return;
+    const s=sm(id);
+    modal(`<h3>${T("u.resetok")}</h3>
+      <p style="color:var(--mut);font-size:13.5px;margin:10px 0 13px">${esc(TF("u.resetokb",{n:s.name}))}</p>
+      <div class="card" style="padding:14px;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;gap:10px">
+          <span style="color:var(--mut)">${T("u.pw")}</span><b class="mono" style="font-size:12.5px">${esc(pw)}</b></div></div>
+      <button class="btn btn-p btn-w" data-a="close">${T("msg.ok")}</button>`);
+  },
+  "u-active"(e){
+    const id=e.dataset.i, turnOn=e.dataset.v==="1", s=sm(id);
+    if(turnOn) return A["u-go"]({dataset:{i:id,v:"1"}});
+    /* Revoking is the one step here that locks a person out of their own work,
+       so it is asked for rather than done on a single tap. */
+    modal(`<h3>${esc(TF("u.revokeq",{n:s.name}))}</h3>
+      <p style="color:var(--mut);font-size:13.5px;margin:11px 0 14px">${T("u.revokeb")}</p>
+      <button class="btn btn-r btn-w" data-a="u-go" data-i="${esc(id)}" data-v="0">${T("u.revoke")}</button>
+      <button class="btn btn-s btn-w" style="margin-top:8px" data-a="close">${T("msg.close")}</button>`);
+  },
+  async "u-go"(e){
+    const b=(e&&e.tagName)?busy(e):null;
+    const r=await adminCall({action:"set_active",id:e.dataset.i,active:e.dataset.v==="1"});
+    unbusy(b);
+    if(!r) return;
+    await loadLive(); A.close(); render();
+  },
   close(){$("#modal").innerHTML=""}
 };
 document.addEventListener("click",e=>{
@@ -3787,15 +3980,18 @@ function setPaper(){
    query for everyone — a salesman simply gets fewer rows back. */
 async function loadLive(){
   const {data:prof,error:pe}=await sb.from("profiles")
-    .select("id,role,name,code,zone,with_stock").eq("id",AUTH.session.user.id).maybeSingle();
+    .select("id,role,name,code,zone,phone,with_stock,active").eq("id",AUTH.session.user.id).maybeSingle();
   if(pe||!prof){ AUTH.err="No profile is linked to this account."; return false; }
+  /* The auth ban stops a new sign-in; this stops a session that was already
+     open from carrying on after access was revoked. */
+  if(prof.active===false){ AUTH.err=T("lg.revoked"); return false; }
 
   const [{data:co},{data:prods},{data:custs},{data:van},{data:team}]=await Promise.all([
     sb.from("company").select("*").maybeSingle(),
     sb.from("products").select("*").eq("active",true).order("name"),
     sb.from("customers").select("*").eq("active",true).order("code"),
     sb.from("van_stock").select("salesman_id,product_id,qty"),
-    sb.from("profiles").select("id,name,code,zone,with_stock,role").eq("role","salesman").order("code")
+    sb.from("profiles").select("id,name,code,zone,phone,with_stock,role,active").eq("role","salesman").order("code")
   ]);
 
   AUTH.profile=prof;
@@ -3810,8 +4006,11 @@ async function loadLive(){
      meant every sm() lookup missed once outlets carried real ids, and reading
      .name off the miss took the management outlet table down. */
   SALESMEN.length=0;
+  /* Revoked salesmen stay in the roster: their name is on documents already
+     issued, and a document that cannot name who raised it is worse than one
+     naming someone who has left. Screens that hand out new work filter them. */
   (team||[]).forEach(r=>SALESMEN.push({id:r.id,name:r.name,code:r.code||"",zone:r.zone||"",
-    withStock:r.with_stock!==false}));
+    phone:r.phone||"",withStock:r.with_stock!==false,active:r.active!==false}));
 
   PRODUCTS.length=0;
   (prods||[]).forEach(r=>PRODUCTS.push({id:r.id,name:r.name,sku:r.sku,
@@ -3828,6 +4027,7 @@ async function loadLive(){
   VAN[ME.id]=VAN[ME.id]||{};
 
   await loadLedger();
+  await loadEmails();
   return true;
 }
 
@@ -3947,6 +4147,9 @@ function authMsg(m){
   if(s.includes("invalid login credentials")) return T("lg.bad");
   if(s.includes("missing email")||s.includes("missing phone")) return T("lg.need");
   if(s.includes("email not confirmed")) return T("lg.unconfirmed");
+  /* A salesman whose access was revoked gets told that, not the server's
+     word for it. "User is banned" reads like an accusation. */
+  if(s.includes("banned"))          return T("lg.revoked");
   if(s.includes("failed to fetch")||s.includes("networkerror")) return T("lg.net");
   if(s.includes("too many requests")||s.includes("rate limit")) return T("lg.rate");
   return m;
@@ -4013,6 +4216,54 @@ function busy(sel){
   return b;
 }
 function unbusy(b){ if(b){ b.disabled=false; if(b.dataset.was) b.textContent=b.dataset.was; } }
+
+
+/* The account functions live behind an Edge Function because they need the
+   service role key. supabase-js reports any non-2xx as "Edge Function returned
+   a non-2xx status code" and keeps the body on the error, so the reason the
+   server actually gave is read back out — otherwise every refusal, from a
+   duplicate code to a weak password, would read identically. */
+const ADMIN_MSG={
+  management_only: ["Hanya pengurusan boleh mengurus akaun.","Only management can manage accounts.","只有管理层可以管理账户。","Semina pengurusan ulih ngurus akaun."],
+  weak_password:   ["Kata laluan mesti sekurang-kurangnya 8 aksara.","The password must be at least 8 characters.","密码至少需要 8 个字符。","Kata laluan patut sekurang-kurang 8 aksara."],
+  bad_email:       ["Alamat e-mel tidak sah.","That email address is not valid.","电邮地址无效。","Alamat e-mel enda ngena."],
+  code_taken:      ["Kod salesman itu sudah digunakan.","That salesman code is already in use.","该业务员代码已被使用。","Kod salesman nya udah dikena."],
+  no_name:         ["Nama diperlukan.","The name is required.","必须填写姓名。","Nama beguna."]
+};
+async function adminCall(body){
+  if(!LIVE()){
+    modal(`<h3>${T("u.failed")}</h3>
+      <p style="color:var(--mut);font-size:13.5px;margin:11px 0">${T("lg.demobody")}</p>
+      <button class="btn btn-p btn-w" data-a="close">${T("msg.ok")}</button>`);
+    return null;
+  }
+  let data,error;
+  try{ ({data,error}=await sb.functions.invoke("admin-users",{body})); }
+  catch(e){ error=e; }
+  if(!error && data && !data.error) return data;
+
+  let detail=data&&data.detail, msg=data&&data.error;
+  if(error&&error.context&&typeof error.context.json==="function"){
+    try{ const j=await error.context.json(); msg=j.error||msg; detail=j.detail||detail; }catch(_){}
+  }
+  const t=ADMIN_MSG[detail] ? ADMIN_MSG[detail][LI()] : null;
+  modal(`<h3>${T("u.failed")}</h3>
+    <p style="color:var(--mut);font-size:13.5px;margin:11px 0">${esc(t||msg||(error&&error.message)||T("post.unknown"))}</p>
+    <button class="btn btn-p btn-w" data-a="close">${T("msg.ok")}</button>`);
+  return null;
+}
+
+/* Emails live in the auth record, not in profiles, so the accounts screen asks
+   the same function for them. Management only; empty for everyone else. */
+const USER_EMAIL={};
+async function loadEmails(){
+  Object.keys(USER_EMAIL).forEach(k=>delete USER_EMAIL[k]);
+  if(!LIVE()||!AUTH.profile||AUTH.profile.role!=="management") return;
+  try{
+    const {data,error}=await sb.functions.invoke("admin-users",{body:{action:"list"}});
+    if(!error&&data&&data.emails) Object.assign(USER_EMAIL,data.emails);
+  }catch(_){}
+}
 
 async function signIn(email,pw){
   AUTH.err="";
@@ -4097,6 +4348,7 @@ function render(){
       case "docs":    h=mDocs(); break;
       case "reports": h=mReports(); break;
       case "ai":      h=mAI(); break;
+      case "users":   h=mUsers(); break;
       case "doc":     h=vDoc("m",p[2],p[3]); break;
       default:        h=mDash();
     }

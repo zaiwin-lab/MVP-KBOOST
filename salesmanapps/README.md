@@ -233,6 +233,23 @@ who put stock in it, when, and against which request — rather than just
 asserted. `issue_stock()` is management-only: a salesman able to issue to his
 own van could conjure the stock that every sale is then checked against.
 
+## Salesman accounts
+
+Management → **Akaun Salesman** lists the team with their login email, zone,
+outlets held and units in the van, and opens, updates or revokes an account
+without anyone touching Supabase.
+
+Opening a login, changing a password and revoking access go through the
+`admin-users` edge function, because all three need the service role key and
+that key bypasses row level security — it can never sit in a browser. The
+ordinary profile fields (name, code, zone, phone, carries-stock) are a plain
+table write, since management already holds that right through RLS.
+
+Revoking asks first, and says plainly that nothing is deleted: the salesman
+cannot sign in again, and their outlets, documents and sales record all stay.
+The roster deliberately keeps revoked salesmen so their name still resolves on
+documents they raised; screens that hand out new work filter them out.
+
 ## Verified
 
 Checked in a real browser (Chromium) before each deploy, on the demo path and
