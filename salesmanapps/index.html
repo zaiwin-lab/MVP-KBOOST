@@ -2330,12 +2330,20 @@ function sRegister(){
 function sOrder(cid){
   if(!cid) return SM("order",`
     <div class="pgh"><div><h1>${T("s.order")}</h1><p>Pilih outlet untuk mula.</p></div></div>
-    <div class="g g3">${S.myCust().map(c=>`
-      <a class="card p" href="#/s/order/${c.id}">
+    <div class="g g3">${S.myCust().map(c=>{
+      /* A consignment outlet is not ordered from — stock is dropped and billed
+         later from the balance. Sending it to the right screen here is better
+         than letting an order be built that will be refused on submit. */
+      const cg=c.term==="consign";
+      return `<a class="card p" href="#/s/${cg?"consign":"order"}/${c.id}">
         <b style="font-size:14.5px;display:block">${esc(c.name)}</b>
         <span style="font-size:12px;color:var(--mut)">${c.code} · ${esc(c.dist)}</span><br>
-        <span class="chip ${TERM[c.term].k}" style="margin-top:9px">${TERM[c.term].t}</span></a>`).join("")}</div>`);
+        <span class="chip ${TERM[c.term].k}" style="margin-top:9px">${TERM[c.term].t}</span>
+        ${cg?`<span class="chip k-mut" style="margin-top:9px">→ Hantar Stock</span>`:""}</a>`}).join("")}</div>`);
   const c=cust(cid); if(!c) return sOrder();
+  /* Someone who lands here by link or by typing the address gets the screen that
+     can actually serve this outlet, rather than a refusal at the end. */
+  if(c.term==="consign") return sConsign(cid);
   if(!ST.draft||ST.draft.cid!==cid) ST.draft={cid,lines:PRODUCTS.map(p=>({productId:p.id,qty:0,price:p.price}))};
   const d=ST.draft, total=money(d.lines.reduce((a,l)=>a+money(l.qty*l.price),0));
   const n=d.lines.filter(l=>l.qty>0).length;
@@ -2427,9 +2435,30 @@ function sConsign(cid){
       <div class="f2" style="margin-top:13px">
         <div class="f"><label>${T("l.product")}</label><select id="cgp">
           ${PRODUCTS.map(p=>`<option value="${p.id}">${esc(p.name)} — ${RM2(p.price)} (van ${vanOf(p.id)})</option>`).join("")}</select></div>
-        <div class="f"><label>${T("l.qty")}</label><input id="cgq" type="number" value="100" min="1"></div></div>
+        <div class="f"><label>${T("l.qty")}</label><input id="cgq" type="number" value="${Math.min(100,Math.max(1,vanOf(PRODUCTS[0]&&PRODUCTS[0].id)))}" min="1"></div></div>
       <button class="btn btn-p" data-a="send-stock" data-c="${cid}">${ic(I.truck)} Hantar Stock</button>
-    </div>`:""}
+    </div>`
+    /* Reached from the rail there is no outlet yet, and the drop form needs one.
+       Without this the screen was two empty lists and no way to start — which is
+       exactly how a stock drop ended up being entered as an ordinary sale. */
+    :(()=>{ const mine=S.myCust().filter(x=>x.term==="consign");
+      return `<div class="card p" style="margin-bottom:18px">
+        <h3>Pilih outlet untuk hantar stock</h3>
+        <p style="color:var(--mut);font-size:13.5px;margin-top:6px">
+          Hanya outlet consignment menerima penghantaran stock. Outlet Cash dan Bil to Bil guna
+          <a href="#/s/order" style="color:var(--blue);font-weight:700">Ambil Order</a>.</p>
+        ${mine.length?`<div class="g g3" style="margin-top:14px">${mine.map(x=>{
+          const open=DB.consign.filter(g=>g.customerId===x.id&&g.balance===null).length;
+          return `<a class="card p" href="#/s/consign/${x.id}" style="border-color:var(--line)">
+            <b style="font-size:14.5px;display:block">${esc(x.name)}</b>
+            <span style="font-size:12px;color:var(--mut)">${x.code} · ${esc(x.dist)}</span><br>
+            <span class="chip k-vio" style="margin-top:9px">${TERM.consign.t}</span>
+            ${open?`<span class="chip k-amb" style="margin-top:9px">${open} belum semak baki</span>`:""}
+          </a>`}).join("")}</div>`
+        :`<div class="empty" style="margin-top:14px"><b>Tiada outlet consignment</b>
+           <span>Tiada outlet anda yang menggunakan term Consignment. Tukar term outlet, atau
+           daftar outlet baru dengan term Consignment.</span></div>`}
+      </div>`})()}
     <div class="sec">Belum semak baki (${openL.length})</div>
     <div class="g g2">${openL.map(g=>{const cc=cust(g.customerId),p=prod(g.productId);
       const bal=g.tmp, ok=bal!=null&&bal>=0&&bal<=g.qty, sold=ok?g.qty-bal:null;
@@ -2445,7 +2474,9 @@ function sConsign(cid){
           <span><b>${g.qty} − ${bal} = ${sold} unit terjual</b><br>Bil ${RM2(sold*g.price)} — bukan ${RM2(g.qty*g.price)}.</span></div>
           <button class="btn btn-p btn-w" data-a="gen-bill" data-g="${g.id}">Jana Bill · ${RM2(sold*g.price)}</button>`
         :`<button class="btn btn-w" disabled>Masukkan baki dahulu</button>`}
-      </div>`}).join("")||`<div class="empty" style="grid-column:1/-1"><b>Tiada penghantaran terbuka</b></div>`}</div>
+      </div>`}).join("")||`<div class="empty" style="grid-column:1/-1"><b>Tiada penghantaran terbuka</b>
+        <span>Stock yang sudah dihantar tetapi belum disemak baki akan muncul di sini, untuk
+        dikira berapa unit terjual pada lawatan berikut.</span></div>`}</div>
     <div class="sec">Sudah dibil (${doneL.length})</div>
     <div class="tw"><table>
       <thead><tr><th>${T("l.outlet")}</th><th>${T("l.product")}</th><th class="r">Hantar</th><th class="r">Baki</th>
