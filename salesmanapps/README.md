@@ -59,14 +59,24 @@ paragraph and both step-by-step routines in the playbook.
 The Iban column is a first pass written against standard Iban vocabulary. It
 should be read by a native speaker before this goes in front of a Sarawak
 audience — the technical loanwords (order, invoice, consignment, stock) are
-deliberately left as-is, but the connecting prose is worth a check.
+deliberately left as-is, but the connecting prose is worth a check. This applies
+to the whole column, which is now roughly 365 entries.
 
 Deliberately **not** translated: running numbers, document type names
 (`DO`, `SO`, `Invoice`, `Receipt`, `RET`), the three model names
 (`Consignment`, `Bil to Bil`, `Cash`), product names, and outlet names. These
 are proper nouns on printed paperwork and must read identically in every
-language. The deeper transaction screens also keep their Bahasa Malaysia
-working copy — that is the language the counter staff use.
+language.
+
+Everything else does translate, including the transaction screens, every modal
+and refusal message, and the AI assistant's answers and suggested questions. An
+earlier build kept the deeper screens in Bahasa Malaysia on the reasoning that
+counter staff work in BM; that is not defensible next to a four-language switch,
+so the remaining 175 strings were translated.
+
+Strings that wrap a number or a name go through `TF("key",{…})`, which fills
+`{placeholders}`, because word order moves between languages and a sentence
+split into fragments cannot be reassembled correctly in all four.
 
 ## The three transaction models
 

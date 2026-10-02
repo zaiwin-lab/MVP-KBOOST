@@ -193,6 +193,8 @@ img,svg{max-width:100%}
 .rail a.on{background:var(--blue-lo);color:var(--blue-d)}
 .rail a svg{width:17px;height:17px;flex:none}
 .rail a .bg{margin-left:auto;font-size:10.5px;font-weight:800;padding:1px 7px;border-radius:var(--pill);background:var(--red);color:#fff}
+.rail a .bg.n{background:var(--s3);color:var(--mut)}
+.rail a.on .bg.n{background:#fff;color:var(--blue-d)}
 .main{flex:1;min-width:0;padding:26px 30px 90px;max-width:1320px}
 .mainw{flex:1;min-width:0;padding:0 0 90px}
 .pgh{display:flex;align-items:flex-end;gap:16px;margin-bottom:20px;flex-wrap:wrap}
@@ -846,6 +848,252 @@ const DICT={
  "lg.go":         ["Log masuk","Sign in","登录","Tama"],
  "lg.going":      ["Sedang masuk…","Signing in…","登录中…","Benung tama…"],
  "lg.wait":       ["Menyemak sesi…","Checking your session…","正在检查登录状态…","Benung ngelala sesi…"],
+ "pub.c1h":         ["Bill hanya barang terjual","Bill only what sold","只为售出的货品开单","Bil semina utai ti udah dijual"],
+ "pub.c1b":         ["Stock dihantar dahulu. Lawatan berikut, masukkan baki — sistem kira yang terjual dan bil untuk itu sahaja.","Stock goes out first. On the next visit you enter the balance — the system works out what sold and bills only that.","先送货。下次拜访时输入余货，系统自动算出售出量，只就该数量开单。","Stock dikirum dulu. Lawang ti datai ila, tama ke baki — sistem ngira ti udah dijual lalu bil semina nya."],
+ "pub.c1s1":        ["Hantar 100 unit","Deliver 100 units","送出 100 件","Kirum 100 iti"],
+ "pub.c1s2":        ["Baki stock = 30","Balance on shelf = 30","余货 = 30","Baki stock = 30"],
+ "pub.c1s3":        ["100 − 30 = 70 terjual","100 − 30 = 70 sold","100 − 30 = 售出 70","100 − 30 = 70 dijual"],
+ "pub.c1s4":        ["Bill 70 × RM5 = RM350","Bill 70 × RM5 = RM350","开单 70 × RM5 = RM350","Bil 70 × RM5 = RM350"],
+ "pub.c2h":         ["Setiap order jadi bil sendiri","Every order becomes its own bill","每笔订单自成一单","Tiap-tiap order nyadi bil diri empu"],
+ "pub.c2b":         ["Order menjana rantaian penuh. Bayaran mengikut term 1, 2 atau 3 bulan yang disimpan pada outlet itu.","An order raises the full chain. Payment follows the 1, 2 or 3 month term held on that outlet.","下单即生成完整单据链。付款依该门店设定的 1、2 或 3 个月账期。","Order ngaga rantai penuh. Bayar nitihka term 1, 2 tauka 3 bulan ti disimpan ba outlet nya."],
+ "pub.c2s1":        ["Order","Order","订单","Order"],
+ "pub.c2s2":        ["Invoice + due date","Invoice + due date","发票 + 到期日","Invoice + tarikh matang"],
+ "pub.c2s3":        ["Payment ikut term","Payment on term","按账期付款","Bayar nitihka term"],
+ "pub.c3h":         ["Order dan bayar di tempat","Order and pay on the spot","当场下单付款","Order lalu bayar ba endur nya"],
+ "pub.c3b":         ["Aliran yang sama, tetapi bayaran direkod serta-merta dan resit dijana sebelum salesman keluar dari kedai.","The same flow, but payment is recorded immediately and the receipt is issued before the salesman leaves the shop.","流程相同，但款项即时入账，业务员离店前即开具收据。","Aliran ti sama, tang bayar direkod tekala nya lalu resit digaga sebedau salesman pansut ari kedai."],
+ "pub.c3s1":        ["DO → SO → Invoice","DO → SO → Invoice","DO → SO → Invoice","DO → SO → Invoice"],
+ "ai.r1":           ["Menyusun jadual harian ikut wang tertunggak, consignment yang perlu disemak, dan nilai outlet.","Orders the day by money owed, consignments needing a balance check, and outlet value.","按欠款、待盘点寄售与门店价值排定每日行程。","Nyusun jadual tiap hari nitihka duit ti agi tinggal, consignment ti patut dipeda, enggau rega outlet."],
+ "ai.q1":           ["Quiet Outlet Detection","Quiet Outlet Detection","静默门店侦测","Ngelala Outlet ti Senyap"],
+ "ai.q2":           ["Membandingkan setiap outlet dengan iramanya sendiri, bukan purata sejagat.","Compares each outlet against its own rhythm, not a global average.","将每家门店与其自身节奏比较，而非全体平均。","Nyimban tiap outlet enggau irama diri empu, ukai purata semua."],
+ "ai.b1":           ["Satu bacaan ringkas untuk pengurusan, dikira semula setiap kali data berubah.","One short briefing for management, recalculated whenever the data changes.","为管理层提供的简要摘要，数据一变即重新计算。","Siti bacha ti pandak ke pengurusan, dikira baru tiap kali data berubah."],
+ "ai.same":         ["Dikira daripada data yang sama di sebelah kiri.","Computed from the same data shown on the left.","由左侧同一份数据计算得出。","Dikira ari data ti sama ba kiba."],
+ "ai.cgwait":       ["penghantaran consignment belum disemak baki.","consignment deliveries still waiting on a balance check.","笔寄售送货尚未盘点余货。","pengirum consignment ti apin dipeda baki."],
+ "ai.quiet":        ["outlet senyap lebih lama daripada irama biasa mereka.","outlets quiet for longer than their own usual rhythm.","家门店静默时间已超出其常态节奏。","outlet ti senyap lebih lama ari irama sida ti biasa."],
+ "ai.today":        ["Bacaan hari ini","Today's reading","今日摘要","Bacha sari tu"],
+ "ai.collrate":     ["Kadar kutipan dan baki tertunggak untuk tempoh dipilih.","Collection rate and the balance outstanding for the chosen period.","所选期间的收款率与未结余额。","Kadar kutipan enggau baki ti agi tinggal ke tempoh ti dipilih."],
+ "ai.gap":          ["Jurang antara pendahulu dan yang paling belakang.","The gap between the leader and the one furthest behind.","领先者与落后者之间的差距。","Jurang entara ti dulu enggau ti pemudi."],
+ "ai.hold":         ["Penghantaran yang belum disemak baki menahan bil daripada dijana.","Deliveries not yet balance-checked are holding bills back from being raised.","尚未盘点的送货正阻碍开单。","Pengirum ti apin dipeda baki nagang bil ari digaga."],
+ "ai.holdn":        ["penghantaran menunggu semakan baki","deliveries waiting on a balance check","笔送货待盘点","pengirum ti nganti semakan baki"],
+ "ai.order1":       ["Wang tertunggak dahulu, kemudian consignment, kemudian nilai outlet.","Money owed first, then consignment, then outlet value.","先看欠款，再看寄售，最后看门店价值。","Duit ti agi tinggal dulu, udah nya consignment, udah nya rega outlet."],
+ "ai.quieth":       ["📉 Outlet yang senyap","📉 Outlets that have gone quiet","📉 静默的门店","📉 Outlet ti udah senyap"],
+ "ai.quietb":       ["Dibandingkan dengan irama pesanan outlet itu sendiri.","Compared against that outlet's own ordering rhythm.","与该门店自身的下单节奏比较。","Disimban enggau irama order outlet nya empu."],
+ "ai.allok":        ["Semua outlet mengikut irama biasa","Every outlet is on its usual rhythm","所有门店节奏正常","Semua outlet nitihka irama ti biasa"],
+ "ai.allokb":       ["Tiada outlet yang tersasar daripada corak pesanan mereka.","No outlet has drifted from its ordering pattern.","没有门店偏离其下单模式。","Nadai outlet ti nyimpang ari chara order sida."],
+ "ai.foot":         ["Setiap bacaan di halaman ini dikira daripada data transaksi yang sama yang menggerakkan panel lain. Tiada teks yang ditulis lebih awal.","Every reading on this page is computed from the same transaction data that drives the other panels. None of it is written in advance.","本页每项读数均来自驱动其他面板的同一批交易数据，没有任何预先写好的文字。","Tiap bacha ba lambar tu dikira ari data transaksi ti sama ti ngerakka panel bukai. Nadai teks ti ditulis dulu."],
+ "m.rankn":         ["Ranking dikira semula setiap kali order direkod. Tukar tempoh di atas — nombor berubah serta-merta.","Ranking is recalculated every time an order is recorded. Change the period above and the figures move immediately.","每录入一笔订单即重新计算排名。切换上方期间，数字立即变化。","Ranking dikira baru tiap kali order direkod. Tukar tempoh ba atas — nambor berubah tekala nya."],
+ "l.area":          ["Kawasan","District","地区","Kawasan"],
+ "l.dochist":       ["Sejarah dokumen","Document history","单据记录","Sejarah dokumen"],
+ "l.paybeh":        ["Kelakuan bayaran","Payment behaviour","付款行为","Chara bayar"],
+ "m.ageb":          ["Baki belum jelas mengikut umur selepas tarikh matang","Outstanding balance by age past the due date","按逾期天数划分的未结余额","Baki ti agi tinggal nitihka umur udah tarikh matang"],
+ "m.lagb":          ["Purata hari sebenar dari invois ke resit, per outlet.","Real average days from invoice to receipt, per outlet.","各门店从开票到收款的实际平均天数。","Purata hari bendar ari invois ngagai resit, tiap outlet."],
+ "l.openinv":       ["Invoice belum jelas","Unpaid invoices","未付发票","Invoice ti apin dibayar"],
+ "l.paidamt":       ["Dibayar","Paid","已付","Udah dibayar"],
+ "l.balance2":      ["Baki","Balance","余额","Baki"],
+ "st.ask":          ["Minta","Asked","申请","Minta"],
+ "st.invan":        ["Dalam van","In van","车上库存","Dalam van"],
+ "st.supply":       ["Bekal","Supply","配发","Bekal"],
+ "st.reject":       ["Tolak","Reject","拒绝","Tolak"],
+ "st.noreq":        ["Tiada request menunggu","No requests waiting","没有待处理的申请","Nadai request ti nganti"],
+ "st.noreqb":       ["Request dari salesman akan muncul di sini untuk dibekalkan atau ditolak.","Requests from salesmen appear here to be supplied or rejected.","业务员的补货申请将显示于此，供配发或拒绝。","Request ari salesman deka pegari ditu ke dibekal tauka ditolak."],
+ "st.loadvan":      ["Muat van","Load a van","装载车辆","Muat van"],
+ "st.vanstock":     ["Stok van","Van stock","车载库存","Stock van"],
+ "st.minlvl":       ["Paras min","Min level","最低水平","Paras min"],
+ "l.floorp":        ["Harga lantai","Floor price","最低限价","Rega pemadu baruh"],
+ "l.value":         ["Nilai","Value","价值","Rega"],
+ "st.low":          ["Rendah","Low","偏低","Baruh"],
+ "l.sent":          ["Dihantar","Sent","已送","Dikirum"],
+ "l.days":          ["Hari","Days","天数","Hari"],
+ "cg.unchecked":    ["Belum semak","Not checked","未盘点","Apin dipeda"],
+ "l.kind":          ["Jenis","Type","类型","Jenis"],
+ "m.bymodel":       ["Mengikut model transaksi","By transaction model","按交易模式","Nitihka model transaksi"],
+ "m.bymodelb":      ["Nilai invois per model","Invoice value by model","各模式的发票金额","Rega invois tiap model"],
+ "m.byarea":        ["Mengikut kawasan","By district","按地区","Nitihka kawasan"],
+ "m.byareab":       ["Nilai invois per kawasan","Invoice value by district","各地区的发票金额","Rega invois tiap kawasan"],
+ "m.byprod":        ["Mengikut produk","By product","按产品","Nitihka produk"],
+ "s.schedb":        ["Disusun ikut wang tertunggak dan consignment yang perlu disemak.","Ordered by money owed and consignments needing a balance check.","按欠款与待盘点寄售排序。","Disusun nitihka duit ti agi tinggal enggau consignment ti patut dipeda."],
+ "s.schedn":        ["Senarai kedai untuk dilawat hari ini — bukan attendance, bukan tracking, tiada status pending atau completed.","The shops to visit today — not attendance, not tracking, no pending or completed status.","今日要拜访的门店清单 — 不是考勤，不是追踪，没有待办或完成状态。","Senarai kedai ti deka dilawang sari tu — ukai attendance, ukai tracking, nadai status pending tauka completed."],
+ "s.checknow":      ["Semak sekarang →","Check now →","立即盘点 →","Peda diatu →"],
+ "r.title":         ["Daftar Outlet","Register Outlet","登记门店","Daftar Outlet"],
+ "r.sub":           ["Maklumat ini menjadi milik syarikat, bukan salesman.","This information belongs to the company, not to the salesman.","此资料属于公司，而非业务员。","Utai tu enggi syarikat, ukai enggi salesman."],
+ "r.info":          ["Maklumat outlet","Outlet details","门店资料","Utai pasal outlet"],
+ "r.name":          ["Nama outlet *","Outlet name *","门店名称 *","Nama outlet *"],
+ "r.nameph":        ["Kedai Runcit ...","Grocery shop ...","杂货店 ...","Kedai Runcit ..."],
+ "r.pic":           ["Nama","Name","姓名","Nama"],
+ "r.phone":         ["Telefon","Phone","电话","Telefon"],
+ "r.addr":          ["Alamat","Address","地址","Alamat"],
+ "r.post":          ["Poskod","Postcode","邮编","Poskod"],
+ "r.state":         ["Negeri","State","州属","Menua"],
+ "r.termn":         ["Ini menentukan aliran transaksi, bukan sekadar tarikh matang.","This decides the transaction flow, not just a due date.","此项决定交易流程，而不只是到期日。","Tu nentuka aliran transaksi, ukai semina tarikh matang."],
+ "r.t2":            ["Bil to Bil — order jadi bil, bayar ikut term","Bil to Bil — the order becomes the bill, paid on term","Bil to Bil —下单即开单，按账期付款","Bil to Bil — order nyadi bil, bayar nitihka term"],
+ "r.t1":            ["Consignment — bil barang terjual sahaja","Consignment — bill only what sold","寄售 — 只就售出部分开单","Consignment — bil semina utai ti udah dijual"],
+ "r.gps":           ["Lokasi GPS","GPS location","GPS 位置","Endur GPS"],
+ "r.gpsn":          ["Ditangkap sekali di kedai. Salesman lain terus jumpa outlet ini.","Captured once at the shop. Any other salesman then finds this outlet straight away.","在门店采集一次，其他业务员即可直接找到该门店。","Ditangkap sekali ba kedai. Salesman bukai terus tetemu outlet tu."],
+ "r.grab":          ["Tangkap di lokasi","Capture here","在此采集","Tangkap ditu"],
+ "r.gpsc":          ["Koordinat disemak terhadap Kawasan yang diisi, supaya pin jatuh di pekan yang betul.","The coordinates are checked against the district entered above, so the pin lands in the right town.","坐标会与上方填写的地区核对，确保定位落在正确的城镇。","Koordinat dipeda enggau Kawasan ti ditama, ngambika pin labuh ba pekan ti betul."],
+ "r.save":          ["Simpan Outlet","Save outlet","保存门店","Simpan Outlet"],
+ "o.pick":          ["Pilih outlet untuk mula.","Pick an outlet to start.","选择门店开始。","Pilih outlet ke berengkah."],
+ "o.tocg":          ["→ Hantar Stock","→ Send stock","→ 送寄售货","→ Kirum Stock"],
+ "o.floorn":        ["Harga boleh diubah dalam had lantai. Stok van ditolak apabila order dihantar.","The price can be moved down to the floor. Van stock is drawn down when the order is submitted.","价格可下调至限价。订单提交后扣减车载库存。","Rega ulih diubah sampai ke pemadu baruh. Stock van dikurang lebuh order dikirum."],
+ "o.below":         ["Harga bawah lantai.","Price is below the floor.","价格低于限价。","Rega baruh ari pemadu baruh."],
+ "o.chain":         ["Rantaian dokumen","Document chain","单据链","Rantai dokumen"],
+ "col.none":        ["Tiada invois tertunggak","Nothing outstanding","没有未结账款","Nadai invois ti agi tinggal"],
+ "col.rec":         ["Resit","Receipt","收据","Resit"],
+ "col.inv":         ["Invois","Invoice","发票","Invois"],
+ "col.meth":        ["Kaedah","Method","方式","Chara"],
+ "col.nocol":       ["Belum ada kutipan","No collections yet","尚无收款","Apin bisi kutipan"],
+ "col.nocolb":      ["Setiap bayaran yang direkod muncul di sini dengan resitnya.","Every payment recorded appears here with its receipt.","每笔入账的款项连同收据显示于此。","Tiap bayar ti direkod pegari ditu enggau resit iya."],
+ "col.autorec":     ["Resit dijana automatik selepas setiap bayaran direkod, penuh atau separa.","A receipt is issued automatically after every payment, full or partial.","每笔付款后自动开具收据，全额或部分皆然。","Resit digaga ngena diri udah tiap bayar direkod, penuh tauka separa."],
+ "cg.sub":          ["Hantar stock dahulu, bil barang terjual sahaja.","Send stock first, bill only what sold.","先送货，只就售出部分开单。","Kirum stock dulu, bil semina utai ti udah dijual."],
+ "cg.new":          ["Hantar stock baru","Send new stock","送出新货","Kirum stock baru"],
+ "cg.pick":         ["Pilih outlet untuk hantar stock","Pick an outlet to send stock to","选择要送货的门店","Pilih outlet ke dikirum stock"],
+ "cg.nocg":         ["Tiada outlet consignment","No consignment outlets","没有寄售门店","Nadai outlet consignment"],
+ "cg.bal":          ["Baki stock di kedai","Balance on the shelf","店内余货","Baki stock ba kedai"],
+ "cg.balph":        ["Kira baki di rak","Count what is on the shelf","清点货架上的数量","Kira baki ba rak"],
+ "cg.first":        ["Masukkan baki dahulu","Enter the balance first","请先输入余货","Tama ke baki dulu"],
+ "cg.noopen":       ["Tiada penghantaran terbuka","No open deliveries","没有未结送货","Nadai pengirum ti agi tebuka"],
+ "cg.sentq":        ["Hantar","Sent","已送","Dikirum"],
+ "cg.sold":         ["Terjual","Sold","售出","Dijual"],
+ "p.noinv":         ["Tiada invoice belum jelas","No unpaid invoices","没有未付发票","Nadai invoice ti apin dibayar"],
+ "p.noinvb":        ["Semua invois untuk outlet ini sudah selesai.","Every invoice for this outlet is settled.","此门店所有发票均已结清。","Semua invois ke outlet tu udah selesai."],
+ "p.autorec":       ["Resit dijana automatik selepas payment.","A receipt is issued automatically after payment.","付款后自动开具收据。","Resit digaga ngena diri udah bayar."],
+ "rt.back":         ["Stok kembali ke van, RET dijana.","Stock goes back on the van and a RET is issued.","货品退回车上，并生成 RET 单。","Stock pulai ngagai van, RET digaga."],
+ "rt.title":        ["Rekod pulangan","Record a return","登记退货","Rekod pulai"],
+ "rt.reason":       ["Sebab","Reason","原因","Kebuah"],
+ "rt.note":         ["Nota tambahan","Extra note","补充说明","Nota tambah"],
+ "st.supplied":     ["Dibekal","Supplied","已配发","Udah dibekal"],
+ "st.status":       ["Status","Status","状态","Status"],
+ "st.date":         ["Tarikh","Date","日期","Tarikh"],
+ "st.belowmin":     ["bawah paras minimum — request stok dari warehouse.","below the minimum level — request stock from the warehouse.","低于最低水平 — 请向仓库申请补货。","baruh ari paras minimum — request stock ari warehouse."],
+ "st.level":        ["Paras","Level","水平","Paras"],
+ "rk.yours":        ["Kedudukan anda:","Your position:","你的名次：","Pangkat nuan:"],
+ "rf.code":         ["Kod anda:","Your code:","你的代码：","Kod nuan:"],
+ "rf.val":          ["Nilai jualan","Sales value","销售额","Rega jualan"],
+ "rf.wait":         ["Menunggu","Pending","待处理","Nganti"],
+ "nav.gpsn":        ["Lokasi GPS disimpan semasa registration, jadi salesman lain boleh terus cari outlet ini.","The GPS location was saved at registration, so any other salesman can find this outlet straight away.","GPS 位置在登记时已保存，其他业务员可直接找到该门店。","Endur GPS disimpan lebuh registration, nya alai salesman bukai ulih terus nemu outlet tu."],
+ "msg.novan":       ["Stok van tidak mencukupi","Not enough stock on the van","车载库存不足","Stock van enda chukup"],
+ "msg.novanb":      ["Order ini tidak boleh dihantar. Kurangkan kuantiti atau request stok dahulu.","This order cannot be submitted. Reduce the quantity or request stock first.","此订单无法提交。请减少数量或先申请补货。","Order tu enda ulih dikirum. Kurangka kuantiti tauka request stock dulu."],
+ "msg.ordok":       ["Order berjaya","Order submitted","订单已提交","Order udah dikirum"],
+ "msg.cashrec":     ["Cash — payment terus direkod. Receipt sudah dijana.","Cash — the payment is recorded immediately and the receipt is issued.","现金 — 款项即时入账，收据已开具。","Cash — bayar direkod tekala nya, resit udah digaga."],
+ "msg.seeinv":      ["Lihat Invoice","View invoice","查看发票","Peda Invoice"],
+ "msg.billok":      ["Bill dijana","Bill raised","已开单","Bil udah digaga"],
+ "msg.fromdo":      ["Dari DO","From DO","来自 DO","Ari DO"],
+ "msg.sogen":       ["SO dijana","SO raised","已生成 SO","SO digaga"],
+ "msg.stocksent":   ["Stock dihantar","Stock delivered","货品已送达","Stock udah dikirum"],
+ "msg.balstock":    ["Baki stock","Balance on shelf","余货","Baki stock"],
+ "msg.seebill":     ["Lihat Bill","View bill","查看账单","Peda Bil"],
+ "msg.dogen":       ["DO dijana","DO raised","已生成 DO","DO digaga"],
+ "msg.doval":       ["Nilai stock dihantar","Value delivered","送货金额","Rega stock ti dikirum"],
+ "msg.notbilled":   ["Belum dibil. Invoice hanya dijana untuk unit yang terjual, selepas baki disemak.","Not billed yet. An invoice is raised only for the units that sold, after the balance is checked.","尚未开单。盘点余货后，只就售出数量开票。","Apin dibil. Invoice semina digaga ke unit ti udah dijual, udah baki dipeda."],
+ "msg.seedo":       ["Lihat DO","View DO","查看 DO","Peda DO"],
+ "msg.needname":    ["Nama outlet diperlukan","The outlet name is required","必须填写门店名称","Nama outlet beguna"],
+ "msg.neednameb":   ["Sila isi nama outlet sebelum simpan.","Please fill in the outlet name before saving.","保存前请填写门店名称。","Tama ke nama outlet sebedau nyimpan."],
+ "msg.reqtitle":    ["Request stok dari warehouse","Request stock from the warehouse","向仓库申请补货","Request stock ari warehouse"],
+ "msg.reqlow":      ["rendah","low","偏低","baruh"],
+ "msg.reqnote":     ["Nota (pilihan)","Note (optional)","备注（可选）","Nota (pilihan)"],
+ "msg.reqnoteph":   ["cth. perlu sebelum Isnin","e.g. needed before Monday","例如：周一前需要","ch. beguna sebedau Isnin"],
+ "msg.reqsend":     ["Hantar request","Send request","发送申请","Kirum request"],
+ "msg.reqempty":    ["Tiada kuantiti diisi","No quantity entered","未填写数量","Nadai kuantiti ditama"],
+ "msg.reqemptyb":   ["Isi sekurang-kurangnya satu produk.","Fill in at least one product.","请至少填写一项产品。","Tama ke sekurang-kurang siti produk."],
+ "msg.reqsent":     ["Request dihantar","Request sent","申请已发送","Request udah dikirum"],
+ "msg.loadvan":     ["Muat stok ke van","Load stock onto a van","向车辆装载库存","Muat stock ngagai van"],
+ "msg.loadbtn":     ["Muat van","Load van","装载","Muat van"],
+ "msg.nowa":        ["Tiada nombor WhatsApp","No WhatsApp number","没有 WhatsApp 号码","Nadai nambor WhatsApp"],
+ "msg.nopdf":       ["PDF tidak dapat dijana","The PDF could not be generated","无法生成 PDF","PDF enda ulih digaga"],
+ "msg.nopdfb":      ["Guna butang Print dan pilih “Save as PDF”.","Use the Print button and choose “Save as PDF”.","请使用打印按钮并选择“另存为 PDF”。","Ngena butang Print lalu pilih “Save as PDF”."],
+ "msg.close":       ["Tutup","Close","关闭","Tutup"],
+ "msg.ok":          ["OK","OK","确定","OK"],
+ "l.nounits":       ["unit","units","件","iti"],
+ "f.days":          ["{n} hari","{n} days","{n} 天","{n} hari"],
+ "f.daysleft":      ["{n} hari lagi","{n} days left","还有 {n} 天","{n} hari agi"],
+ "f.units":         ["{n} unit","{n} units","{n} 件","{n} iti"],
+ "f.invan":         ["van {n}","van {n}","车上 {n}","van {n}"],
+ "f.unitsvan":      ["{n} unit dalam van","{n} units in the van","车上 {n} 件","{n} iti dalam van"],
+ "f.sentq":         ["Dihantar {n} unit · harga {p}","Delivered {n} units · price {p}","已送 {n} 件 · 单价 {p}","Dikirum {n} iti · rega {p}"],
+ "f.soldcalc":      ["{q} − {b} = {s} unit terjual","{q} − {b} = {s} units sold","{q} − {b} = 售出 {s} 件","{q} − {b} = {s} iti dijual"],
+ "f.billnot":       ["Bil {a} — bukan {b}.","Bill {a} — not {b}.","开单 {a} — 而非 {b}。","Bil {a} — ukai {b}."],
+ "f.notchecked":    ["{n} belum semak baki","{n} awaiting a balance check","{n} 笔待盘点","{n} apin dipeda baki"],
+ "f.openbal":       ["Belum semak baki ({n})","Awaiting a balance check ({n})","待盘点余货（{n}）","Apin dipeda baki ({n})"],
+ "f.myreq":         ["Request stok saya ({n} menunggu)","My stock requests ({n} waiting)","我的补货申请（{n} 项待处理）","Request stock aku ({n} nganti)"],
+ "f.reqfrom":       ["Request stok dari salesman ({n})","Stock requests from salesmen ({n})","业务员补货申请（{n}）","Request stock ari salesman ({n})"],
+ "f.collrcv":       ["Kutipan diterima ({n})","Collections received ({n})","已收款（{n}）","Kutipan diterima ({n})"],
+ "f.shortline":     ["minta {want} · ada {have}","asked {want} · have {have}","申请 {want} · 现有 {have}","minta {want} · bisi {have}"],
+ "f.shortone":      ["{p} — minta {want} unit, van ada {have}.","{p} — asked for {want} units, the van holds {have}.","{p} — 申请 {want} 件，车上有 {have} 件。","{p} — minta {want} iti, van bisi {have}."],
+ "f.cgrec":         ["{n} unit {p} direkod sebagai consignment stock di {c}.","{n} units of {p} recorded as consignment stock at {c}.","{n} 件 {p} 已登记为 {c} 的寄售库存。","{n} iti {p} direkod nyadi consignment stock ba {c}."],
+ "f.cgnext":        ["Lawatan berikut masukkan baki untuk kira barang terjual.","On the next visit enter the balance to work out what sold.","下次拜访时输入余货以算出售出量。","Lawang ti datai ila tama ke baki ke ngira utai ti udah dijual."],
+ "f.charged":       ["Customer dicaj {a} — hanya barang yang terjual, bukan {n} unit yang dihantar.","The customer is charged {a} — only what sold, not the {n} units delivered.","客户被收取 {a} — 只计售出部分，而非送出的 {n} 件。","Customer dichaj {a} — semina utai ti udah dijual, ukai {n} iti ti dikirum."],
+ "f.reqsentb":      ["{n} produk diminta dari warehouse. Status boleh disemak di {s}.","{n} products requested from the warehouse. The status is on {s}.","已向仓库申请 {n} 项产品。状态可在 {s} 查看。","{n} produk diminta ari warehouse. Status ulih dipeda ba {s}."],
+ "f.lowmin":        ["{n} SKU bawah paras minimum — request stok dari warehouse.","{n} SKUs below the minimum level — request stock from the warehouse.","{n} 个 SKU 低于最低水平 — 请向仓库申请补货。","{n} SKU baruh ari paras minimum — request stock ari warehouse."],
+ "f.lowminm":       ["{n} SKU sudah bawah paras minimum: {list}.","{n} SKUs are below the minimum level: {list}.","{n} 个 SKU 已低于最低水平：{list}。","{n} SKU udah baruh ari paras minimum: {list}."],
+ "f.rankpos":       ["{p} #{n} daripada {t}","{p} #{n} of {t}","{p} 第 {n} 名，共 {t} 名","{p} #{n} ari {t}"],
+ "f.showing":       ["Memaparkan {n} daripada {t} dokumen.","Showing {n} of {t} documents.","显示 {t} 份单据中的 {n} 份。","Mandangka {n} ari {t} dokumen."],
+ "f.showinv":       ["Memaparkan {n} daripada {t} invoice.","Showing {n} of {t} invoices.","显示 {t} 张发票中的 {n} 张。","Mandangka {n} ari {t} invoice."],
+ "f.cgopen":        ["{n} penghantaran consignment belum disemak baki.","{n} consignment deliveries are awaiting a balance check.","{n} 笔寄售送货待盘点。","{n} pengirum consignment apin dipeda baki."],
+ "f.odport":        ["{a} tertunggak dalam portfolio anda.","{a} outstanding across your outlets.","你的门店共有 {a} 未结。","{a} agi tinggal ba portfolio nuan."],
+ "f.lagdays":       ["Purata {n} hari dari invois ke resit","Average {n} days from invoice to receipt","从开票到收款平均 {n} 天","Purata {n} hari ari invois ngagai resit"],
+ "f.termdays":      [", term {n} hari.",", term {n} days.","，账期 {n} 天。",", term {n} hari."],
+ "f.payterm":       ["{t} — payment ikut term {n} bulan. Due {d}.","{t} — payment on a {n} month term. Due {d}.","{t} — {n} 个月账期，到期日 {d}。","{t} — bayar nitihka term {n} bulan. Due {d}."],
+ "f.nodo":          ["{t} — SO dan Invoice dijana. Tiada DO, sebab barang dan jualan berlaku serentak.","{t} — SO and Invoice raised. No DO, because the goods and the sale happen on the same visit.","{t} — 已生成 SO 与发票。无 DO，因货品与销售在同一次拜访完成。","{t} — SO enggau Invoice digaga. Nadai DO, laban utai enggau jualan nyadi sama lebuh."],
+ "f.below":         ["bawah {a}","below {a}","低于 {a}","baruh ari {a}"],
+ "l.payrec":        ["Rekod Payment","Record payment","登记付款","Rekod Payment"],
+ "l.record":        ["Rekod","Record","登记","Rekod"],
+ "l.savereturn":    ["Simpan Pulangan","Save return","保存退货","Simpan Pulai"],
+ "l.pastret":       ["Pulangan lepas","Past returns","过往退货","Pulai ti udah"],
+ "l.reqstock":      ["Request Stock","Request stock","申请补货","Request Stock"],
+ "l.loadstock":     ["Muat stok","Load stock","装载库存","Muat stock"],
+ "l.sendstock":     ["Hantar Stock","Send stock","送出寄售货","Kirum Stock"],
+ "l.payterm2":      ["Payment Term","Payment term","账期","Payment Term"],
+ "l.paynow":        ["Payment terus","Paid on the spot","当场付款","Bayar ba endur nya"],
+ "l.msg":           ["Mesej","Message","讯息","Pesan"],
+ "l.you":           ["anda","you","你","nuan"],
+ "l.pic2":          ["PIC","Contact","联系人","PIC"],
+ "l.code2":         ["Kod","Code","代码","Kod"],
+ "doc.thanks":      ["Terima kasih atas sokongan anda.","Thank you for your support.","感谢您的支持。","Terima kasih ke sukung nuan."],
+ "doc.gen":         ["Dokumen dijana oleh","Document generated by","单据由以下单位生成","Dokumen digaga ulih"],
+ "doc.print":       ["Setiap satu membuka paparan cetakan terma 58mm / 80mm.","Each one opens the 58mm / 80mm thermal print view.","每份均可打开 58mm / 80mm 热敏打印视图。","Tiap siti muka paparan chetak terma 58mm / 80mm."],
+ "wa.greet":        ["Salam {n}, saya {m} dari {co}.","Hello {n}, this is {m} from {co}.","您好 {n}，我是 {co} 的 {m}。","Salam {n}, aku {m} ari {co}."],
+ "shop.runcit":     ["Kedai Runcit","Grocery shop","杂货店","Kedai Runcit"],
+ "q.sales":         ["Jualan <b>{d}</b> ialah <b>{a}</b> daripada {n} order. Bulan ini: <b>{m}</b>.","Sales <b>{d}</b> are <b>{a}</b> from {n} orders. This month: <b>{m}</b>.","<b>{d}</b>的销售额为 <b>{a}</b>，共 {n} 笔订单。本月：<b>{m}</b>。","Jualan <b>{d}</b> nya <b>{a}</b> ari {n} order. Bulan tu: <b>{m}</b>."],
+ "q.rank":          ["Kedudukan {r}: <b>1. {a}</b> {av} · 2. {b} {bv} · 3. {c} {cv}.","Ranking {r}: <b>1. {a}</b> {av} · 2. {b} {bv} · 3. {c} {cv}.","{r}排名：<b>1. {a}</b> {av} · 2. {b} {bv} · 3. {c} {cv}。","Pangkat {r}: <b>1. {a}</b> {av} · 2. {b} {bv} · 3. {c} {cv}."],
+ "q.debt":          ["Belum jelas <b>{o}</b>, daripada itu <b>{d}</b> sudah lepas tarikh matang.<br>Penuaan: {ag}.","Outstanding <b>{o}</b>, of which <b>{d}</b> is past its due date.<br>Ageing: {ag}.","未结 <b>{o}</b>，其中 <b>{d}</b> 已逾期。<br>账龄：{ag}。","Agi tinggal <b>{o}</b>, ari nya <b>{d}</b> udah lepas tarikh matang.<br>Umur: {ag}."],
+ "q.cg":            ["Consignment bermakna anda bil <b>barang yang terjual sahaja</b>. Hantar stock, lawatan berikut masukkan baki, sistem kira terjual = hantar − baki.<br>Sekarang ada <b>{n}</b> penghantaran belum disemak baki.","Consignment means you bill <b>only what sold</b>. Send stock, enter the balance on the next visit, and the system works out sold = sent − balance.<br>There are <b>{n}</b> deliveries awaiting a balance check.","寄售意味着只就<b>售出部分</b>开单。先送货，下次拜访时输入余货，系统算出售出量＝送出－余货。<br>目前有 <b>{n}</b> 笔送货待盘点。","Consignment reti nuan bil <b>semina utai ti udah dijual</b>. Kirum stock, lawang ti datai tama ke baki, sistem ngira dijual = dikirum − baki.<br>Diatu bisi <b>{n}</b> pengirum ti apin dipeda baki."],
+ "q.quiet":         ["<b>{n}</b> outlet senyap lebih lama daripada irama biasa mereka. Paling ketara: <b>{c}</b> — {s} hari, biasanya setiap {a} hari.","<b>{n}</b> outlets have been quiet for longer than their usual rhythm. The clearest: <b>{c}</b> — {s} days, normally every {a}.","<b>{n}</b> 家门店静默时间超出常态。最明显的是 <b>{c}</b> — {s} 天，通常每 {a} 天一次。","<b>{n}</b> outlet senyap lebih lama ari irama sida ti biasa. Ti pemadu nyata: <b>{c}</b> — {s} hari, biasa nya tiap {a} hari."],
+ "q.quiet0":        ["Tiada outlet yang tersasar daripada corak pesanan mereka sekarang.","No outlet has drifted from its ordering pattern right now.","目前没有门店偏离其下单模式。","Nadai outlet ti nyimpang ari chara order sida diatu."],
+ "q.btb":           ["<b>Bil to Bil</b> — setiap order menjadi bil sendiri: Order → SO → Invoice, bayar ikut term 1, 2 atau 3 bulan yang disimpan pada outlet itu.","<b>Bil to Bil</b> — every order becomes its own bill: Order → SO → Invoice, paid on the 1, 2 or 3 month term held on that outlet.","<b>Bil to Bil</b> — 每笔订单自成一单：下单 → SO → 发票，按该门店设定的 1、2 或 3 个月账期付款。","<b>Bil to Bil</b> — tiap order nyadi bil diri empu: Order → SO → Invoice, bayar nitihka term 1, 2 tauka 3 bulan ba outlet nya."],
+ "q.cash":          ["<b>Cash</b> — order dan bayar di tempat. SO dan Invoice dijana, payment direkod serta-merta, resit keluar sebelum salesman keluar dari kedai.","<b>Cash</b> — order and pay on the spot. The SO and Invoice are raised, the payment is recorded immediately, and the receipt is out before the salesman leaves.","<b>Cash</b> — 当场下单付款。生成 SO 与发票，款项即时入账，业务员离店前开出收据。","<b>Cash</b> — order lalu bayar ba endur nya. SO enggau Invoice digaga, bayar direkod tekala nya, resit pansut sebedau salesman pansut."],
+ "q.howorder":      ["Buka Panel Salesman → {o}, pilih outlet, laraskan kuantiti dan harga (dalam had lantai), kemudian hantar. SO dan Invoice dijana serentak.","Open the Salesman panel → {o}, pick an outlet, set the quantities and prices (down to the floor), then submit. The SO and Invoice are raised together.","打开业务员面板 → {o}，选择门店，调整数量与价格（不低于限价），然后提交。SO 与发票同时生成。","Buka Panel Salesman → {o}, pilih outlet, atur kuantiti enggau rega (sampai ke pemadu baruh), udah nya kirum. SO enggau Invoice digaga sama lebuh."],
+ "q.stock":         ["Stok van anda bernilai <b>{v}</b> merentas {n} SKU. {l} SKU bawah paras minimum.","Your van stock is worth <b>{v}</b> across {n} SKUs. {l} SKUs are below the minimum level.","你的车载库存价值 <b>{v}</b>，共 {n} 个 SKU，其中 {l} 个低于最低水平。","Stock van nuan berega <b>{v}</b> ba {n} SKU. {l} SKU baruh ari paras minimum."],
+ "q.docs":          ["Setakat ini <b>{n}</b> dokumen dijana: {d}. Lima turutan berasingan, tiada nombor diguna semula. DO hanya untuk consignment, jadi kiraannya kecil; SO dijana bila barang terjual. Sebab itu nombor setiap jenis tidak sama.","<b>{n}</b> documents raised so far: {d}. Five separate sequences, no number reused. DO is consignment only, so its count stays small; an SO is raised when goods actually sell. That is why the numbers never match.","迄今已生成 <b>{n}</b> 份单据：{d}。五套独立编号，不重复使用。DO 仅用于寄售，数量较少；SO 在货品售出时生成。因此各类编号并不一致。","Udah <b>{n}</b> dokumen digaga: {d}. Lima turutan belain, nadai nambor diguna baru. DO semina ke consignment, nya alai mimit; SO digaga lebuh utai bendar dijual. Nya kebuah nambor tiap jenis enda sama."],
+ "q.lang":          ["Portal ini menyokong empat bahasa: Bahasa Malaysia, English, 中文 dan Jaku Iban. Tukar di penjuru kanan atas — seluruh portal berubah serta-merta.","This portal runs in four languages: Bahasa Malaysia, English, 中文 and Jaku Iban. Switch at the top right and the whole portal changes immediately.","本门户支持四种语言：马来文、英文、中文与伊班文。在右上角切换，整个门户即时变更。","Portal tu bisi empat jaku: Bahasa Malaysia, English, 中文 enggau Jaku Iban. Tukar ba kanan atas — semua portal berubah tekala nya."],
+ "q.modules":       ["Enam belas modul beroperasi: Register Customer, Senarai Outlet, Customer Profile, Jadual Harian, Ambil Order, DO, SO, Invoice, Payment, Receipt, Product &amp; Stock, Return, Sales Ranking, PDF/WhatsApp/Print, Running Number, dan Refer &amp; Earn.","Sixteen modules are running: Register Customer, Outlet List, Customer Profile, Daily Schedule, Take Order, DO, SO, Invoice, Payment, Receipt, Product &amp; Stock, Return, Sales Ranking, PDF/WhatsApp/Print, Running Number and Refer &amp; Earn.","十六个模块已运行：登记客户、门店清单、客户档案、每日行程、下单、DO、SO、发票、付款、收据、产品与库存、退货、销售排名、PDF/WhatsApp/打印、流水编号，以及推荐奖励。","Enam belas modul bejalai: Register Customer, Senarai Outlet, Customer Profile, Jadual Harian, Ambil Order, DO, SO, Invoice, Payment, Receipt, Product &amp; Stock, Return, Sales Ranking, PDF/WhatsApp/Print, Running Number, enggau Refer &amp; Earn."],
+ "q.ai":            ["Lapisan AI membuat tiga kerja sebenar: menyusun laluan harian ikut wang tertunggak, membaca kelakuan bayaran setiap outlet daripada lag invois-ke-resit, dan menanda outlet yang senyap berbanding irama mereka sendiri.","The AI layer does three real jobs: it orders the day's route by money owed, reads each outlet's payment behaviour from the invoice-to-receipt lag, and flags outlets that have gone quiet against their own rhythm.","AI 层做三件实事：按欠款排定每日路线、从开票到收款的时间差读出各门店的付款行为，并标出相对自身节奏已静默的门店。","Lapisan AI ngereja tiga pengawa bendar: nyusun laluan tiap hari nitihka duit ti agi tinggal, macha chara bayar tiap outlet ari lag invois-ngagai-resit, lalu nanda outlet ti senyap nyimban enggau irama sida empu."],
+ "q.hello":         ["Salam! Saya boleh jawab tentang jualan, kutipan, consignment, ranking, stok dan cara guna portal ini. Cuba salah satu soalan di bawah.","Hello. I can answer on sales, collections, consignment, ranking, stock and how to use this portal. Try one of the questions below.","您好！我可以回答销售、收款、寄售、排名、库存以及本门户的使用方式。请试试下面的问题。","Salam! Aku ulih nyaut pasal jualan, kutipan, consignment, ranking, stock enggau chara ngena portal tu. Uji siti tanya ba baruh."],
+ "q.fallback":      ["Saya boleh bantu dengan: jualan dan ranking, kutipan dan hutang tertunggak, consignment dan baki stock, stok van, dokumen dan running number, atau tiga model transaksi. Cuba tanya salah satu.","I can help with: sales and ranking, collections and outstanding debt, consignment and stock balances, van stock, documents and running numbers, or the three transaction models. Ask about one of those.","我可以协助：销售与排名、收款与欠款、寄售与余货、车载库存、单据与流水编号，或三种交易模式。请就其中之一提问。","Aku ulih nulung pasal: jualan enggau ranking, kutipan enggau utang ti agi tinggal, consignment enggau baki stock, stock van, dokumen enggau running number, tauka tiga model transaksi. Uji tanya siti."],
+ "chip.sales":      ["Jualan hari ini?","Today's sales?","今天的销售？","Jualan sari tu?"],
+ "chip.top":        ["Siapa nombor satu?","Who is number one?","谁是第一名？","Sapa nambor siti?"],
+ "chip.od":         ["Berapa tertunggak?","How much is outstanding?","未结多少？","Berapa agi tinggal?"],
+ "chip.cg":         ["Consignment macam mana?","How does consignment work?","寄售怎么运作？","Baka ni consignment?"],
+ "chip.quiet":      ["Outlet senyap?","Any quiet outlets?","有静默的门店吗？","Bisi outlet senyap?"],
+ "chip.btb":        ["Apa itu Bil to Bil?","What is Bil to Bil?","什么是 Bil to Bil？","Nama utai Bil to Bil?"],
+ "cg.blocked":      ["Bil tidak boleh dijana sehingga baki dimasukkan.","No bill can be raised until the balance is entered.","未输入余货前无法开单。","Bil enda ulih digaga sebedau baki ditama."],
+ "o.nodoline":      ["{t} — SO dan Invoice sahaja. DO hanya untuk consignment.","{t} — SO and Invoice only. A DO is for consignment alone.","{t} — 仅 SO 与发票。DO 只用于寄售。","{t} — semina SO enggau Invoice. DO semina ke consignment."],
+ "cg.onlycg":       ["Hanya outlet consignment menerima penghantaran stock. Outlet Cash dan Bil to Bil guna","Only a consignment outlet takes a stock drop. Cash and Bil to Bil outlets use","只有寄售门店可接收寄售货。现金与 Bil to Bil 门店请使用","Semina outlet consignment nerima pengirum stock. Outlet Cash enggau Bil to Bil ngena"],
+ "b.leads":         ["<b>{n}</b> mendahului dengan {v}{g}.","<b>{n}</b> leads with {v}{g}.","<b>{n}</b> 以 {v} 领先{g}。","<b>{n}</b> dulu enggau {v}{g}."],
+ "b.leadgap":       [", {g} di hadapan {n}",", {g} ahead of {n}","，领先 {n} {g}",", {g} di mua {n}"],
+ "b.collrate":      ["Kadar kutipan <b>{r}</b>.","Collection rate <b>{r}</b>.","收款率 <b>{r}</b>。","Kadar kutipan <b>{r}</b>."],
+ "b.odpast":        ["<b>{a}</b> sudah lepas tarikh matang.","<b>{a}</b> is past its due date.","<b>{a}</b> 已逾期。","<b>{a}</b> udah lepas tarikh matang."],
+ "b.nood":          ["Tiada baki tertunggak.","Nothing is overdue.","没有逾期余额。","Nadai baki ti lepas tarikh."],
+ "k.cgopen":        ["penghantaran terbuka","open deliveries","未结送货","pengirum ti tebuka"],
+ "m.docnote":       ["DO hanya dijana untuk consignment, jadi kiraannya jauh lebih kecil. SO dijana bila barang benar-benar terjual.","A DO is raised for consignment only, so its count is far smaller. An SO is raised when goods actually sell.","DO 仅在寄售时生成，因此数量少得多。SO 在货品实际售出时生成。","DO semina digaga ke consignment, nya alai mimit agi. SO digaga lebuh utai bendar dijual."],
+ "f.ninv":          ["{n} invois","{n} invoices","{n} 张发票","{n} invois"],
+ "col.noinvyet":    ["Belum ada invois direkod. Ambil order dahulu — invois akan muncul di sini untuk dikutip.","No invoices recorded yet. Take an order first and they will appear here to collect.","尚无发票记录。请先下单，发票将显示于此以便收款。","Apin bisi invois direkod. Ambi order dulu — invois deka pegari ditu ke dikutip."],
+ "col.allpaid":     ["Semua outlet anda sudah menjelaskan bayaran. Kutipan yang sudah direkod ada di bawah.","Every outlet has settled. The collections already recorded are below.","所有门店均已结清。已入账的收款见下方。","Semua outlet nuan udah mayar. Kutipan ti udah direkod ba baruh."],
+ "k.needcoll":      ["perlu kutipan","to collect","待收款","patut dikutip"],
+ "k.clean":         ["bersih","clear","已清","chelap"],
+ "p.ontime":        ["Outlet ini membayar dalam term.","This outlet pays within its term.","此门店按账期付款。","Outlet tu mayar dalam term."],
+ "p.late":          ["Outlet ini biasanya lewat — pertimbang kutipan lebih awal.","This outlet is usually late — consider collecting earlier.","此门店通常延迟 — 可考虑提前收款。","Outlet tu suah lambat — peda kutipan ti dulu agi."],
+ "k.cgout":       ["Consignment luar","Consignment out","在外寄售","Consignment di luar"],
+ "m.sopending":   ["{n} SO masih menunggu invoice.","{n} SOs are still waiting to be invoiced.","{n} 份 SO 仍待开票。","{n} SO agi nganti invoice."],
+ "m.docnote2":    ["Sebab itu setiap turutan bergerak sendiri.","That is why each sequence moves at its own pace.","因此各套编号各自推进。","Nya kebuah tiap turutan bejalai diri empu."],
  "lg.noyet":      ["Tiada transaksi direkod lagi. Order, hantaran dan kutipan akan muncul di sini sebaik sahaja direkod.","No transactions recorded yet. Orders, deliveries and collections appear here as soon as they are entered.","尚无交易记录。录入订单、送货与收款后将显示于此。","Nadai transaksi direkod agi. Order, hantaran enggau kutipan deka pegari ditu."],
  "post.failed":["Tidak dapat disimpan","Could not be saved","无法保存","Enda ulih disimpan"],
  "post.saving":   ["Menyimpan…","Saving…","保存中…","Benung nyimpan…"],
@@ -893,6 +1141,9 @@ const DICT={
 let LANG=(()=>{try{return localStorage.getItem("sp.lang")||"bm"}catch(_){return "bm"}})();
 const LI=()=>Math.max(0,LANGS.findIndex(l=>l[0]===LANG));
 const T=k=>{const r=DICT[k];return r?r[LI()]||r[1]:k};
+/* Some strings wrap a number or a name, so they cannot be split without
+   breaking word order in other languages. TF fills {placeholders}. */
+const TF=(k,v)=>String(T(k)).replace(/\{(\w+)\}/g,(m,p)=>v[p]!=null?v[p]:m);
 function setLang(v){LANG=v;try{localStorage.setItem("sp.lang",v)}catch(_){}document.body.dataset.lang=v;render()}
 
 /* ---- WhatsApp bubble --------------------------------------------------- */
@@ -1539,32 +1790,32 @@ function vPublic(){
       <div class="mods">
         <div class="mod" style="border-top:3px solid var(--vio)">
           <span class="tag" style="color:var(--vio)">📦 Consignment</span>
-          <h3>Bill hanya barang terjual</h3>
-          <p>Stock dihantar dahulu. Lawatan berikut, masukkan baki — sistem kira yang terjual dan bil untuk itu sahaja.</p>
+          <h3>${T("pub.c1h")}</h3>
+          <p>${T("pub.c1b")}</p>
           <div class="flow">
-            <div>Hantar 100 unit</div>
-            <div>Baki stock = 30</div>
-            <div class="hi">100 − 30 = 70 terjual</div>
-            <div class="gd">Bill 70 × RM5 = RM350</div>
+            <div>${T("pub.c1s1")}</div>
+            <div>${T("pub.c1s2")}</div>
+            <div class="hi">${T("pub.c1s3")}</div>
+            <div class="gd">${T("pub.c1s4")}</div>
           </div>
         </div>
         <div class="mod" style="border-top:3px solid var(--blue)">
           <span class="tag" style="color:var(--blue)">📝 Bil to Bil</span>
-          <h3>Setiap order jadi bil sendiri</h3>
-          <p>Order menjana rantaian penuh. Bayaran mengikut term 1, 2 atau 3 bulan yang disimpan pada outlet itu.</p>
+          <h3>${T("pub.c2h")}</h3>
+          <p>${T("pub.c2b")}</p>
           <div class="flow">
             <div>Order</div><div>DO → SO</div>
-            <div class="hi">Invoice + due date</div>
-            <div class="gd">Payment ikut term</div>
+            <div class="hi">${T("pub.c2s2")}</div>
+            <div class="gd">${T("pub.c2s3")}</div>
           </div>
         </div>
         <div class="mod" style="border-top:3px solid var(--grn)">
           <span class="tag" style="color:var(--grn)">💵 Cash</span>
-          <h3>Order dan bayar di tempat</h3>
-          <p>Aliran yang sama, tetapi bayaran direkod serta-merta dan resit dijana sebelum salesman keluar dari kedai.</p>
+          <h3>${T("pub.c3h")}</h3>
+          <p>${T("pub.c3b")}</p>
           <div class="flow">
             <div>Order</div><div>DO → SO → Invoice</div>
-            <div class="hi">Payment terus</div>
+            <div class="hi">${T("l.paynow")}</div>
             <div class="gd">Receipt di tempat</div>
           </div>
         </div>
@@ -1580,18 +1831,18 @@ function vPublic(){
         <div class="aigrid">
           <div class="aic">
             <div class="h"><span class="o">🧭</span><b>Route Sequencing</b></div>
-            <p>Menyusun jadual harian ikut wang tertunggak, consignment yang perlu disemak, dan nilai outlet.</p>
+            <p>${T("ai.r1")}</p>
             <div class="out">${(()=>{const r=AI.route()[0];return r?`Stop #1 → <b>${esc(r.c.name)}</b> · ${r.why.map(w=>w.t).join(" · ")}`:"—"})()}</div>
           </div>
           <div class="aic">
-            <div class="h"><span class="o">📉</span><b>Quiet Outlet Detection</b></div>
-            <p>Membandingkan setiap outlet dengan iramanya sendiri, bukan purata sejagat.</p>
+            <div class="h"><span class="o">📉</span><b>${T("ai.q1")}</b></div>
+            <p>${T("ai.q2")}</p>
             <div class="out">${(()=>{const q=AI.quiet()[0];return q?`<b>${esc(q.c.name)}</b> — ${q.since} ${T("ai.days")}, ${T("ai.usual")} ${q.avg}`:"Semua outlet mengikut irama biasa"})()}</div>
           </div>
           <div class="aic">
             <div class="h"><span class="o">💡</span><b>Collection Briefing</b></div>
-            <p>Satu bacaan ringkas untuk pengurusan, dikira semula setiap kali data berubah.</p>
-            <div class="out">Kadar kutipan <b>${b.rate}%</b> · ${RMk(b.od)} tertunggak · ${b.quiet} outlet senyap</div>
+            <p>${T("ai.b1")}</p>
+            <div class="out">${T("k.collected")} <b>${b.rate}%</b> · ${RMk(b.od)} ${T("k.overdue").toLowerCase()} · ${b.quiet} ${T("ai.quieth").replace("📉 ","").toLowerCase()}</div>
           </div>
         </div>
       </div>
@@ -1691,11 +1942,11 @@ function mDash(){
       <div class="aip">
         <span class="ai-pill"><span class="dot"></span>${T("ai.k")}</span>
         <h3>Briefing</h3>
-        <p style="margin-bottom:9px">Dikira daripada data yang sama di sebelah kiri.</p>
-        <div class="rd"><i>🏆</i><span><b>${esc(b.top.name)}</b> mendahului dengan ${RMk(b.top.sales)}${b.gap>0?`, ${RMk(b.gap)} di hadapan ${esc(b.low.name)}`:""}.</span></div>
-        <div class="rd"><i>💰</i><span>Kadar kutipan <b>${b.sales>0?b.rate+"%":"—"}</b>. ${b.od>0?`<b>${RMk(b.od)}</b> sudah lepas tarikh matang.`:"Tiada baki tertunggak."}</span></div>
-        <div class="rd"><i>📦</i><span><b>${b.openConsign}</b> penghantaran consignment belum disemak baki.</span></div>
-        <div class="rd"><i>📉</i><span><b>${b.quiet}</b> outlet senyap lebih lama daripada irama biasa mereka.</span></div>
+        <p style="margin-bottom:9px">${T("ai.same")}</p>
+        <div class="rd"><i>🏆</i><span>${TF("b.leads",{n:esc(b.top.name),v:RMk(b.top.sales),g:b.gap>0?TF("b.leadgap",{g:RMk(b.gap),n:esc(b.low.name)}):""})}</span></div>
+        <div class="rd"><i>💰</i><span>${TF("b.collrate",{r:b.sales>0?b.rate+"%":"—"})} ${b.od>0?TF("b.odpast",{a:RMk(b.od)}):T("b.nood")}</span></div>
+        <div class="rd"><i>📦</i><span><b>${b.openConsign}</b> ${T("ai.cgwait")}</span></div>
+        <div class="rd"><i>📉</i><span><b>${b.quiet}</b> ${T("ai.quiet")}</span></div>
         <a class="btn btn-ai btn-w" style="margin-top:14px" href="#/m/ai">${T("m.ai")} ${ic(I.arrow)}</a>
       </div>
     </div>
@@ -1763,7 +2014,7 @@ function mTeam(){
         <td class="r num">${nc}</td><td class="r num">${RM(avg)}</td>
         <td><div class="prog"><i data-w="${Math.round(s.sales/max*100)}%"></i></div></td></tr>`}).join("")}</tbody>
     </table></div>
-    <div class="note" style="margin-top:16px">Ranking dikira semula setiap kali order direkod. Tukar tempoh di atas — nombor berubah serta-merta.</div>`);
+    <div class="note" style="margin-top:16px">${T("m.rankn")}</div>`);
 }
 
 /* ---------- MANAGEMENT: OUTLETS ---------- */
@@ -1775,7 +2026,7 @@ function mCust(){
       <div class="ra" style="flex:1;max-width:380px">
         <div class="search">${ic(I.srch)}<input data-a="mq" value="${esc(ST.mq)}" placeholder="${T("l.search")}"></div></div></div>
     <div class="tw"><table>
-      <thead><tr><th>Kod</th><th>${T("l.outlet")}</th><th>PIC</th><th>Kawasan</th><th>${T("l.term")}</th>
+      <thead><tr><th>${T("l.code2")}</th><th>${T("l.outlet")}</th><th>${T("l.pic2")}</th><th>${T("l.area")}</th><th>${T("l.term")}</th>
         <th>${T("l.salesman")}</th><th class="r">${T("k.sales")}</th><th class="r">${T("k.outstanding")}</th><th class="r">${T("k.overdue")}</th></tr></thead>
       <tbody>${list.map(c=>{const od=S.overdue(c.id);return `<tr>
         <td class="mono" style="color:var(--dim)">${c.code}</td>
@@ -1813,12 +2064,12 @@ function mCustomer(id){
     <div class="g g4" style="margin-bottom:18px">
       ${kpi(T("k.sales"),RM(S.totalSales(id)),inv.length+" invoice",I.chart,"#3B5BFF")}
       ${kpi(T("k.outstanding"),RM(S.outstanding(id)),inv.filter(i=>i.status!=="paid").length+" belum jelas",I.doc,"#D97706")}
-      ${kpi(T("k.overdue"),RM(od),od>0?"perlu kutipan":"bersih",I.shield,od>0?"#DC2626":"#0E9F6E")}
+      ${kpi(T("k.overdue"),RM(od),od>0?T("k.needcoll"):T("k.clean"),I.shield,od>0?"#DC2626":"#0E9F6E")}
       ${kpi("Consignment",open.length,"belum semak baki",I.box,"#8B5CF6")}
     </div>
     <div class="g g23">
       <div class="card p">
-        <h3>Sejarah dokumen</h3>
+        <h3>${T("l.dochist")}</h3>
         <div class="tabs" style="margin:12px 0">${tabs.map(t=>
           `<button data-a="hist" data-v="${t}" class="${ST.histTab===t?"on":""}">${t}</button>`).join("")}</div>
         <div style="max-height:430px;overflow-y:auto">${h.length?h.slice(0,40).map(x=>`
@@ -1851,9 +2102,9 @@ function mCustomer(id){
         </div>
         ${pay?`<div class="aip">
           <span class="ai-pill"><span class="dot"></span>${T("ai.k")}</span>
-          <h3>Kelakuan bayaran</h3>
-          <p>Purata <b style="color:#fff">${pay.avg} hari</b> dari invois ke resit${pay.term?`, term ${pay.term} hari`:""}.
-          ${pay.onTime?"Outlet ini membayar dalam term.":"Outlet ini biasanya lewat — pertimbang kutipan lebih awal."}</p>
+          <h3>${T("l.paybeh")}</h3>
+          <p>${TF("f.lagdays",{n:`<b style="color:#fff">${pay.avg}</b>`})}${pay.term?TF("f.termdays",{n:pay.term}):"."}
+          ${pay.onTime?T("p.ontime"):T("p.late")}</p>
         </div>`:""}
       </div>
     </div>`);
@@ -1875,27 +2126,27 @@ function mCollect(){
     </div>
     <div class="g g23">
       <div class="card p">
-        <h3>Penuaan hutang</h3><div class="sub">Baki belum jelas mengikut umur selepas tarikh matang</div>
+        <h3>Penuaan hutang</h3><div class="sub">${T("m.ageb")}</div>
         <div style="margin-top:18px">${ag.map(a=>`
           <div style="margin-bottom:14px">
             <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
-              <b>${a.l} hari</b><b class="num">${RM(a.v)}</b></div>
+              <b>${TF("f.days",{n:a.l})}</b><b class="num">${RM(a.v)}</b></div>
             <div class="prog"><i data-w="${Math.round(a.v/agmax*100)}%" style="background:${["#0E9F6E","#D97706","#EA580C","#DC2626"][ag.indexOf(a)]}"></i></div>
           </div>`).join("")}</div>
       </div>
       <div class="aip">
         <span class="ai-pill"><span class="dot"></span>${T("ai.k")}</span>
-        <h3>Kelakuan bayaran</h3>
-        <p style="margin-bottom:9px">Purata hari sebenar dari invois ke resit, per outlet.</p>
+        <h3>${T("l.paybeh")}</h3>
+        <p style="margin-bottom:9px">${T("m.lagb")}</p>
         ${CUSTOMERS.map(c=>({c,p:AI.payer(c.id)})).filter(x=>x.p).sort((a,b)=>b.p.avg-a.p.avg).slice(0,5).map(({c,p})=>
           `<div class="rd"><i>${p.onTime?"✓":"!"}</i><span><b>${esc(c.name)}</b><br>
             <span>${p.avg} hari purata${p.term?` · term ${p.term} hari`:""} — ${p.onTime?"ikut term":"lewat"}</span></span></div>`).join("")}
       </div>
     </div>
-    <div class="sec">Invoice belum jelas</div>
+    <div class="sec">${T("l.openinv")}</div>
     <div class="tw"><table>
       <thead><tr><th>Invoice</th><th>${T("l.customer")}</th><th>${T("l.term")}</th><th>${T("l.date")}</th><th>${T("l.due")}</th>
-        <th class="r">${T("l.total")}</th><th class="r">Dibayar</th><th class="r">Baki</th><th>${T("l.status")}</th></tr></thead>
+        <th class="r">${T("l.total")}</th><th class="r">${T("l.paidamt")}</th><th class="r">${T("l.balance2")}</th><th>${T("l.status")}</th></tr></thead>
       <tbody>${unpaid.slice(0,40).map(i=>{const c=cust(i.customerId);return `<tr>
         <td><a class="lk mono" href="#/m/doc/Invoice/${i.id}">${i.id}</a></td>
         <td>${esc(c.name)}<br><span style="font-size:11.5px;color:var(--dim)">${esc(sm(i.salesmanId).name)}</span></td>
@@ -1906,7 +2157,7 @@ function mCollect(){
         <td class="r"><b>${RM2(i.total-i.paid)}</b></td>
         <td>${statusChip(i)}</td></tr>`}).join("")}</tbody>
     </table></div>
-    ${unpaid.length>40?`<div class="note" style="margin-top:13px">Memaparkan 40 daripada ${unpaid.length} invoice.</div>`:""}`);
+    ${unpaid.length>40?`<div class="note" style="margin-top:13px">${TF("f.showinv",{n:40,t:unpaid.length})}</div>`:""}`);
 }
 
 /* ---------- MANAGEMENT: STOCK ---------- */
@@ -1921,14 +2172,14 @@ function mStock(){
       ${kpi("Nilai stok",RMk(val),PRODUCTS.reduce((a,p)=>a+vanAll(p.id),0)+" unit",I.box,"#3B5BFF")}
       ${kpi("Stok rendah",low.length,"SKU bawah paras",I.shield,low.length?"#DC2626":"#0E9F6E")}
       ${kpi("Request menunggu",pend.length,"dari salesman",I.truck,pend.length?"#D97706":"#0E9F6E")}
-      ${kpi("Consignment luar",out.length,"penghantaran terbuka",I.truck,"#8B5CF6")}
+      ${kpi(T("k.cgout"),out.length,T("k.cgopen"),I.truck,"#8B5CF6")}
     </div>
-    ${low.length?`<div class="warn" style="margin-bottom:16px"><b>${low.length} SKU</b> sudah bawah paras minimum: ${low.map(p=>esc(p.name)).join(", ")}.</div>`:""}
+    ${low.length?`<div class="warn" style="margin-bottom:16px">${TF("f.lowminm",{n:`<b>${low.length}</b>`,list:low.map(p=>esc(p.name)).join(", ")})}</div>`:""}
 
-    <div class="sec">Request stok dari salesman (${pend.length})</div>
+    <div class="sec">${TF("f.reqfrom",{n:pend.length})}</div>
     ${pend.length?`<div class="tw" style="margin-bottom:18px"><table>
-      <thead><tr><th>${T("l.salesman")}</th><th>${T("l.product")}</th><th class="r">Minta</th>
-        <th class="r">Dalam van</th><th style="width:100px">Bekal</th><th style="width:180px"></th></tr></thead>
+      <thead><tr><th>${T("l.salesman")}</th><th>${T("l.product")}</th><th class="r">${T("st.ask")}</th>
+        <th class="r">${T("st.invan")}</th><th style="width:100px">${T("st.supply")}</th><th style="width:180px"></th></tr></thead>
       <tbody>${pend.map(r=>{const p=prod(r.productId), s=sm(r.salesmanId);return `<tr>
         <td><b>${esc(s.name)}</b><div style="font-size:11.5px;color:var(--dim)">${esc(s.code)} · ${fd(r.date)}</div>
           ${r.note?`<div style="font-size:11.5px;color:var(--mut)">“${esc(r.note)}”</div>`:""}</td>
@@ -1938,37 +2189,37 @@ function mStock(){
         <td><input id="iq-${esc(r.id)}" type="number" min="1" value="${r.qty}"></td>
         <td class="r" style="white-space:nowrap">
           <button class="btn btn-g" data-a="issue-stock" data-r="${esc(r.id)}">${ic(I.truck)} Bekal</button>
-          <button class="btn btn-s" data-a="reject-req" data-r="${esc(r.id)}">Tolak</button></td>
+          <button class="btn btn-s" data-a="reject-req" data-r="${esc(r.id)}">${T("st.reject")}</button></td>
       </tr>`}).join("")}</tbody>
     </table></div>`
-    :`<div class="empty" style="margin-bottom:18px"><b>Tiada request menunggu</b>
-       <span>Request dari salesman akan muncul di sini untuk dibekalkan atau ditolak.</span></div>`}
+    :`<div class="empty" style="margin-bottom:18px"><b>${T("st.noreq")}</b>
+       <span>${T("st.noreqb")}</span></div>`}
 
-    <div class="sec">Muat van</div>
+    <div class="sec">${T("st.loadvan")}</div>
     <div class="g g3" style="margin-bottom:18px">${SALESMEN.map(s=>{
       const units=PRODUCTS.reduce((a,p)=>a+vanOf(p.id,s.id),0);
       const lo=PRODUCTS.filter(p=>vanOf(p.id,s.id)<=p.low).length;
       return `<div class="card p">
         <b style="font-size:14.5px;display:block">${esc(s.name)}</b>
-        <span style="font-size:12px;color:var(--mut)">${esc(s.code)} · ${units} unit dalam van</span>
+        <span style="font-size:12px;color:var(--mut)">${esc(s.code)} · ${TF("f.unitsvan",{n:units})}</span>
         ${lo?`<div><span class="chip k-red" style="margin-top:8px">${lo} SKU rendah</span></div>`:""}
-        <button class="btn btn-s" style="margin-top:10px" data-a="load-open" data-s="${esc(s.id)}">${ic(I.truck)} Muat stok</button>
+        <button class="btn btn-s" style="margin-top:10px" data-a="load-open" data-s="${esc(s.id)}">${ic(I.truck)} ${T("l.loadstock")}</button>
       </div>`}).join("")}</div>
     <div class="tw"><table>
-      <thead><tr><th>SKU</th><th>${T("l.product")}</th><th class="r">Stok van</th><th class="r">Paras min</th>
-        <th class="r">${T("l.price")}</th><th class="r">Harga lantai</th><th class="r">Nilai</th><th>${T("l.status")}</th></tr></thead>
+      <thead><tr><th>SKU</th><th>${T("l.product")}</th><th class="r">${T("st.vanstock")}</th><th class="r">${T("st.minlvl")}</th>
+        <th class="r">${T("l.price")}</th><th class="r">${T("l.floorp")}</th><th class="r">${T("l.value")}</th><th>${T("l.status")}</th></tr></thead>
       <tbody>${PRODUCTS.map(p=>`<tr>
         <td class="mono" style="color:var(--dim)">${p.sku}</td>
         <td><b>${esc(p.name)}</b></td>
         <td class="r num"><b>${vanAll(p.id)}</b></td><td class="r num">${p.low*SALESMEN.length}</td>
         <td class="r num">${RM2(p.price)}</td><td class="r num">${RM2(p.floor)}</td>
         <td class="r num">${RM(vanAll(p.id)*p.price)}</td>
-        <td>${vanAll(p.id)<=p.low*SALESMEN.length?`<span class="chip k-red">Rendah</span>`:`<span class="chip k-grn">OK</span>`}</td></tr>`).join("")}</tbody>
+        <td>${vanAll(p.id)<=p.low*SALESMEN.length?`<span class="chip k-red">${T("st.low")}</span>`:`<span class="chip k-grn">OK</span>`}</td></tr>`).join("")}</tbody>
     </table></div>
     <div class="sec">Consignment di luar</div>
     <div class="tw"><table>
-      <thead><tr><th>${T("l.outlet")}</th><th>${T("l.product")}</th><th class="r">Dihantar</th><th>${T("l.date")}</th>
-        <th class="r">Hari</th><th>${T("l.salesman")}</th><th>${T("l.status")}</th></tr></thead>
+      <thead><tr><th>${T("l.outlet")}</th><th>${T("l.product")}</th><th class="r">${T("l.sent")}</th><th>${T("l.date")}</th>
+        <th class="r">${T("l.days")}</th><th>${T("l.salesman")}</th><th>${T("l.status")}</th></tr></thead>
       <tbody>${out.map(g=>{const c=cust(g.customerId);return `<tr>
         <td><a class="lk" href="#/m/customer/${c.id}">${esc(c.name)}</a></td>
         <td>${esc(prod(g.productId).name)}</td>
@@ -1976,7 +2227,7 @@ function mStock(){
         <td>${fds(g.date)}</td>
         <td class="r num">${dbet(g.date,TODAY)}</td>
         <td>${esc(sm(g.salesmanId).name)}</td>
-        <td><span class="chip k-vio">Belum semak</span></td></tr>`}).join("")
+        <td><span class="chip k-vio">${T("cg.unchecked")}</span></td></tr>`}).join("")
         ||`<tr><td colspan="7"><div class="empty"><b>${T("l.none")}</b></div></td></tr>`}</tbody>
     </table></div>`);
 }
@@ -2003,11 +2254,11 @@ function mDocs(){
         `<div class="kpi"><div class="l">${l}</div><div class="v num">${v}</div>
           <div class="d mono" style="font-size:11px">${nn(p,v)}</div></div>`).join("")}
     </div>
-    <div class="note" style="margin-bottom:16px">DO hanya dijana untuk consignment, jadi kiraannya jauh lebih kecil.
-      SO dijana bila barang benar-benar terjual. ${S.soPending().length} SO masih menunggu invoice.
-      Sebab itu setiap turutan bergerak sendiri.</div>
+    <div class="note" style="margin-bottom:16px">${T("m.docnote")}
+      ${TF("m.sopending",{n:S.soPending().length})}
+      ${T("m.docnote2")}</div>
     <div class="tw"><table>
-      <thead><tr><th>${T("l.doc")}</th><th>Jenis</th><th>${T("l.customer")}</th><th>${T("l.salesman")}</th>
+      <thead><tr><th>${T("l.doc")}</th><th>${T("l.kind")}</th><th>${T("l.customer")}</th><th>${T("l.salesman")}</th>
         <th>${T("l.date")}</th><th class="r">${T("l.amount")}</th></tr></thead>
       <tbody>${all.slice(0,60).map(x=>{const c=cust(x.cid);return `<tr>
         <td><a class="lk mono" href="#/m/doc/${x.t}/${x.id}">${x.id}</a></td>
@@ -2017,7 +2268,7 @@ function mDocs(){
         <td>${fd(x.d)}</td>
         <td class="r">${x.amt?`<b>${RM2(x.amt)}</b>`:"—"}</td></tr>`}).join("")}</tbody>
     </table></div>
-    <div class="note" style="margin-top:13px">Memaparkan 60 daripada ${all.length} dokumen. Setiap satu membuka paparan cetakan terma 58mm / 80mm.</div>`);
+    <div class="note" style="margin-top:13px">${TF("f.showing",{n:60,t:all.length})} ${T("doc.print")}</div>`);
 }
 
 /* ---------- MANAGEMENT: REPORTS ---------- */
@@ -2044,7 +2295,7 @@ function mReports(){
       <div class="ra">${rangeTabs(r,"mrange")}</div></div>
     <div class="g g2">
       <div class="card p">
-        <h3>Mengikut model transaksi</h3><div class="sub">Nilai invois per model</div>
+        <h3>${T("m.bymodel")}</h3><div class="sub">${T("m.bymodelb")}</div>
         <div style="margin-top:17px">${byTerm.map(x=>`
           <div style="margin-bottom:15px">
             <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
@@ -2054,7 +2305,7 @@ function mReports(){
           </div>`).join("")}</div>
       </div>
       <div class="card p">
-        <h3>Mengikut kawasan</h3><div class="sub">Nilai invois per kawasan</div>
+        <h3>${T("m.byarea")}</h3><div class="sub">${T("m.byareab")}</div>
         <div style="margin-top:17px">${zones.slice(0,7).map(([z,v])=>`
           <div style="margin-bottom:13px">
             <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
@@ -2063,9 +2314,9 @@ function mReports(){
           </div>`).join("")||`<div class="empty"><b>${T("l.none")}</b></div>`}</div>
       </div>
     </div>
-    <div class="sec">Mengikut produk</div>
+    <div class="sec">${T("m.byprod")}</div>
     <div class="tw"><table>
-      <thead><tr><th>SKU</th><th>${T("l.product")}</th><th class="r">${T("l.qty")}</th><th class="r">Nilai</th>
+      <thead><tr><th>SKU</th><th>${T("l.product")}</th><th class="r">${T("l.qty")}</th><th class="r">${T("l.value")}</th>
         <th class="r">${T("l.price")}</th><th style="width:180px">—</th></tr></thead>
       <tbody>${byProd.map(x=>`<tr>
         <td class="mono" style="color:var(--dim)">${x.p.sku}</td>
@@ -2085,23 +2336,23 @@ function mAI(){
     <div class="aish" style="margin-bottom:22px">
       <div class="aur b1"></div><div class="aur b2"></div>
       <span class="ai-pill"><span class="dot"></span>${T("hero.badge")}</span>
-      <h2 style="font-size:24px">Bacaan hari ini</h2>
+      <h2 style="font-size:24px">${T("ai.today")}</h2>
       <div class="aigrid" style="margin-top:22px">
         <div class="aic"><div class="h"><span class="o">💰</span><b>Kutipan</b></div>
-          <p>Kadar kutipan dan baki tertunggak untuk tempoh dipilih.</p>
-          <div class="out">Kadar <b>${b.rate}%</b> · ${RMk(b.od)} lepas tarikh matang</div></div>
+          <p>${T("ai.collrate")}</p>
+          <div class="out">${T("k.collected")} <b>${b.rate}%</b> · ${RMk(b.od)} ${T("k.overdue").toLowerCase()}</div></div>
         <div class="aic"><div class="h"><span class="o">🏆</span><b>Pasukan</b></div>
-          <p>Jurang antara pendahulu dan yang paling belakang.</p>
+          <p>${T("ai.gap")}</p>
           <div class="out"><b>${esc(b.top.name)}</b> ${RMk(b.top.sales)} · jurang ${RMk(b.gap)}</div></div>
         <div class="aic"><div class="h"><span class="o">📦</span><b>Consignment</b></div>
-          <p>Penghantaran yang belum disemak baki menahan bil daripada dijana.</p>
-          <div class="out"><b>${b.openConsign}</b> penghantaran menunggu semakan baki</div></div>
+          <p>${T("ai.hold")}</p>
+          <div class="out"><b>${b.openConsign}</b> ${T("ai.holdn")}</div></div>
       </div>
     </div>
     <div class="g g2">
       <div class="card p">
         <h3>🧭 Susunan laluan cadangan</h3>
-        <div class="sub">Wang tertunggak dahulu, kemudian consignment, kemudian nilai outlet.</div>
+        <div class="sub">${T("ai.order1")}</div>
         <div style="margin-top:14px">${route.slice(0,6).map((x,i)=>`
           <div style="display:flex;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)">
             <span style="width:28px;height:28px;border-radius:9px;background:${i===0?"var(--ai)":"var(--s3)"};
@@ -2112,19 +2363,19 @@ function mAI(){
           </div>`).join("")}</div>
       </div>
       <div class="card p">
-        <h3>📉 Outlet yang senyap</h3>
-        <div class="sub">Dibandingkan dengan irama pesanan outlet itu sendiri.</div>
+        <h3>${T("ai.quieth")}</h3>
+        <div class="sub">${T("ai.quietb")}</div>
         <div style="margin-top:14px">${quiet.length?quiet.slice(0,6).map(q=>`
           <div style="display:flex;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)">
             <span style="flex:1;min-width:0"><b style="font-size:13.5px">${esc(q.c.name)}</b><br>
               <span style="font-size:12px;color:var(--mut)">${q.since} ${T("ai.days")} · ${T("ai.usual")} ${q.avg}</span></span>
             <span class="chip ${q.risk>75?"k-red":"k-amb"}">${q.risk}%</span>
             <a class="btn btn-s" href="#/m/customer/${q.c.id}">${T("l.view")}</a>
-          </div>`).join(""):`<div class="empty"><b>Semua outlet mengikut irama biasa</b>
-            <span>Tiada outlet yang tersasar daripada corak pesanan mereka.</span></div>`}</div>
+          </div>`).join(""):`<div class="empty"><b>${T("ai.allok")}</b>
+            <span>${T("ai.allokb")}</span></div>`}</div>
       </div>
     </div>
-    <div class="note" style="margin-top:18px">Setiap bacaan di halaman ini dikira daripada data transaksi yang sama yang menggerakkan panel lain. Tiada teks yang ditulis lebih awal.</div>`);
+    <div class="note" style="margin-top:18px">${T("ai.foot")}</div>`);
 }
 
 /* ==========================================================================
@@ -2133,7 +2384,7 @@ function mAI(){
 const SITEMS=()=>[
   {gp:T("nav.sm")},
   {k:"home",t:T("s.home"),i:I.home,h:"#/s/home"},
-  {k:"sched",t:T("s.sched"),i:I.cal,h:"#/s/sched",b:S.mySched().length},
+  {k:"sched",t:T("s.sched"),i:I.cal,h:"#/s/sched",b:S.mySched().length,bk:"n"},
   {k:"cust",t:T("s.cust"),i:I.user,h:"#/s/cust"},
   {gp:T("models.k")},
   {k:"order",t:T("s.order"),i:I.cart,h:"#/s/order"},
@@ -2200,10 +2451,10 @@ function sHome(){
       <div class="aip">
         <span class="ai-pill"><span class="dot"></span>${T("ai.k")}</span>
         <h3>Laluan cadangan</h3>
-        <p style="margin-bottom:6px">Disusun ikut wang tertunggak dan consignment yang perlu disemak.</p>
+        <p style="margin-bottom:6px">${T("s.schedb")}</p>
         ${route.map((x,i)=>`<div class="rd"><i>${i+1}</i><span><b>${esc(x.c.name)}</b><br>
           <span>${x.why.map(w=>w.t).join(" · ")}</span></span></div>`).join("")}
-        ${od>0?`<div class="rd"><i>⚠</i><span><b>${RM(od)}</b> tertunggak dalam portfolio anda.</span></div>`:""}
+        ${od>0?`<div class="rd"><i>⚠</i><span>${TF("f.odport",{a:`<b>${RM(od)}</b>`})}</span></div>`:""}
       </div>
     </div>`);
 }
@@ -2211,7 +2462,7 @@ function sHome(){
 function sSched(){
   return SM("sched",`
     <div class="pgh"><div><h1>${T("s.sched")}</h1><p>${fd(TODAY)} · ${S.mySched().length} ${T("l.outlet").toLowerCase()}</p></div></div>
-    <div class="note" style="margin-bottom:16px">Senarai kedai untuk dilawat hari ini — bukan attendance, bukan tracking, tiada status pending atau completed.</div>
+    <div class="note" style="margin-bottom:16px">${T("s.schedn")}</div>
     <div class="g" style="gap:11px">${S.mySched().map((s,i)=>{const c=cust(s.customerId), od=S.overdue(c.id), open=S.openConsign(c.id).length;return `
       <div class="card p" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
         <span style="width:36px;height:36px;border-radius:11px;background:var(--ink);color:#fff;
@@ -2283,7 +2534,7 @@ function sCustomer(id){
     <div class="g g4" style="margin-bottom:18px">
       ${kpi(T("k.sales"),RM(S.totalSales(id)),inv.length+" invoice",I.chart,"#3B5BFF")}
       ${kpi(T("k.outstanding"),RM(S.outstanding(id)),inv.filter(i=>i.status!=="paid").length+" belum jelas",I.doc,"#D97706")}
-      ${kpi(T("k.overdue"),RM(od),od>0?"perlu kutipan":"bersih",I.shield,od>0?"#DC2626":"#0E9F6E")}
+      ${kpi(T("k.overdue"),RM(od),od>0?T("k.needcoll"):T("k.clean"),I.shield,od>0?"#DC2626":"#0E9F6E")}
       ${kpi("Consignment",open.length,"belum semak baki",I.box,"#8B5CF6")}
     </div>
     <div class="sec">Tindakan</div>
@@ -2293,7 +2544,7 @@ function sCustomer(id){
         <b style="font-size:13px">${t}</b></a>`).join("")}</div>
     <div class="g g23" style="margin-top:22px">
       <div class="card p">
-        <h3>Sejarah dokumen</h3>
+        <h3>${T("l.dochist")}</h3>
         <div class="tabs" style="margin:12px 0">${tabs.map(t=>
           `<button data-a="hist" data-v="${t}" class="${ST.histTab===t?"on":""}">${t}</button>`).join("")}</div>
         <div style="max-height:430px;overflow-y:auto">${h.length?h.slice(0,40).map(x=>`
@@ -2317,12 +2568,12 @@ function sCustomer(id){
         </div>
         ${pay?`<div class="aip">
           <span class="ai-pill"><span class="dot"></span>${T("ai.k")}</span>
-          <h3>Kelakuan bayaran</h3>
-          <p>Purata <b style="color:#fff">${pay.avg} hari</b> dari invois ke resit${pay.term?`, term ${pay.term} hari`:""}.
-          ${pay.onTime?"Outlet ini membayar dalam term.":"Outlet ini biasanya lewat — pertimbang kutipan lebih awal."}</p>
+          <h3>${T("l.paybeh")}</h3>
+          <p>${TF("f.lagdays",{n:`<b style="color:#fff">${pay.avg}</b>`})}${pay.term?TF("f.termdays",{n:pay.term}):"."}
+          ${pay.onTime?T("p.ontime"):T("p.late")}</p>
         </div>`:""}
-        ${open.length?`<div class="warn"><b>${open.length} penghantaran consignment</b> belum disemak baki.
-          Bil tidak boleh dijana sehingga baki dimasukkan. <a href="#/s/consign/${id}" style="color:var(--amb);font-weight:800">Semak sekarang →</a></div>`:""}
+        ${open.length?`<div class="warn">${TF("f.cgopen",{n:`<b>${open.length}</b>`})}
+          ${T("cg.blocked")} <a href="#/s/consign/${id}" style="color:var(--amb);font-weight:800">${T("s.checknow")}</a></div>`:""}
       </div>
     </div>`);
 }
@@ -2330,55 +2581,55 @@ function sCustomer(id){
 function sRegister(){
   return SM("cust",`
     <div class="pgh"><div><a href="#/s/cust" style="font-size:12.5px;color:var(--blue);font-weight:700">‹ ${T("s.cust")}</a>
-      <h1 style="margin-top:5px">Daftar Outlet</h1><p>Maklumat ini menjadi milik syarikat, bukan salesman.</p></div></div>
+      <h1 style="margin-top:5px">${T("r.title")}</h1><p>${T("r.sub")}</p></div></div>
     <div class="g g2" style="align-items:start">
       <div class="card p">
-        <h3>Maklumat outlet</h3>
+        <h3>${T("r.info")}</h3>
         <div style="margin-top:14px">
-          <div class="f"><label>Nama outlet *</label><input id="rn" placeholder="Kedai Runcit ..."></div>
-          <div class="f2"><div class="f"><label>Jenis</label><select id="rt">
-            <option>Kedai Runcit</option><option>Mini Market</option><option>Supermarket</option><option>Borong</option></select></div>
+          <div class="f"><label>${T("r.name")}</label><input id="rn" placeholder="${T('r.nameph')}"></div>
+          <div class="f2"><div class="f"><label>${T("l.kind")}</label><select id="rt">
+            <option>${T("shop.runcit")}</option><option>Mini Market</option><option>Supermarket</option><option>Borong</option></select></div>
             <div class="f"><label>No SSM</label><input id="rssm" placeholder="20xx0100xxxx"></div></div>
           <div class="f2"><div class="f"><label>PIC</label><input id="rp" placeholder="Nama"></div>
             <div class="f"><label>Telefon</label><input id="rph" placeholder="01x-xxx xxxx"></div></div>
           <div class="f"><label>WhatsApp</label><input id="rw" placeholder="01x-xxx xxxx"></div>
-          <div class="f"><label>Alamat</label><textarea id="ra" rows="2" placeholder="No, Jalan ..."></textarea></div>
-          <div class="f2"><div class="f"><label>Kawasan</label><input id="rd" placeholder="Kajang"></div>
-            <div class="f"><label>Poskod</label><input id="rpo" placeholder="43000"></div></div>
-          <div class="f"><label>Negeri</label><select id="rs">
+          <div class="f"><label>${T("r.addr")}</label><textarea id="ra" rows="2" placeholder="No, Jalan ..."></textarea></div>
+          <div class="f2"><div class="f"><label>${T("l.area")}</label><input id="rd" placeholder="Kajang"></div>
+            <div class="f"><label>${T("r.post")}</label><input id="rpo" placeholder="43000"></div></div>
+          <div class="f"><label>${T("r.state")}</label><select id="rs">
             ${["Selangor","Kuala Lumpur","Putrajaya","Negeri Sembilan","Melaka","Johor","Perak","Pulau Pinang","Kedah","Perlis","Kelantan","Terengganu","Pahang","Sabah","Sarawak","Labuan"].map(s=>`<option>${s}</option>`).join("")}</select></div>
         </div>
       </div>
       <div class="g" style="gap:14px;align-content:start">
         <div class="card p">
-          <h3>Payment Term</h3>
-          <div class="sub">Ini menentukan aliran transaksi, bukan sekadar tarikh matang.</div>
+          <h3>${T("l.payterm2")}</h3>
+          <div class="sub">${T("r.termn")}</div>
           <div class="f" style="margin-top:13px"><select id="rterm">
-            <option value="biltobil">Bil to Bil — order jadi bil, bayar ikut term</option>
-            <option value="consign">Consignment — bil barang terjual sahaja</option>
+            <option value="biltobil">${T("r.t2")}</option>
+            <option value="consign">${T("r.t1")}</option>
             <option value="cash">Cash — bayar di tempat</option></select></div>
         </div>
         <div class="card p">
-          <h3>Lokasi GPS</h3>
-          <div class="sub">Ditangkap sekali di kedai. Salesman lain terus jumpa outlet ini.</div>
+          <h3>${T("r.gps")}</h3>
+          <div class="sub">${T("r.gpsn")}</div>
           <div class="f2" style="margin-top:13px">
-            <div class="f"><label>Latitud</label><input id="rlat" placeholder="Tangkap di lokasi"></div>
-            <div class="f"><label>Longitud</label><input id="rlng" placeholder="Tangkap di lokasi"></div></div>
+            <div class="f"><label>Latitud</label><input id="rlat" placeholder="${T("r.grab")}"></div>
+            <div class="f"><label>Longitud</label><input id="rlng" placeholder="${T("r.grab")}"></div></div>
           <button class="btn btn-s" data-a="grab-gps" style="margin-bottom:8px">${ic(I.pin)} Tangkap GPS di sini</button>
-          <div class="hint" id="gpsnote" style="font-size:11.5px;color:var(--dim);margin-bottom:12px">Koordinat disemak terhadap Kawasan yang diisi, supaya pin jatuh di pekan yang betul.</div>
+          <div class="hint" id="gpsnote" style="font-size:11.5px;color:var(--dim);margin-bottom:12px">${T("r.gpsc")}</div>
           <div style="height:120px;border-radius:var(--r-s);background:linear-gradient(160deg,#DCE9F7,#C5D9EE);
             display:grid;place-items:center;position:relative;overflow:hidden">
             <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);background-size:24px 24px"></div>
             <div style="position:relative;font-size:26px">📍</div></div>
         </div>
-        <button class="btn btn-p btn-w" data-a="save-cust">Simpan Outlet</button>
+        <button class="btn btn-p btn-w" data-a="save-cust">${T("r.save")}</button>
       </div>
     </div>`);
 }
 
 function sOrder(cid){
   if(!cid) return SM("order",`
-    <div class="pgh"><div><h1>${T("s.order")}</h1><p>Pilih outlet untuk mula.</p></div></div>
+    <div class="pgh"><div><h1>${T("s.order")}</h1><p>${T("o.pick")}</p></div></div>
     <div class="g g3">${S.myCust().map(c=>{
       /* A consignment outlet is not ordered from — stock is dropped and billed
          later from the balance. Sending it to the right screen here is better
@@ -2388,7 +2639,7 @@ function sOrder(cid){
         <b style="font-size:14.5px;display:block">${esc(c.name)}</b>
         <span style="font-size:12px;color:var(--mut)">${c.code} · ${esc(c.dist)}</span><br>
         <span class="chip ${TERM[c.term].k}" style="margin-top:9px">${TERM[c.term].t}</span>
-        ${cg?`<span class="chip k-mut" style="margin-top:9px">→ Hantar Stock</span>`:""}</a>`}).join("")}</div>`);
+        ${cg?`<span class="chip k-mut" style="margin-top:9px">${T("o.tocg")}</span>`:""}</a>`}).join("")}</div>`);
   const c=cust(cid); if(!c) return sOrder();
   /* Someone who lands here by link or by typing the address gets the screen that
      can actually serve this outlet, rather than a refusal at the end. */
@@ -2403,15 +2654,15 @@ function sOrder(cid){
     <div class="g g23" style="align-items:start">
       <div class="card p">
         <h3>${T("l.product")}</h3>
-        <div class="sub">Harga boleh diubah dalam had lantai. Stok van ditolak apabila order dihantar.</div>
+        <div class="sub">${T("o.floorn")}</div>
         <div style="margin-top:8px">${d.lines.map(l=>{const p=prod(l.productId);
           const below=l.price<p.floor;
           return `<div class="li">
-            <span class="n"><b>${esc(p.name)}</b><span>${p.sku} · van ${vanOf(p.id)}</span></span>
+            <span class="n"><b>${esc(p.name)}</b><span>${p.sku} · ${TF("f.invan",{n:vanOf(p.id)})}</span></span>
             <span style="width:104px;flex:none">
               <input data-a="price" data-p="${p.id}" type="text" inputmode="decimal" value="${l.price.toFixed(2)}"
                 style="width:100%;padding:7px 9px;border:1px solid ${below?"var(--red)":"var(--line2)"};border-radius:8px;font-size:13px;font-weight:700;text-align:right">
-              ${below?`<span style="font-size:10px;color:var(--red);font-weight:700">bawah ${RM2(p.floor)}</span>`
+              ${below?`<span style="font-size:10px;color:var(--red);font-weight:700">${TF("f.below",{a:RM2(p.floor)})}</span>`
                      :`<span style="font-size:10px;color:var(--dim)">lantai ${RM2(p.floor)}</span>`}</span>
             <span class="stp"><button data-a="q-" data-p="${p.id}">−</button>
               <span class="q num">${l.qty}</span><button data-a="q+" data-p="${p.id}">+</button></span>
@@ -2421,10 +2672,10 @@ function sOrder(cid){
       </div>
       <div class="g" style="gap:14px;align-content:start">
         ${d.lines.some(l=>l.qty>0&&l.price<prod(l.productId).floor)
-          ?`<div class="warn"><b>Harga bawah lantai.</b> Order masih boleh dihantar tetapi ditandakan untuk semakan pengurusan.</div>`:""}
+          ?`<div class="warn"><b>${T("o.below")}</b> Order masih boleh dihantar tetapi ditandakan untuk semakan pengurusan.</div>`:""}
         <div class="card p">
-          <h3>Rantaian dokumen</h3>
-          <div class="sub">${TERM[c.term].t} — SO dan Invoice sahaja. DO hanya untuk consignment.</div>
+          <h3>${T("o.chain")}</h3>
+          <div class="sub">${TF("o.nodoline",{t:TERM[c.term].t})}</div>
           <div class="flow" style="margin-top:12px">
             <div>${nn("SO",DB.seq.SO+1)}</div><div class="hi">${nn("INV",DB.seq.INV+1)}</div>
             ${c.term==="cash"?`<div class="gd">${nn("REC",DB.seq.REC+1)}</div>`:""}
@@ -2452,7 +2703,7 @@ function sCollect(){
   return SM("collect",`
     <div class="pgh"><div><h1>${T("s.collect")}</h1><p>${T("s.collect.d")}</p></div></div>
     <div class="g g3" style="margin-bottom:18px">
-      ${kpi(T("k.outstanding"),RMk(out),due.length+" invois",I.doc,"#D97706")}
+      ${kpi(T("k.outstanding"),RMk(out),TF("f.ninv",{n:due.length}),I.doc,"#D97706")}
       ${kpi(T("k.overdue"),RMk(lateAmt),late.length+" "+T("l.late").toLowerCase(),I.shield,"#DC2626")}
       ${kpi(T("l.collected"),RMk(today),fd(TODAY),I.cash,"#0E9F6E")}
     </div>
@@ -2464,20 +2715,20 @@ function sCollect(){
           <div style="font-size:11.5px;color:var(--dim)">${esc(c.dist)} · ${TERM[c.term].t}</div></td>
         <td><a class="lk mono" href="#/s/doc/Invoice/${i.id}">${i.id}</a></td>
         <td>${fd(i.due)}</td>
-        <td>${L>0?`<span class="chip k-red">${L} hari</span>`:`<span class="chip k-mut">${-L} hari lagi</span>`}</td>
+        <td>${L>0?`<span class="chip k-red">${TF("f.days",{n:L})}</span>`:`<span class="chip k-mut">${TF("f.daysleft",{n:-L})}</span>`}</td>
         <td class="r"><b>${RM2(i.total-i.paid)}</b>${i.paid>0?`<div style="font-size:11px;color:var(--dim)">separa · ${RM2(i.paid)} dibayar</div>`:""}</td>
-        <td class="r"><a class="btn btn-s" href="#/s/payment/${c.id}/${i.id}">${ic(I.cash)} Rekod</a></td>
+        <td class="r"><a class="btn btn-s" href="#/s/payment/${c.id}/${i.id}">${ic(I.cash)} ${T("l.record")}</a></td>
       </tr>`}).join("")}</tbody>
     </table></div>`
-    :`<div class="empty"><b>Tiada invois tertunggak</b>
+    :`<div class="empty"><b>${T("col.none")}</b>
        <div>${DB.invoices.length
-         ? "Semua outlet anda sudah menjelaskan bayaran. Kutipan yang sudah direkod ada di bawah."
-         : "Belum ada invois direkod. Ambil order dahulu — invois akan muncul di sini untuk dikutip."}</div></div>`}
+         ? T("col.allpaid")
+         : T("col.noinvyet")}</div></div>`}
 
     <div class="sec">Kutipan diterima (${mine.length})</div>
     ${mine.length?`<div class="tw"><table>
-      <thead><tr><th>${T("l.date")}</th><th>${T("l.customer")}</th><th>Resit</th><th>Invois</th>
-        <th>Kaedah</th><th class="r">${T("l.amount")}</th></tr></thead>
+      <thead><tr><th>${T("l.date")}</th><th>${T("l.customer")}</th><th>${T("col.rec")}</th><th>${T("col.inv")}</th>
+        <th>${T("col.meth")}</th><th class="r">${T("l.amount")}</th></tr></thead>
       <tbody>${mine.slice(0,40).map(r=>{const c=cust(r.customerId);return `<tr>
         <td>${fd(r.date)}</td>
         <td>${c?`<a class="lk" href="#/s/customer/${c.id}">${esc(c.name)}</a>`:"—"}</td>
@@ -2489,9 +2740,9 @@ function sCollect(){
     /* The collections worklist shows what is still owed, so it empties as the
        money comes in. Without this list a salesman who had collected everything
        saw a blank screen and no evidence any payment had ever been recorded. */
-    :`<div class="empty"><b>Belum ada kutipan</b>
-       <div>Setiap bayaran yang direkod muncul di sini dengan resitnya.</div></div>`}
-    <div class="note" style="margin-top:13px">Resit dijana automatik selepas setiap bayaran direkod, penuh atau separa.</div>`);
+    :`<div class="empty"><b>${T("col.nocol")}</b>
+       <div>${T("col.nocolb")}</div></div>`}
+    <div class="note" style="margin-top:13px">${T("col.autorec")}</div>`);
 }
 
 function sConsign(cid){
@@ -2501,23 +2752,23 @@ function sConsign(cid){
   return SM("consign",`
     <div class="pgh"><div>${c?`<a href="#/s/customer/${cid}" style="font-size:12.5px;color:var(--blue);font-weight:700">‹ ${esc(c.name)}</a>`:""}
       <h1 style="margin-top:5px">${T("s.consign")}</h1>
-      <p>Hantar stock dahulu, bil barang terjual sahaja.</p></div></div>
+      <p>${T("cg.sub")}</p></div></div>
     ${c?`<div class="card p" style="margin-bottom:18px">
-      <h3>Hantar stock baru</h3>
+      <h3>${T("cg.new")}</h3>
       <div class="f2" style="margin-top:13px">
         <div class="f"><label>${T("l.product")}</label><select id="cgp">
-          ${PRODUCTS.map(p=>`<option value="${p.id}">${esc(p.name)} — ${RM2(p.price)} (van ${vanOf(p.id)})</option>`).join("")}</select></div>
+          ${PRODUCTS.map(p=>`<option value="${p.id}">${esc(p.name)} — ${RM2(p.price)} (${TF("f.invan",{n:vanOf(p.id)})})</option>`).join("")}</select></div>
         <div class="f"><label>${T("l.qty")}</label><input id="cgq" type="number" value="${Math.min(100,Math.max(1,vanOf(PRODUCTS[0]&&PRODUCTS[0].id)))}" min="1"></div></div>
-      <button class="btn btn-p" data-a="send-stock" data-c="${cid}">${ic(I.truck)} Hantar Stock</button>
+      <button class="btn btn-p" data-a="send-stock" data-c="${cid}">${ic(I.truck)} ${T("l.sendstock")}</button>
     </div>`
     /* Reached from the rail there is no outlet yet, and the drop form needs one.
        Without this the screen was two empty lists and no way to start — which is
        exactly how a stock drop ended up being entered as an ordinary sale. */
     :(()=>{ const mine=S.myCust().filter(x=>x.term==="consign");
       return `<div class="card p" style="margin-bottom:18px">
-        <h3>Pilih outlet untuk hantar stock</h3>
+        <h3>${T("cg.pick")}</h3>
         <p style="color:var(--mut);font-size:13.5px;margin-top:6px">
-          Hanya outlet consignment menerima penghantaran stock. Outlet Cash dan Bil to Bil guna
+          ${T("cg.onlycg")}
           <a href="#/s/order" style="color:var(--blue);font-weight:700">Ambil Order</a>.</p>
         ${mine.length?`<div class="g g3" style="margin-top:14px">${mine.map(x=>{
           const open=DB.consign.filter(g=>g.customerId===x.id&&g.balance===null).length;
@@ -2525,34 +2776,34 @@ function sConsign(cid){
             <b style="font-size:14.5px;display:block">${esc(x.name)}</b>
             <span style="font-size:12px;color:var(--mut)">${x.code} · ${esc(x.dist)}</span><br>
             <span class="chip k-vio" style="margin-top:9px">${TERM.consign.t}</span>
-            ${open?`<span class="chip k-amb" style="margin-top:9px">${open} belum semak baki</span>`:""}
+            ${open?`<span class="chip k-amb" style="margin-top:9px">${TF("f.notchecked",{n:open})}</span>`:""}
           </a>`}).join("")}</div>`
-        :`<div class="empty" style="margin-top:14px"><b>Tiada outlet consignment</b>
+        :`<div class="empty" style="margin-top:14px"><b>${T("cg.nocg")}</b>
            <span>Tiada outlet anda yang menggunakan term Consignment. Tukar term outlet, atau
            daftar outlet baru dengan term Consignment.</span></div>`}
       </div>`})()}
-    <div class="sec">Belum semak baki (${openL.length})</div>
+    <div class="sec">${TF("f.openbal",{n:openL.length})}</div>
     <div class="g g2">${openL.map(g=>{const cc=cust(g.customerId),p=prod(g.productId);
       const bal=g.tmp, ok=bal!=null&&bal>=0&&bal<=g.qty, sold=ok?g.qty-bal:null;
       return `<div class="card p ai-edge">
         <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
           <div><b style="font-size:14.5px">${esc(cc.name)}</b>
-            <div style="font-size:12.5px;color:var(--mut);margin-top:2px">${esc(p.name)} · ${fd(g.date)} · ${dbet(g.date,TODAY)} hari</div></div>
-          <span class="chip k-vio">${g.qty} unit</span></div>
-        <div class="f" style="margin-top:14px"><label>Baki stock di kedai</label>
-          <input data-a="bal" data-g="${g.id}" type="number" min="0" max="${g.qty}" value="${bal!=null?bal:""}" placeholder="Kira baki di rak">
-          <div class="hint">Dihantar ${g.qty} unit · harga ${RM2(g.price)}</div></div>
+            <div style="font-size:12.5px;color:var(--mut);margin-top:2px">${esc(p.name)} · ${fd(g.date)} · ${TF("f.days",{n:dbet(g.date,TODAY)})}</div></div>
+          <span class="chip k-vio">${TF("f.units",{n:g.qty})}</span></div>
+        <div class="f" style="margin-top:14px"><label>${T("cg.bal")}</label>
+          <input data-a="bal" data-g="${g.id}" type="number" min="0" max="${g.qty}" value="${bal!=null?bal:""}" placeholder="${T("cg.balph")}">
+          <div class="hint">${TF("f.sentq",{n:g.qty,p:RM2(g.price)})}</div></div>
         ${ok?`<div class="okbox" style="margin-bottom:12px"><span>✓</span>
-          <span><b>${g.qty} − ${bal} = ${sold} unit terjual</b><br>Bil ${RM2(sold*g.price)} — bukan ${RM2(g.qty*g.price)}.</span></div>
+          <span><b>${TF("f.soldcalc",{q:g.qty,b:bal,s:sold})}</b><br>${TF("f.billnot",{a:RM2(sold*g.price),b:RM2(g.qty*g.price)})}</span></div>
           <button class="btn btn-p btn-w" data-a="gen-bill" data-g="${g.id}">Jana Bill · ${RM2(sold*g.price)}</button>`
-        :`<button class="btn btn-w" disabled>Masukkan baki dahulu</button>`}
-      </div>`}).join("")||`<div class="empty" style="grid-column:1/-1"><b>Tiada penghantaran terbuka</b>
+        :`<button class="btn btn-w" disabled>${T("cg.first")}</button>`}
+      </div>`}).join("")||`<div class="empty" style="grid-column:1/-1"><b>${T("cg.noopen")}</b>
         <span>Stock yang sudah dihantar tetapi belum disemak baki akan muncul di sini, untuk
         dikira berapa unit terjual pada lawatan berikut.</span></div>`}</div>
     <div class="sec">Sudah dibil (${doneL.length})</div>
     <div class="tw"><table>
-      <thead><tr><th>${T("l.outlet")}</th><th>${T("l.product")}</th><th class="r">Hantar</th><th class="r">Baki</th>
-        <th class="r">Terjual</th><th class="r">Bil</th><th>Invoice</th></tr></thead>
+      <thead><tr><th>${T("l.outlet")}</th><th>${T("l.product")}</th><th class="r">${T("cg.sentq")}</th><th class="r">${T("l.balance2")}</th>
+        <th class="r">${T("cg.sold")}</th><th class="r">Bil</th><th>Invoice</th></tr></thead>
       <tbody>${doneL.map(g=>{const cc=cust(g.customerId);return `<tr>
         <td>${esc(cc.name)}</td><td>${esc(prod(g.productId).name)}</td>
         <td class="r num">${g.qty}</td><td class="r num">${g.balance}</td>
@@ -2581,7 +2832,7 @@ function sDocs(cid){
       <div class="ra"><div class="tabs">${tabs.map(t=>
         `<button data-a="hist" data-v="${t}" class="${ST.histTab===t?"on":""}">${t}</button>`).join("")}</div></div></div>
     <div class="tw"><table>
-      <thead><tr><th>${T("l.doc")}</th><th>Jenis</th>${c?"":`<th>${T("l.customer")}</th>`}<th>${T("l.date")}</th><th class="r">${T("l.amount")}</th></tr></thead>
+      <thead><tr><th>${T("l.doc")}</th><th>${T("l.kind")}</th>${c?"":`<th>${T("l.customer")}</th>`}<th>${T("l.date")}</th><th class="r">${T("l.amount")}</th></tr></thead>
       <tbody>${list.slice(0,60).map(x=>`<tr>
         <td><a class="lk mono" href="#/s/doc/${x.t}/${x.id}">${x.id}</a></td>
         <td><span class="chip ${x.k}">${x.t}</span></td>
@@ -2760,7 +3011,7 @@ function vDoc(pfx,type,id){
       ${amt?`<div class="gt"><span>${m.totalLabel}</span><span>${RM2(amt)}</span></div>`:""}
       ${m.extra.map(([l,v])=>`<div class="r" style="margin-top:6px"><span>${esc(l)}</span><b>${esc(v)}</b></div>`).join("")}
       ${m.stamp?`<div class="st">${esc(m.stamp)}</div>`:""}
-      <div class="ft">Terima kasih atas sokongan anda.<br>Dokumen dijana oleh ${esc(CO.name)}<br>
+      <div class="ft">${T("doc.thanks")}<br>${T("doc.gen")} ${esc(CO.name)}<br>
         ${fd(TODAY)} · e-Invoice ready (LHDN)</div>
     </div>
     <div class="dact" style="max-width:302px;margin:15px auto 0">
@@ -2770,7 +3021,7 @@ function vDoc(pfx,type,id){
     </div>
     ${type==="Invoice"&&d.status!=="paid"?`
       <div style="max-width:302px;margin:12px auto 0">
-        <a class="btn btn-g btn-w" href="#/s/payment/${c.id}/${d.id}">${ic(I.cash)} Rekod Payment</a></div>`:""}`;
+        <a class="btn btn-g btn-w" href="#/s/payment/${c.id}/${d.id}">${ic(I.cash)} ${T("l.payrec")}</a></div>`:""}`;
   })();
   const body=`
     <div class="pgh"><div>
@@ -2787,11 +3038,11 @@ function sPayment(cid,invId){
   const inv=invId?DB.invoices.find(i=>i.id===invId):open[0];
   return SM("docs",`
     <div class="pgh"><div><a href="#/s/customer/${cid}" style="font-size:12.5px;color:var(--blue);font-weight:700">‹ ${esc(c.name)}</a>
-      <h1 style="margin-top:5px">Payment</h1><p>${T("k.outstanding")} ${RM2(S.outstanding(cid))}</p></div></div>
-    ${!inv?`<div class="empty"><b>Tiada invoice belum jelas</b><span>Semua invois untuk outlet ini sudah selesai.</span></div>`:`
+      <h1 style="margin-top:5px">${T("s.collect")}</h1><p>${T("k.outstanding")} ${RM2(S.outstanding(cid))}</p></div></div>
+    ${!inv?`<div class="empty"><b>${T("p.noinv")}</b><span>${T("p.noinvb")}</span></div>`:`
     <div class="g g23" style="align-items:start">
       <div class="card p">
-        <h3>Invoice belum jelas</h3>
+        <h3>${T("l.openinv")}</h3>
         <div style="margin-top:12px">${open.map(i=>`
           <a href="#/s/payment/${cid}/${i.id}" style="display:flex;gap:11px;align-items:center;padding:11px;border-radius:var(--r-s);
             border:1px solid ${i.id===inv.id?"var(--blue)":"var(--line)"};background:${i.id===inv.id?"var(--blue-lo)":"#fff"};margin-bottom:8px">
@@ -2805,16 +3056,16 @@ function sPayment(cid,invId){
           <h3 class="mono" style="font-size:14px">${inv.id}</h3>
           <div style="margin-top:11px;font-size:13px;line-height:1.9">
             <div style="display:flex;justify-content:space-between"><span style="color:var(--mut)">${T("l.total")}</span><b>${RM2(inv.total)}</b></div>
-            <div style="display:flex;justify-content:space-between"><span style="color:var(--mut)">Dibayar</span><b>${RM2(inv.paid)}</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--mut)">${T("l.paidamt")}</span><b>${RM2(inv.paid)}</b></div>
             <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--line);margin-top:5px">
-              <b>Baki</b><b style="font-size:17px">${RM2(inv.total-inv.paid)}</b></div>
+              <b>${T("l.balance2")}</b><b style="font-size:17px">${RM2(inv.total-inv.paid)}</b></div>
           </div>
           <div class="f" style="margin-top:15px"><label>${T("l.amount")}</label>
             <input id="pamt" type="number" step="0.01" value="${(inv.total-inv.paid).toFixed(2)}"></div>
-          <div class="f"><label>Kaedah</label><select id="pm">
+          <div class="f"><label>${T("col.meth")}</label><select id="pm">
             <option>Cash</option><option>Bank Transfer</option><option>Cheque</option><option>QR / DuitNow</option></select></div>
-          <button class="btn btn-g btn-w" data-a="pay" data-i="${inv.id}">${ic(I.cash)} Rekod Payment</button>
-          <div class="hint" style="font-size:11.5px;color:var(--dim);margin-top:8px;text-align:center">Resit dijana automatik selepas payment.</div>
+          <button class="btn btn-g btn-w" data-a="pay" data-i="${inv.id}">${ic(I.cash)} ${T("l.payrec")}</button>
+          <div class="hint" style="font-size:11.5px;color:var(--dim);margin-top:8px;text-align:center">${T("p.autorec")}</div>
         </div>
       </div>
     </div>`}`);
@@ -2826,26 +3077,26 @@ function sReturn(cid){
   const past=DB.returns.filter(r=>r.customerId===cid);
   return SM("docs",`
     <div class="pgh"><div><a href="#/s/customer/${cid}" style="font-size:12.5px;color:var(--blue);font-weight:700">‹ ${esc(c.name)}</a>
-      <h1 style="margin-top:5px">${T("s.return")}</h1><p>Stok kembali ke van, RET dijana.</p></div></div>
+      <h1 style="margin-top:5px">${T("s.return")}</h1><p>${T("rt.back")}</p></div></div>
     <div class="g g23" style="align-items:start">
       <div class="card p">
-        <h3>Rekod pulangan</h3>
+        <h3>${T("rt.title")}</h3>
         <div class="f" style="margin-top:13px"><label>${T("l.product")}</label><select id="rtp">
           ${PRODUCTS.map(p=>`<option value="${p.id}">${esc(p.name)} — ${p.sku}</option>`).join("")}</select></div>
         <div class="f2"><div class="f"><label>${T("l.qty")}</label><input id="rtq" type="number" value="1" min="1"></div>
-          <div class="f"><label>Sebab</label><select id="rtr">
+          <div class="f"><label>${T("rt.reason")}</label><select id="rtr">
             <option>Damaged</option><option>Expired</option><option>Wrong Product</option>
             <option>Wrong Quantity</option><option>Defective</option></select></div></div>
-        <div class="f"><label>Catatan</label><textarea id="rtm" rows="2" placeholder="Nota tambahan"></textarea></div>
-        <button class="btn btn-p btn-w" data-a="save-return" data-c="${cid}">${ic(I.ret)} Simpan Pulangan</button>
+        <div class="f"><label>Catatan</label><textarea id="rtm" rows="2" placeholder="${T("rt.note")}"></textarea></div>
+        <button class="btn btn-p btn-w" data-a="save-return" data-c="${cid}">${ic(I.ret)} ${T("l.savereturn")}</button>
       </div>
       <div class="card p">
-        <h3>Pulangan lepas</h3>
+        <h3>${T("l.pastret")}</h3>
         <div style="margin-top:12px">${past.length?past.map(r=>`
           <a href="#/s/doc/Return/${r.id}" style="display:flex;gap:11px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)">
             <span class="chip k-red" style="width:74px;justify-content:center">RET</span>
             <span style="flex:1;min-width:0"><b style="font-size:13px">${esc(prod(r.productId).name)}</b><br>
-              <span style="font-size:11.5px;color:var(--dim)">${r.qty} unit · ${esc(r.reason)} · ${fds(r.date)}</span></span>
+              <span style="font-size:11.5px;color:var(--dim)">${TF("f.units",{n:r.qty})} · ${esc(r.reason)} · ${fds(r.date)}</span></span>
           </a>`).join(""):`<div class="empty"><b>${T("l.none")}</b></div>`}</div>
       </div>
     </div>`);
@@ -2859,12 +3110,12 @@ function sStock(){
   const open=mine.filter(r=>r.status==="pending");
   return SM("stock",`
     <div class="pgh"><div><h1>${T("s.stock")}</h1><p>${esc(ME.name)} · ${ME.withStock?"Salesman WITH STOCK":"Tanpa stok"}</p></div>
-      <div class="ra"><button class="btn btn-p" data-a="req-open">${ic(I.truck)} Request Stock</button></div></div>
+      <div class="ra"><button class="btn btn-p" data-a="req-open">${ic(I.truck)} ${T("l.reqstock")}</button></div></div>
     ${mine.length?`<div class="card p" style="margin-bottom:18px">
-      <h3>Request stok saya (${open.length} menunggu)</h3>
+      <h3>${TF("f.myreq",{n:open.length})}</h3>
       <div class="tw" style="margin-top:12px"><table>
-        <thead><tr><th>${T("l.product")}</th><th class="r">Minta</th><th class="r">Dibekal</th>
-          <th>Status</th><th>Tarikh</th></tr></thead>
+        <thead><tr><th>${T("l.product")}</th><th class="r">${T("st.ask")}</th><th class="r">${T("st.supplied")}</th>
+          <th>${T("st.status")}</th><th>${T("st.date")}</th></tr></thead>
         <tbody>${mine.slice(0,12).map(r=>{const p=prod(r.productId);return `<tr>
           <td>${esc(p?p.name:"—")}</td>
           <td class="r num">${r.qty}</td>
@@ -2880,10 +3131,10 @@ function sStock(){
       ${kpi("Stok rendah",low.length,"perlu request",I.shield,low.length?"#DC2626":"#0E9F6E")}
       ${kpi("Consignment luar",S.openConsign().filter(g=>g.salesmanId===ME.id).length,"belum semak",I.truck,"#D97706")}
     </div>
-    ${low.length?`<div class="warn" style="margin-bottom:16px"><b>${low.length} SKU</b> bawah paras minimum — request stok dari warehouse.</div>`:""}
+    ${low.length?`<div class="warn" style="margin-bottom:16px">${TF("f.lowmin",{n:`<b>${low.length}</b>`})}</div>`:""}
     <div class="tw"><table>
-      <thead><tr><th>SKU</th><th>${T("l.product")}</th><th class="r">Dalam van</th><th class="r">Paras min</th>
-        <th class="r">${T("l.price")}</th><th class="r">Nilai</th><th style="width:160px">Paras</th></tr></thead>
+      <thead><tr><th>SKU</th><th>${T("l.product")}</th><th class="r">${T("st.invan")}</th><th class="r">${T("st.minlvl")}</th>
+        <th class="r">${T("l.price")}</th><th class="r">${T("l.value")}</th><th style="width:160px">${T("st.level")}</th></tr></thead>
       <tbody>${PRODUCTS.map(p=>`<tr>
         <td class="mono" style="color:var(--dim)">${p.sku}</td>
         <td><b>${esc(p.name)}</b></td>
@@ -2899,14 +3150,14 @@ function sRank(){
   const r=ST.rankRange, rank=S.ranking(r), max=rank[0]?rank[0].sales:1;
   const mine=rank.findIndex(s=>s.id===ME.id)+1;
   return SM("rank",`
-    <div class="pgh"><div><h1>${T("s.rank")}</h1><p>Kedudukan anda: <b>#${mine}</b> daripada ${rank.length}</p></div>
+    <div class="pgh"><div><h1>${T("s.rank")}</h1><p>${TF("f.rankpos",{p:T("rk.yours"),n:`<b>${mine}</b>`,t:rank.length})}</p></div>
       <div class="ra">${rangeTabs(r,"rank")}</div></div>
     <div class="g g3" style="margin-bottom:20px">
       ${rank.slice(0,3).map((s,i)=>`<div class="card p" ${s.id===ME.id?'style="border-color:var(--blue);border-width:2px"':""}>
         <div style="display:flex;align-items:center;gap:12px">
           <span style="width:44px;height:44px;border-radius:13px;background:${i===0?"var(--ai)":"var(--s3)"};
             color:${i===0?"#fff":"var(--mut)"};display:grid;place-items:center;font-size:19px;flex:none">${["🥇","🥈","🥉"][i]}</span>
-          <div style="min-width:0"><b style="font-size:15px;display:block">${esc(s.name)}${s.id===ME.id?" (anda)":""}</b>
+          <div style="min-width:0"><b style="font-size:15px;display:block">${esc(s.name)}${s.id===ME.id?" ("+T("l.you")+")":""}</b>
             <span style="font-size:12px;color:var(--mut)">${s.code} · ${esc(s.zone)}</span></div></div>
         <div style="font-size:24px;font-weight:800;margin:13px 0 3px;letter-spacing:-.03em">${RM(s.sales)}</div>
         <div class="prog"><i class="${i===0?"ai":""}" data-w="${Math.round(s.sales/max*100)}%"></i></div>
@@ -2917,7 +3168,7 @@ function sRank(){
         <th class="r">${T("k.orders")}</th><th class="r">${T("k.collected")}</th><th style="width:170px">—</th></tr></thead>
       <tbody>${rank.map((s,i)=>`<tr ${s.id===ME.id?'style="background:var(--blue-lo)"':""}>
         <td><b>#${i+1}</b></td>
-        <td><b>${esc(s.name)}</b>${s.id===ME.id?` <span class="chip k-blue">anda</span>`:""}</td>
+        <td><b>${esc(s.name)}</b>${s.id===ME.id?` <span class="chip k-blue">${T("l.you")}</span>`:""}</td>
         <td>${esc(s.zone)}</td>
         <td class="r"><b>${RM(s.sales)}</b></td>
         <td class="r num">${s.ord}</td><td class="r num">${RM(s.paid)}</td>
@@ -2931,7 +3182,7 @@ function sRefer(){
   const v=mine.filter(r=>r.status==="verified");
   const com=v.reduce((a,r)=>a+r.commission,0);
   return SM("refer",`
-    <div class="pgh"><div><h1>${T("s.refer")}</h1><p>Kod anda: <b class="mono">AZ-${ME.code}-2026</b></p></div>
+    <div class="pgh"><div><h1>${T("s.refer")}</h1><p>${T("rf.code")} <b class="mono">AZ-${ME.code}-2026</b></p></div>
       <div class="ra"><button class="btn btn-g" data-a="share-ref">${ic(I.wa)} Share</button></div></div>
     <div class="g g3" style="margin-bottom:18px">
       ${kpi("Referral",mine.length,"dihantar",I.gift,"#8B5CF6")}
@@ -2940,10 +3191,10 @@ function sRefer(){
     </div>
     <div class="tw"><table>
       <thead><tr><th>${T("l.outlet")}</th><th>${T("l.date")}</th><th>${T("l.status")}</th>
-        <th class="r">Nilai jualan</th><th class="r">Komisen</th></tr></thead>
+        <th class="r">${T("rf.val")}</th><th class="r">Komisen</th></tr></thead>
       <tbody>${mine.map(r=>`<tr>
         <td><b>${esc(r.name)}</b></td><td>${fd(r.date)}</td>
-        <td>${r.status==="verified"?`<span class="chip k-grn">Disahkan</span>`:`<span class="chip k-mut">Menunggu</span>`}</td>
+        <td>${r.status==="verified"?`<span class="chip k-grn">Disahkan</span>`:`<span class="chip k-mut">${T("rf.wait")}</span>`}</td>
         <td class="r num">${r.value?RM(r.value):"—"}</td>
         <td class="r">${r.commission?`<b>${RM2(r.commission)}</b>`:"—"}</td></tr>`).join("")}</tbody>
     </table></div>`);
@@ -2962,7 +3213,7 @@ function sNav(id){const c=cust(id); if(!c) return sCust();
         <div style="font-size:13px;margin-bottom:12px">${esc(c.addr)}, ${esc(c.pos)} ${esc(c.dist)}, ${esc(c.state)}</div>
         <a class="btn btn-p btn-w" href="https://www.google.com/maps/search/?api=1&query=${c.lat},${c.lng}" target="_blank" rel="noopener">${ic(I.pin)} Buka Google Maps</a>
       </div></div>
-    <div class="note" style="margin-top:14px;max-width:640px">Lokasi GPS disimpan semasa registration, jadi salesman lain boleh terus cari outlet ini.</div>`);
+    <div class="note" style="margin-top:14px;max-width:640px">${T("nav.gpsn")}</div>`);
 }
 function sWa(id){const c=cust(id); if(!c) return sCust();
   return SM("cust",`
@@ -2973,7 +3224,7 @@ function sWa(id){const c=cust(id); if(!c) return sCust();
         <div style="background:#D9FDD3;border-radius:9px 9px 2px 9px;padding:12px 14px;font-size:13.5px;line-height:1.6;margin-left:auto;max-width:86%">
           Salam ${esc(c.pic.split(" ")[0])}, saya ${esc(ME.name)} dari ${esc(CO.name)}. Boleh saya singgah hari ini?
           <span style="display:block;font-size:10px;color:rgba(17,27,33,.5);text-align:right;margin-top:5px">09:41 ✓✓</span></div></div>
-      <div class="f"><label>Mesej</label><textarea rows="3">Salam ${esc(c.pic.split(" ")[0])}, saya ${esc(ME.name)} dari ${esc(CO.name)}.</textarea></div>
+      <div class="f"><label>${T("l.msg")}</label><textarea rows="3">${TF("wa.greet",{n:esc(c.pic.split(" ")[0]),m:esc(ME.name),co:esc(CO.name)})}</textarea></div>
       <a class="btn btn-g btn-w" href="https://wa.me/6${c.wa.replace(/[^0-9]/g,"")}" target="_blank" rel="noopener">${ic(I.wa)} Buka WhatsApp</a>
     </div>`);
 }
@@ -2982,53 +3233,49 @@ function sWa(id){const c=cust(id); if(!c) return sCust();
    AI HELP 24/7 — the left bubble. Answers are read off the live data, so the
    figures it quotes always agree with whatever panel is behind it.
    ========================================================================== */
-const CHIPS=[["Jualan hari ini?","sales"],["Siapa nombor satu?","top"],["Berapa tertunggak?","overdue"],
-             ["Consignment macam mana?","consign"],["Outlet senyap?","quiet"],["Apa itu Bil to Bil?","bil"]];
+/* The suggested questions are matched on keywords, so the chip has to carry the
+   keyword the matcher looks for as well as the label the reader sees. */
+const CHIPS=()=>[[T("chip.sales"),"sales"],[T("chip.top"),"top"],[T("chip.od"),"overdue"],
+             [T("chip.cg"),"consign"],[T("chip.quiet"),"quiet"],[T("chip.btb"),"bil"]];
 function aiAnswer(q){
   const s=q.toLowerCase();
   const has=(...w)=>w.some(x=>s.includes(x));
   if(has("jualan","sales","hari ini","today","revenue"))
-    return `Jualan <b>${T("t.today").toLowerCase()}</b> ialah <b>${RM2(S.salesIn("today"))}</b> daripada ${S.ordersIn("today")} order.
-      Bulan ini: <b>${RM2(S.salesIn("month"))}</b>.`;
+    return TF("q.sales",{d:T("t.today").toLowerCase(),a:`<b>${RM2(S.salesIn("today"))}</b>`,
+      n:S.ordersIn("today"),m:RM2(S.salesIn("month"))});
   if(has("top","nombor satu","terbaik","best","ranking","rank")){
     const r=S.ranking(ST.mrange);
-    return `Kedudukan ${T(RANGES.find(x=>x[0]===ST.mrange)[1]).toLowerCase()}: <b>1. ${esc(r[0].name)}</b> ${RM(r[0].sales)} · 2. ${esc(r[1].name)} ${RM(r[1].sales)} · 3. ${esc(r[2].name)} ${RM(r[2].sales)}.`;
+    return TF("q.rank",{r:T(RANGES.find(x=>x[0]===ST.mrange)[1]).toLowerCase(),
+      a:esc(r[0].name),av:RM(r[0].sales),b:esc(r[1].name),bv:RM(r[1].sales),
+      c:esc(r[2].name),cv:RM(r[2].sales)});
   }
   if(has("tertunggak","overdue","hutang","debt","outstanding","belum bayar")){
     const ag=S.ageing();
-    return `Belum jelas <b>${RM2(S.outstanding())}</b>, daripada itu <b>${RM2(S.overdue())}</b> sudah lepas tarikh matang.<br>
-      Penuaan: ${ag.map(a=>`${a.l}d ${RM(a.v)}`).join(" · ")}.`;
+    return TF("q.debt",{o:RM2(S.outstanding()),d:RM2(S.overdue()),
+      ag:ag.map(a=>`${a.l}d ${RM(a.v)}`).join(" · ")});
   }
-  if(has("consign","konsain","baki")){
-    const o=S.openConsign();
-    return `Consignment bermakna anda bil <b>barang yang terjual sahaja</b>. Hantar stock, lawatan berikut masukkan baki, sistem kira terjual = hantar − baki.<br>
-      Sekarang ada <b>${o.length}</b> penghantaran belum disemak baki.`;
-  }
+  if(has("consign","konsain","baki"))
+    return TF("q.cg",{n:S.openConsign().length});
   if(has("senyap","quiet","risk","hilang","churn")){
     const q2=AI.quiet();
     return q2.length
-      ? `<b>${q2.length}</b> outlet senyap lebih lama daripada irama biasa mereka. Paling ketara: <b>${esc(q2[0].c.name)}</b> — ${q2[0].since} hari, biasanya setiap ${q2[0].avg} hari.`
-      : `Tiada outlet yang tersasar daripada corak pesanan mereka sekarang.`;
+      ? TF("q.quiet",{n:q2.length,c:esc(q2[0].c.name),s:q2[0].since,a:q2[0].avg})
+      : T("q.quiet0");
   }
-  if(has("bil to bil","biltobil","term"))
-    return `<b>Bil to Bil</b> — setiap order menjadi bil sendiri: Order → DO → SO → Invoice, bayar ikut term 1, 2 atau 3 bulan yang disimpan pada outlet itu.`;
-  if(has("cash","tunai"))
-    return `<b>Cash</b> — order dan bayar di tempat. Rantaian penuh dijana, payment direkod serta-merta, resit keluar sebelum salesman keluar dari kedai.`;
-  if(has("order","pesanan","macam mana order"))
-    return `Buka Panel Salesman → ${T("s.order")}, pilih outlet, laraskan kuantiti dan harga (dalam had lantai), kemudian hantar. Order → DO → SO → Invoice dijana serentak.`;
+  if(has("bil to bil","biltobil","term"))  return T("q.btb");
+  if(has("cash","tunai"))                  return T("q.cash");
+  if(has("order","pesanan","macam mana order")) return TF("q.howorder",{o:T("s.order")});
   if(has("stock","stok","van"))
-    return `Stok van anda bernilai <b>${RM2(PRODUCTS.reduce((a,p)=>a+vanOf(p.id)*p.price,0))}</b> merentas ${PRODUCTS.length} SKU. ${PRODUCTS.filter(p=>vanOf(p.id)<=p.low).length} SKU bawah paras minimum.`;
+    return TF("q.stock",{v:RM2(PRODUCTS.reduce((a,p)=>a+vanOf(p.id)*p.price,0)),
+      n:PRODUCTS.length,l:PRODUCTS.filter(p=>vanOf(p.id)<=p.low).length});
   if(has("dokumen","document","invoice","resit","receipt","running"))
-    return `Setakat ini <b>${S.docCount()}</b> dokumen dijana: ${DB.dos.length} DO · ${DB.sos.length} SO · ${DB.invoices.length} Invoice · ${DB.receipts.length} Receipt · ${DB.returns.length} Return. Lima turutan berasingan, tiada nombor diguna semula. DO hanya untuk consignment, jadi kiraannya kecil; SO dijana bila barang terjual. Sebab itu nombor setiap jenis tidak sama.`;
-  if(has("bahasa","language","语言"))
-    return `Portal ini menyokong empat bahasa: Bahasa Malaysia, English, 中文 dan Jaku Iban. Tukar di penjuru kanan atas — seluruh portal berubah serta-merta.`;
-  if(has("modul","module","apa boleh"))
-    return `Enam belas modul beroperasi: Register Customer, Senarai Outlet, Customer Profile, Jadual Harian, Ambil Order, DO, SO, Invoice, Payment, Receipt, Product &amp; Stock, Return, Sales Ranking, PDF/WhatsApp/Print, Running Number, dan Refer &amp; Earn.`;
-  if(has("ai","kecerdasan"))
-    return `Lapisan AI membuat tiga kerja sebenar: menyusun laluan harian ikut wang tertunggak, membaca kelakuan bayaran setiap outlet daripada lag invois-ke-resit, dan menanda outlet yang senyap berbanding irama mereka sendiri.`;
-  if(has("hello","hai","hi","salam","assalam"))
-    return `Salam! Saya boleh jawab tentang jualan, kutipan, consignment, ranking, stok dan cara guna portal ini. Cuba salah satu soalan di bawah.`;
-  return `Saya boleh bantu dengan: jualan dan ranking, kutipan dan hutang tertunggak, consignment dan baki stock, stok van, dokumen dan running number, atau tiga model transaksi. Cuba tanya salah satu.`;
+    return TF("q.docs",{n:S.docCount(),
+      d:`${DB.dos.length} DO · ${DB.sos.length} SO · ${DB.invoices.length} Invoice · ${DB.receipts.length} Receipt · ${DB.returns.length} Return`});
+  if(has("bahasa","language","语言"))      return T("q.lang");
+  if(has("modul","module","apa boleh"))    return T("q.modules");
+  if(has("ai","kecerdasan"))               return T("q.ai");
+  if(has("hello","hai","hi","salam","assalam")) return T("q.hello");
+  return T("q.fallback");
 }
 function chatDrawer(){
   if(!ST.chat) return "";
@@ -3045,7 +3292,7 @@ function chatDrawer(){
       <div class="bd" id="cbd">
         ${ST.chatLog.map(m=>`<div class="msg ${m.u?"u":"a"}">${m.u?esc(m.t):m.t}</div>`).join("")}
       </div>
-      <div class="qk">${CHIPS.map(([t])=>`<button data-a="ask" data-q="${esc(t)}">${esc(t)}</button>`).join("")}</div>
+      <div class="qk">${CHIPS().map(([t,k])=>`<button data-a="ask" data-q="${esc(k)}" data-l="${esc(t)}">${esc(t)}</button>`).join("")}</div>
       <form class="fo" data-a="send">
         <input id="cin" placeholder="${T("chat.ph")}" autocomplete="off">
         <button type="submit" aria-label="Send">${ic(I.send,"#fff")}</button>
@@ -3106,7 +3353,9 @@ const A={
     paintChrome();
   },
   closechat(){ST.chat=null;paintChrome()},
-  ask(e){ST.chatLog.push({u:1,t:e.dataset.q},{t:aiAnswer(e.dataset.q)});paintChrome();scrollChat()},
+  /* The chip shows a translated question but matches on its own keyword, so the
+     matcher keeps working whichever language the reader picked. */
+  ask(e){ST.chatLog.push({u:1,t:e.dataset.l||e.dataset.q},{t:aiAnswer(e.dataset.q)});paintChrome();scrollChat()},
   send(e){
     const i=$("#cin"); if(!i||!i.value.trim()) return;
     const v=i.value.trim();
@@ -3129,11 +3378,11 @@ const A={
        Stock has to be a hard stop, not a floor. */
     const short=shortOn(lines,ME.id);
     if(short.length){
-      modal(`<h3>Stok van tidak mencukupi</h3>
-        <p style="color:var(--mut);font-size:13.5px;margin-bottom:13px">Order ini tidak boleh dihantar. Kurangkan kuantiti atau request stok dahulu.</p>
+      modal(`<h3>${T("msg.novan")}</h3>
+        <p style="color:var(--mut);font-size:13.5px;margin-bottom:13px">${T("msg.novanb")}</p>
         <div class="card" style="padding:14px;margin-bottom:14px">
           ${short.map(x=>`<div style="display:flex;justify-content:space-between;padding:5px 0">
-            <span>${esc(x.p.name)}</span><b>minta ${x.want} · ada <span style="color:var(--red)">${x.have}</span></b></div>`).join("")}
+            <span>${esc(x.p.name)}</span><b>${TF("f.shortline",{want:x.want,have:`<span style="color:var(--red)">${x.have}</span>`})}</b></div>`).join("")}
         </div>
         <button class="btn btn-p btn-w" data-a="close">OK</button>`);
       return;
@@ -3154,15 +3403,15 @@ const A={
     }
     ST.draft=null;
     render();
-    modal(`<h3>Order berjaya</h3><p style="color:var(--mut);font-size:13.5px;margin-bottom:14px">${TERM[c.term].t} — SO dan Invoice dijana. Tiada DO, sebab barang dan jualan berlaku serentak.</p>
+    modal(`<h3>${T("msg.ordok")}</h3><p style="color:var(--mut);font-size:13.5px;margin-bottom:14px">${TF("f.nodo",{t:TERM[c.term].t})}</p>
       <div class="card" style="padding:14px;margin-bottom:14px">
         ${[["SO",soNo],["Invoice",invNo]].map(([t,n])=>
           `<div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--mut)">${t}</span><b class="mono" style="font-size:12.5px">${n}</b></div>`).join("")}
         <div style="display:flex;justify-content:space-between;padding:9px 0 0;border-top:1px solid var(--line);margin-top:7px"><b>Total</b><b>${RM2(total)}</b></div>
       </div>
-      ${c.term==="cash"?`<div class="okbox" style="margin-bottom:13px"><span>✓</span><span>Cash — payment terus direkod. Receipt sudah dijana.</span></div>`
-        :`<div class="note" style="margin-bottom:13px">${TERM[c.term].t} — payment ikut term ${c.months} bulan. Due ${fd(due)}.</div>`}
-      <a class="btn btn-p btn-w" href="#/s/doc/Invoice/${invNo}" data-a="close">Lihat Invoice</a>`);
+      ${c.term==="cash"?`<div class="okbox" style="margin-bottom:13px"><span>✓</span><span>${T("msg.cashrec")}</span></div>`
+        :`<div class="note" style="margin-bottom:13px">${TF("f.payterm",{t:TERM[c.term].t,n:c.months,d:fd(due)})}</div>`}
+      <a class="btn btn-p btn-w" href="#/s/doc/Invoice/${invNo}" data-a="close">${T("msg.seeinv")}</a>`);
   },
   bal(e){const g=DB.consign.find(x=>x.id===e.dataset.g);const v=parseInt(e.value);
     g.tmp=isNaN(v)?null:v; const raw=e.value; render();
@@ -3189,17 +3438,17 @@ const A={
     }
     const doNo=g.doId;
     render();
-    modal(`<h3>Bill dijana</h3>
+    modal(`<h3>${T("msg.billok")}</h3>
       <div class="card" style="padding:14px;margin:13px 0">
-        ${doNo?`<div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">Dari DO</span><b class="mono" style="font-size:12.5px">${doNo}</b></div>`:""}
-        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">SO dijana</span><b class="mono" style="font-size:12.5px">${soNo}</b></div>
-        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">Stock dihantar</span><b>${qty} unit</b></div>
-        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">Baki stock</span><b>${bal} unit</b></div>
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid var(--line);margin-top:5px"><b>Terjual</b><b style="color:var(--vio)">${sold} unit</b></div>
+        ${doNo?`<div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">${T("msg.fromdo")}</span><b class="mono" style="font-size:12.5px">${doNo}</b></div>`:""}
+        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">${T("msg.sogen")}</span><b class="mono" style="font-size:12.5px">${soNo}</b></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">${T("msg.stocksent")}</span><b>${TF("f.units",{n:qty})}</b></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">${T("msg.balstock")}</span><b>${TF("f.units",{n:bal})}</b></div>
+        <div style="display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid var(--line);margin-top:5px"><b>${T("cg.sold")}</b><b style="color:var(--vio)">${sold} unit</b></div>
         <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">${sold} × ${RM2(g.price)}</span><b>${RM2(total)}</b></div>
       </div>
-      <div class="note" style="margin-bottom:13px">Customer dicaj <b>${RM2(total)}</b> — hanya barang yang terjual, bukan ${qty} unit yang dihantar.</div>
-      <a class="btn btn-p btn-w" href="#/s/doc/Invoice/${invNo}" data-a="close">Lihat Bill</a>`);
+      <div class="note" style="margin-bottom:13px">${TF("f.charged",{a:`<b>${RM2(total)}</b>`,n:qty})}</div>
+      <a class="btn btn-p btn-w" href="#/s/doc/Invoice/${invNo}" data-a="close">${T("msg.seebill")}</a>`);
   },
   async "send-stock"(e){
     const c=cust(e.dataset.c), pid=$("#cgp").value, qty=parseInt($("#cgq").value);
@@ -3209,9 +3458,9 @@ const A={
        that actually holds it. */
     const have=vanOf(pid,ME.id);
     if(qty>have){
-      modal(`<h3>Stok van tidak mencukupi</h3>
+      modal(`<h3>${T("msg.novan")}</h3>
         <p style="color:var(--mut);font-size:13.5px;margin:11px 0">
-          ${esc(p.name)} — minta <b>${qty}</b> unit, van ada <b style="color:var(--red)">${have}</b>.</p>
+          ${TF("f.shortone",{p:esc(p.name),want:`<b>${qty}</b>`,have:`<b style="color:var(--red)">${have}</b>`})}</p>
         <button class="btn btn-p btn-w" data-a="close">OK</button>`);
       return;
     }
@@ -3232,15 +3481,15 @@ const A={
       doNo=d.id; total=d.total;
     }
     render();
-    modal(`<h3>Stock dihantar</h3><div class="okbox" style="margin:13px 0"><span>📦</span>
-      <span><b>${qty} unit ${esc(p.name)}</b> direkod sebagai consignment stock di ${esc(c.name)}.<br>
-      Lawatan berikut masukkan baki untuk kira barang terjual.</span></div>
+    modal(`<h3>${T("msg.stocksent")}</h3><div class="okbox" style="margin:13px 0"><span>📦</span>
+      <span>${TF("f.cgrec",{n:`<b>${qty}</b>`,p:esc(p.name),c:esc(c.name)})}<br>
+      ${T("f.cgnext")}</span></div>
       <div class="card" style="padding:14px;margin-bottom:13px">
-        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">DO dijana</span><b class="mono" style="font-size:12.5px">${doNo}</b></div>
-        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">Nilai stock dihantar</span><b>${RM2(total)}</b></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">${T("msg.dogen")}</span><b class="mono" style="font-size:12.5px">${doNo}</b></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--mut)">${T("msg.doval")}</span><b>${RM2(total)}</b></div>
       </div>
-      <div class="note" style="margin-bottom:13px">Belum dibil. Invoice hanya dijana untuk unit yang terjual, selepas baki disemak.</div>
-      <a class="btn btn-p btn-w" href="#/s/doc/DO/${doNo}" data-a="close">Lihat DO</a>`);
+      <div class="note" style="margin-bottom:13px">${T("msg.notbilled")}</div>
+      <a class="btn btn-p btn-w" href="#/s/doc/DO/${doNo}" data-a="close">${T("msg.seedo")}</a>`);
   },
   async pay(e){
     const inv=DB.invoices.find(i=>i.id===e.dataset.i);
@@ -3292,7 +3541,7 @@ const A={
   },
   async "save-cust"(e){
     const n=$("#rn").value.trim();
-    if(!n){ modal(`<h3>Nama outlet diperlukan</h3><p style="color:var(--mut);font-size:13.5px;margin:11px 0">Sila isi nama outlet sebelum simpan.</p><button class="btn btn-p btn-w" data-a="close">OK</button>`); return; }
+    if(!n){ modal(`<h3>${T("msg.needname")}</h3><p style="color:var(--mut);font-size:13.5px;margin:11px 0">${T("msg.neednameb")}</p><button class="btn btn-p btn-w" data-a="close">OK</button>`); return; }
     /* Fall back to the district centre if the salesman saved without capturing,
        so the outlet is never stored at a coordinate belonging to another town. */
     const dist=$("#rd").value||"", g0=atDistrict(dist);
@@ -3333,30 +3582,30 @@ const A={
      running out, so they should not have to be found and typed again. */
   "req-open"(){
     const low=PRODUCTS.filter(p=>vanOf(p.id)<=p.low);
-    modal(`<h3>Request stok dari warehouse</h3>
+    modal(`<h3>${T("msg.reqtitle")}</h3>
       <p style="color:var(--mut);font-size:13.5px;margin:8px 0 13px">
         ${low.length?`${low.length} SKU sudah bawah paras minimum dan sudah diisi di bawah.`
                     :"Isi kuantiti untuk produk yang anda perlukan."}</p>
       <div class="tw" style="max-height:46vh;overflow:auto"><table>
-        <thead><tr><th>${T("l.product")}</th><th class="r">Dalam van</th><th style="width:96px">Minta</th></tr></thead>
+        <thead><tr><th>${T("l.product")}</th><th class="r">${T("st.invan")}</th><th style="width:96px">${T("st.ask")}</th></tr></thead>
         <tbody>${PRODUCTS.map(p=>{const have=vanOf(p.id), lo=have<=p.low;
           return `<tr>
-            <td><b>${esc(p.name)}</b>${lo?`<span class="chip k-red" style="margin-left:6px">rendah</span>`:""}</td>
+            <td><b>${esc(p.name)}</b>${lo?`<span class="chip k-red" style="margin-left:6px">${T("msg.reqlow")}</span>`:""}</td>
             <td class="r num" style="color:${lo?"var(--red)":"var(--mut)"}">${have}</td>
             <td><input class="rq" data-p="${p.id}" type="number" min="0" placeholder="0"
                  value="${lo?Math.max(p.low*5-have,1):""}"></td></tr>`}).join("")}</tbody>
       </table></div>
-      <div class="f" style="margin-top:12px"><label>Nota (pilihan)</label>
-        <input id="rqn" placeholder="cth. perlu sebelum Isnin"></div>
-      <button class="btn btn-p btn-w" data-a="req-send">${ic(I.truck)} Hantar request</button>`);
+      <div class="f" style="margin-top:12px"><label>${T("msg.reqnote")}</label>
+        <input id="rqn" placeholder="${T("msg.reqnoteph")}"></div>
+      <button class="btn btn-p btn-w" data-a="req-send">${ic(I.truck)} ${T("msg.reqsend")}</button>`);
   },
   async "req-send"(e){
     const lines=Array.from(document.querySelectorAll(".rq"))
       .map(i=>({product_id:i.dataset.p,qty:parseInt(i.value)||0}))
       .filter(l=>l.qty>0);
     if(!lines.length){
-      modal(`<h3>Tiada kuantiti diisi</h3>
-        <p style="color:var(--mut);font-size:13.5px;margin:11px 0">Isi sekurang-kurangnya satu produk.</p>
+      modal(`<h3>${T("msg.reqempty")}</h3>
+        <p style="color:var(--mut);font-size:13.5px;margin:11px 0">${T("msg.reqemptyb")}</p>
         <button class="btn btn-p btn-w" data-a="close">OK</button>`); return;
     }
     const note=($("#rqn")||{}).value||"";
@@ -3370,8 +3619,8 @@ const A={
         qty:l.qty,issued:0,status:"pending",note:note,date:TODAY}));
     }
     A.close(); render();
-    modal(`<h3>Request dihantar</h3><div class="okbox" style="margin:13px 0"><span>🚚</span>
-      <span><b>${lines.length} produk</b> diminta dari warehouse. Status boleh disemak di ${T("s.stock")}.</span></div>
+    modal(`<h3>${T("msg.reqsent")}</h3><div class="okbox" style="margin:13px 0"><span>🚚</span>
+      <span>${TF("f.reqsentb",{n:`<b>${lines.length}</b>`,s:T("s.stock")})}</span></div>
       <button class="btn btn-p btn-w" data-a="close">OK</button>`);
   },
   /* Management side: load a van, either against a request or straight off the
@@ -3406,14 +3655,14 @@ const A={
   },
   "load-open"(e){
     const sid=e.dataset.s, s=sm(sid);
-    modal(`<h3>Muat stok ke van</h3>
+    modal(`<h3>${T("msg.loadvan")}</h3>
       <p style="color:var(--mut);font-size:13.5px;margin:8px 0 13px">${esc(s.name)} · ${esc(s.code)}</p>
       <div class="f2">
         <div class="f"><label>${T("l.product")}</label><select id="lsp">
-          ${PRODUCTS.map(p=>`<option value="${p.id}">${esc(p.name)} (van ${vanOf(p.id,sid)})</option>`).join("")}</select></div>
+          ${PRODUCTS.map(p=>`<option value="${p.id}">${esc(p.name)} (${TF("f.invan",{n:vanOf(p.id,sid)})})</option>`).join("")}</select></div>
         <div class="f"><label>${T("l.qty")}</label><input id="lsq" type="number" min="1" value="100"></div>
       </div>
-      <button class="btn btn-p btn-w" data-a="load-send" data-s="${esc(sid)}">${ic(I.truck)} Muat van</button>`);
+      <button class="btn btn-p btn-w" data-a="load-send" data-s="${esc(sid)}">${ic(I.truck)} ${T("msg.loadbtn")}</button>`);
   },
   async "load-send"(e){
     const sid=e.dataset.s, pid=$("#lsp").value, qty=parseInt($("#lsq").value)||0;
@@ -3436,7 +3685,7 @@ const A={
     const m=docModel(e.dataset.t,d);
     const num=waNumber(m.c&&m.c.wa);
     if(!num){
-      modal(`<h3>Tiada nombor WhatsApp</h3>
+      modal(`<h3>${T("msg.nowa")}</h3>
         <p style="color:var(--mut);font-size:13.5px;margin:11px 0">
           ${esc(m.c?m.c.name:"Outlet ini")} tiada nombor WhatsApp direkod. Kemaskini profil outlet dahulu.</p>
         <button class="btn btn-p btn-w" data-a="close">OK</button>`);
@@ -3450,9 +3699,9 @@ const A={
     const b=busy(e);
     try{ await docPDF(docModel(e.dataset.t,d)); }
     catch(err){
-      modal(`<h3>PDF tidak dapat dijana</h3>
+      modal(`<h3>${T("msg.nopdf")}</h3>
         <p style="color:var(--mut);font-size:13.5px;margin:11px 0">${esc(err.message||String(err))}</p>
-        <p style="color:var(--mut);font-size:13px">Guna butang Print dan pilih “Save as PDF”.</p>
+        <p style="color:var(--mut);font-size:13px">${T("msg.nopdfb")}</p>
         <button class="btn btn-p btn-w" data-a="close">OK</button>`);
     }
     finally{ unbusy(b); }
@@ -3466,7 +3715,7 @@ const A={
     <div style="background:#D9FDD3;border-radius:9px 9px 2px 9px;padding:12px 14px;font-size:13.5px;max-width:90%">
       Jom daftar outlet anda dengan ${esc(CO.name)}! Guna kod saya:
       <b>AZ-${ME.code}-2026</b><span style="display:block;color:#027EB5;font-size:12px;margin-top:5px">majujaya.my/r/AZ-${ME.code}-2026</span></div></div>
-    <button class="btn btn-p btn-w" data-a="close">Tutup</button>`)},
+    <button class="btn btn-p btn-w" data-a="close">${T("msg.close")}</button>`)},
   close(){$("#modal").innerHTML=""}
 };
 document.addEventListener("click",e=>{
