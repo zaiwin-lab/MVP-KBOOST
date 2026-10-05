@@ -1130,6 +1130,7 @@ const DICT={
  "l.yes":         ["Ya","Yes","是","Iya"],
  "l.no":          ["Tidak","No","否","Enda"],
  "lg.revoked":    ["Akses akaun ini sudah ditarik balik. Hubungi pengurusan.","Access for this account has been revoked. Contact management.","此账户的访问权限已被撤销，请联系管理层。","Akses akaun tu udah diambi baru. Kelala ngagai pengurusan."],
+ "f.lowsku":      ["{n} SKU rendah","{n} SKUs low","{n} 个 SKU 偏低","{n} SKU baruh"],
  "lg.noyet":      ["Tiada transaksi direkod lagi. Order, hantaran dan kutipan akan muncul di sini sebaik sahaja direkod.","No transactions recorded yet. Orders, deliveries and collections appear here as soon as they are entered.","尚无交易记录。录入订单、送货与收款后将显示于此。","Nadai transaksi direkod agi. Order, hantaran enggau kutipan deka pegari ditu."],
  "post.failed":["Tidak dapat disimpan","Could not be saved","无法保存","Enda ulih disimpan"],
  "post.saving":   ["Menyimpan…","Saving…","保存中…","Benung nyimpan…"],
@@ -2205,7 +2206,8 @@ function mStock(){
   const val=PRODUCTS.reduce((a,p)=>a+vanAll(p.id)*p.price,0);
   const pend=DB.stockReq.filter(r=>r.status==="pending");
   return M("stock",`
-    <div class="pgh"><div><h1>${T("m.stock")}</h1><p>${PRODUCTS.length} SKU</p></div></div>
+    <div class="pgh"><div><h1>${T("m.stock")}</h1><p>${PRODUCTS.length} SKU</p></div>
+      <div class="ra"><button class="btn btn-p" data-a="load-open">${ic(I.truck)} ${T("st.loadvan")}</button></div></div>
     <div class="g g4" style="margin-bottom:18px">
       ${kpi("Nilai stok",RMk(val),PRODUCTS.reduce((a,p)=>a+vanAll(p.id),0)+" unit",I.box,"#3B5BFF")}
       ${kpi("Stok rendah",low.length,"SKU bawah paras",I.shield,low.length?"#DC2626":"#0E9F6E")}
@@ -2237,11 +2239,11 @@ function mStock(){
     <div class="g g3" style="margin-bottom:18px">${SALESMEN.filter(s=>s.active!==false).map(s=>{
       const units=PRODUCTS.reduce((a,p)=>a+vanOf(p.id,s.id),0);
       const lo=PRODUCTS.filter(p=>vanOf(p.id,s.id)<=p.low).length;
-      return `<div class="card p">
-        <b style="font-size:14.5px;display:block">${esc(s.name)}</b>
+      return `<div class="card p" style="display:flex;flex-direction:column;align-items:flex-start;gap:7px">
+        <b style="font-size:14.5px">${esc(s.name)}</b>
         <span style="font-size:12px;color:var(--mut)">${esc(s.code)} · ${TF("f.unitsvan",{n:units})}</span>
-        ${lo?`<div><span class="chip k-red" style="margin-top:8px">${lo} SKU rendah</span></div>`:""}
-        <button class="btn btn-s" style="margin-top:10px" data-a="load-open" data-s="${esc(s.id)}">${ic(I.truck)} ${T("l.loadstock")}</button>
+        ${lo?`<span class="chip k-red">${TF("f.lowsku",{n:lo})}</span>`:""}
+        <button class="btn btn-s" style="margin-top:auto" data-a="load-open" data-s="${esc(s.id)}">${ic(I.truck)} ${T("l.loadstock")}</button>
       </div>`}).join("")}</div>
     <div class="tw"><table>
       <thead><tr><th>SKU</th><th>${T("l.product")}</th><th class="r">${T("st.vanstock")}</th><th class="r">${T("st.minlvl")}</th>
@@ -3737,18 +3739,23 @@ const A={
     render();
   },
   "load-open"(e){
-    const sid=e.dataset.s, s=sm(sid);
+    const sid=e.dataset.s, s=sid?sm(sid):null;
+    const team=SALESMEN.filter(x=>x.active!==false);
     modal(`<h3>${T("msg.loadvan")}</h3>
-      <p style="color:var(--mut);font-size:13.5px;margin:8px 0 13px">${esc(s.name)} · ${esc(s.code)}</p>
+      ${s?`<p style="color:var(--mut);font-size:13.5px;margin:8px 0 13px">${esc(s.name)} · ${esc(s.code)}</p>`
+         :`<div class="f" style="margin-top:12px"><label>${T("l.salesman")}</label><select id="lss">
+             ${team.map(x=>`<option value="${esc(x.id)}">${esc(x.name)} · ${esc(x.code)}</option>`).join("")}</select></div>`}
       <div class="f2">
         <div class="f"><label>${T("l.product")}</label><select id="lsp">
-          ${PRODUCTS.map(p=>`<option value="${p.id}">${esc(p.name)} (${TF("f.invan",{n:vanOf(p.id,sid)})})</option>`).join("")}</select></div>
+          ${PRODUCTS.map(p=>`<option value="${p.id}">${esc(p.name)}${sid?" ("+TF("f.invan",{n:vanOf(p.id,sid)})+")":""}</option>`).join("")}</select></div>
         <div class="f"><label>${T("l.qty")}</label><input id="lsq" type="number" min="1" value="100"></div>
       </div>
-      <button class="btn btn-p btn-w" data-a="load-send" data-s="${esc(sid)}">${ic(I.truck)} ${T("msg.loadbtn")}</button>`);
+      <button class="btn btn-p btn-w" data-a="load-send" data-s="${esc(sid||"")}">${ic(I.truck)} ${T("msg.loadbtn")}</button>`);
   },
   async "load-send"(e){
-    const sid=e.dataset.s, pid=$("#lsp").value, qty=parseInt($("#lsq").value)||0;
+    const sid=e.dataset.s || (($("#lss")||{}).value||"");
+    const pid=$("#lsp").value, qty=parseInt($("#lsq").value)||0;
+    if(!sid) return;
     if(qty<=0) return;
     if(LIVE()){
       const b=busy(e);
