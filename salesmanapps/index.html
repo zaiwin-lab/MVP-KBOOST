@@ -106,7 +106,6 @@ img,svg{max-width:100%}
 /* ---------- AI SHINE PRIMITIVES -------------------------------------------
    Used anywhere the portal is doing machine work, so the AI layer is
    visible at a glance rather than claimed in a paragraph. */
-@keyframes spin{to{transform:rotate(360deg)}}
 @keyframes sweep{0%{background-position:200% 50%}100%{background-position:-200% 50%}}
 @keyframes pulse{0%,100%{opacity:.55;transform:scale(1)}50%{opacity:1;transform:scale(1.12)}}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
@@ -114,12 +113,11 @@ img,svg{max-width:100%}
 @keyframes ring{0%{transform:scale(.85);opacity:.7}100%{transform:scale(1.9);opacity:0}}
 
 /* animated gradient border — the signature "AI is live" treatment */
-.ai-edge{position:relative;isolation:isolate}
-.ai-edge::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;
-  background:conic-gradient(from 0deg,#8B5CF6,#3B5BFF,#22D3EE,#8B5CF6);
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  mask-composite:exclude;animation:spin 6s linear infinite;z-index:-1}
+/* An open consignment is waiting on a balance count, so the card is marked —
+   but with a still edge. It used to carry a rotating gradient border, which
+   reads as something in progress when nothing is happening, and sits there
+   spinning for as long as the delivery stays open. */
+.card.cg-open{border-left:3px solid var(--vio)}
 
 /* shimmering text */
 .shine{background:linear-gradient(100deg,var(--ink) 20%,#3B5BFF 38%,#22D3EE 48%,#8B5CF6 58%,var(--ink) 76%);
@@ -2863,7 +2861,7 @@ function sConsign(cid){
     <div class="sec">${TF("f.openbal",{n:openL.length})}</div>
     <div class="g g2">${openL.map(g=>{const cc=cust(g.customerId),p=prod(g.productId);
       const bal=g.tmp, ok=bal!=null&&bal>=0&&bal<=g.qty, sold=ok?g.qty-bal:null;
-      return `<div class="card p ai-edge">
+      return `<div class="card p cg-open">
         <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
           <div><b style="font-size:14.5px">${esc(cc.name)}</b>
             <div style="font-size:12.5px;color:var(--mut);margin-top:2px">${esc(p.name)} · ${fd(g.date)} · ${TF("f.days",{n:dbet(g.date,TODAY)})}</div></div>
