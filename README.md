@@ -1,147 +1,179 @@
-# Winning Salesman — Field Sales Control Room
+# Sales Portal — Field Sales & Distribution Operations
 
-**Maturity:** Working interactive demonstration prototype  
-**Portfolio category:** Field-sales operations, collections and performance visibility  
-**Production status:** Demonstration only; no accounts, shared database or operational integrations
+**Maturity:** Authenticated pre-pilot operational prototype with a public sample-data mode  
+**Portfolio category:** Field sales, distribution, collections, van stock and management visibility  
+**Production status:** Core workflows are database-backed and tested; real business onboarding, governance and deployment traceability remain incomplete
 
-Winning Salesman demonstrates one connected field-sales loop:
+[Open the current Sales Portal](https://salesmanapps.netlify.app) · [Open the earlier Winning Salesman demonstration](https://winning-salesman.netlify.app)
 
-**plan the day → visit the outlet → take the order → generate an invoice → record payment → update the ranking**
+Sales Portal turns a fragmented field-sales operation into one connected workflow:
 
-The product is designed to help a sales manager see field activity, collections and performance in one operating view while giving sales representatives a focused mobile workflow.
+**assign outlet → plan visit → deliver or sell → issue documents → collect payment → reconcile stock → review performance**
+
+The current build lives under [`salesmanapps/`](salesmanapps/). It is a separate implementation from the earlier single-file Winning Salesman demonstration retained at the repository root.
 
 ## Business problem
 
-Field-sales organisations can lose visibility when customer histories, visit plans, orders, collections and salesperson relationships live in separate devices or informal records. Common risks include:
+Distribution businesses often manage customer ownership, routes, orders, consignment stock, invoices, payments and salesperson performance across messages, spreadsheets and disconnected paperwork. This creates avoidable risks:
 
-- weak follow-up on overdue invoices;
-- inconsistent visit planning;
-- unapproved price reductions;
-- slow paperwork and reconciliation;
-- customer history leaving with a departing salesperson;
-- managers learning about problems only after month end.
+- sales and collections are difficult to reconcile;
+- stock can move without an auditable explanation;
+- document numbers can collide or skip without control;
+- customer history may remain with an individual salesperson;
+- managers lack a timely view of debt ageing and field activity;
+- privileged account actions may be handled informally.
 
-Winning Salesman makes those risks visible in a single, inspectable demonstration.
+Sales Portal demonstrates how those activities can share one secured operational record while preserving role boundaries.
 
 ## Intended users
 
-- field-sales managers and supervisors;
-- sales representatives visiting outlets;
-- finance or collections teams;
-- distribution-business owners;
-- implementation teams evaluating a future operational build.
+- distribution-business owners and management teams;
+- field-sales representatives;
+- finance and collections teams;
+- stock controllers and supervisors;
+- implementation teams evaluating a controlled operational pilot.
 
-These are intended personas. The repository does not evidence customers, adoption or production use.
+These are intended roles. The repository does not evidence adoption, revenue, production customers or commercial deployment.
 
-## Demonstrated capabilities
+## Current capabilities
 
-- manager dashboard with coverage, sales and collection indicators;
-- salesman beat plan and outlet check-in flow;
-- order, invoice, part-payment and receipt sequence;
-- configurable client terminology, products, territories and credit terms;
-- live leaderboard and target contribution;
-- company-owned outlet history and reassignment simulation;
-- responsive manager and mobile salesperson experiences;
-- deterministic data reset for repeatable demonstrations.
+### Three access panels
 
-Four tenant configurations illustrate perfume, FMCG, pharmacy-supply and automotive-parts workflows. Their companies, people, transactions and figures are fictional demonstration data.
+| Panel | Purpose |
+|---|---|
+| Public | Product explanation and safe sample-data demonstration |
+| Management | Team, collections, debt ageing, van stock, reports and account administration |
+| Salesman | Schedule, customer, sales, consignment, collection, return and document workflows |
 
-## What is real in the prototype
+### Operational flows
 
-The application genuinely calculates its displayed results from the seeded browser dataset:
+- Consignment, Bil to Bil and Cash transaction models
+- Independent DO, SO, Invoice, Return and Receipt sequences
+- Database-backed sales, deliveries, consignment billing, payments, returns and outlet registration
+- Per-salesperson van stock with request, issue and rejection history
+- Management-controlled salesperson account creation, password change, revocation and restoration
+- Actual PDF generation, browser printing and WhatsApp document text
+- Search, ranking, collection, ageing and product reporting derived from the shared ledger
+- Bahasa Malaysia, English, Chinese and first-pass Jaku Iban interface modes
 
-- sales, balances, overdue amounts, collection rate and target contribution;
-- sequential order, invoice and payment identifiers;
-- invoice due dates derived from configured credit terms;
-- part-payment balances and status changes;
-- leaderboard changes after a transaction;
-- outlet reassignment while retaining company-owned transaction history;
-- tenant-scoped views through the selected in-memory company dataset.
+## Verified implementation
 
-The application is a self-contained HTML/CSS/JavaScript file with hash-based navigation. Reloading restores the fixed starting state.
+The authenticated implementation uses Supabase Auth and Postgres. Row Level Security is enabled across 16 tables. A salesperson reads only their assigned operational records; management receives the broader read view.
 
-## The “AI” boundary
+Six business events are posted through database functions designed as atomic transactions:
 
-The current intelligence layer is **rule-based and explainable**, not a language model:
+- sale;
+- consignment delivery;
+- consignment balance billing;
+- payment;
+- return;
+- customer registration.
 
-- route priority scores overdue amount, order value, recency and outlet tier;
-- coaching nudges identify product or ordering gaps;
-- the morning briefing summarises computed performance data;
-- price checks compare an entered value with configured floors and prior averages.
+Shared document numbers and stock movements are protected behind server-side functions. Privileged account operations run through the `admin-users` Edge Function so the service-role key is not shipped to the browser.
 
-Calling this “AI” describes deterministic decision-support logic. The repository contains no model API, machine-learning training, predictive model or autonomous sales decision-maker.
+The repository documents live-session checks for role isolation, stock limits, floor-price enforcement, payment limits, consignment duplication, document numbering and account revocation. See [the implementation README](salesmanapps/README.md) and [database evidence](salesmanapps/db/README.md).
 
-## Simulated or not implemented
+## Decision-support boundary
 
-- The fixed dataset and all performance history are invented.
-- The demonstration date is pinned to 19 August 2026.
-- GPS check-in generates a plausible coordinate; it does not read device location.
-- WhatsApp displays a preview; it does not send a message.
-- Receipt links are illustrative and do not resolve.
-- There is no login, authorisation, database, persistence or offline synchronisation.
-- Sales orders, returns, stock, multi-warehouse, commissions, route optimisation, LHDN e-Invoice and referral functions remain roadmap concepts.
-- No money is transferred and no compliant tax invoice is issued.
+The product's “AI” layer is deterministic and explainable. It derives route order, quiet-outlet signals, payment behaviour, coaching prompts and management summaries from the current transaction data.
+
+It is **not** a language model, predictive model or autonomous decision-maker. It must not be used by itself for employment, disciplinary, customer-credit or pricing decisions.
+
+## Demonstration data and limitations
+
+The public path uses generated sample data: one fictional company, five salespeople, 12 outlets, eight products and approximately 120 days of transactions. The sample path does not write to the database.
+
+Before real operational use:
+
+- load authorised company, staff, customer, product, opening-stock and balance data;
+- replace all placeholder company and registration information;
+- enable breached-password protection and complete account-recovery controls;
+- validate the first-pass Jaku Iban translation with a native speaker;
+- add a governed visit-planning workflow rather than deriving the route only in the browser;
+- document backups, retention, incident response, audit review and support ownership;
+- complete privacy, employment, financial, tax and e-Invoice review;
+- connect the deployment to an exact reviewed Git commit.
 
 ## Strategic value
 
-Winning Salesman is a useful discovery and sales-engineering asset because it proves the product flow before a costly backend build. It helps an organisation test:
+Sales Portal is portfolio evidence of moving beyond a visual mock-up into a controlled operational architecture:
 
-1. whether the field workflow matches actual selling practice;
-2. which exceptions require manager approval;
-3. what data must remain company-owned;
-4. how collections and margin controls should surface;
-5. which integrations justify a production pilot.
+1. business rules are expressed as auditable transactions;
+2. authentication and database policies enforce role boundaries;
+3. stock and document sequences are shared rather than browser-local;
+4. public demonstration data is separated from authenticated records;
+5. the design remains inspectable before a wider rollout.
+
+It is suitable for supervised discovery and pre-pilot validation, not a claim of production readiness.
 
 ## Technology
 
-| Layer | Current implementation |
+| Layer | Implementation |
 |---|---|
-| Application | Single static `index.html` |
-| Interface | HTML, responsive CSS and vanilla JavaScript |
-| Navigation | Hash routes with browser back-button support |
-| Data | Fixed seeded in-memory tenant datasets |
-| Intelligence | Deterministic scoring, comparison and templating rules |
-| Backend / authentication | Not implemented |
-| Persistence | Not implemented |
-| Hosting | Manually uploaded static Netlify deployment |
+| Interface | Self-contained HTML, CSS and vanilla JavaScript |
+| Navigation | Hash-based routes |
+| Languages | BM, English, Chinese and first-pass Jaku Iban |
+| Authentication | Supabase Auth |
+| Data | Supabase Postgres |
+| Authorisation | Row Level Security plus server-side checks |
+| Business writes | Transactional Postgres functions |
+| Privileged account operations | Supabase Edge Function |
+| Documents | Browser print, WhatsApp text and client-side PDF generation |
+| Hosting | Netlify |
 
-## Live demonstration
+## Live demonstrations
 
-[Open Winning Salesman](https://winning-salesman.netlify.app)
+### Current authenticated build
 
-The Netlify deployment was confirmed ready on **25 August 2026**. It is manually uploaded rather than Git-linked, so a repository update does not by itself prove that the hosted copy changed.
+[Sales Portal](https://salesmanapps.netlify.app)
 
-A repeatable 60-second walkthrough is available in [PITCH-PATH.md](PITCH-PATH.md).
+Netlify records the current deployment as ready and published on **5 October 2026**. It was uploaded through an API workflow and has no attached Git branch, commit reference or commit URL. Its timing aligns with the latest repository work, but exact file-for-file parity is not proven by Netlify metadata.
+
+### Earlier product demonstration
+
+[Winning Salesman](https://winning-salesman.netlify.app)
+
+The earlier root application remains a browser-only demonstration. It is useful for a quick field-sales walkthrough but does not represent the authenticated Supabase implementation under `salesmanapps/`.
 
 ## Delivery role
 
-**Ts. Zaiwin Kassim** led the product concept, operating-model design, commercial narrative and solution direction with the **KOBIS AI Prodigy Team**, using supervised AI-assisted development.
+**Ts. Zaiwin Kassim** led the product concept, operating-model translation, commercial direction and delivery review with the **KOBIS AI Prodigy Team**, using supervised AI-assisted development.
 
-This statement describes delivery responsibility. It does not claim client adoption, endorsement or commercial deployment.
+This statement describes product and delivery responsibility. It does not claim client adoption, endorsement, partnership approval or production deployment.
 
 ## Responsible use
 
-A production build must add:
+A real rollout should keep human owners responsible for:
 
-- authenticated users, least-privilege roles and tenant isolation enforced server-side;
-- encrypted shared storage, backups, audit logs and retention controls;
-- explicit consent and lawful handling for location, customer and employee data;
-- approved pricing, discount, credit, commission and collection rules;
-- verified inventory, accounting, payment and e-Invoice integrations;
-- human review of route, coaching, anomaly and performance recommendations;
-- bias testing and an appeal path for employee-impacting rankings;
-- security, accessibility, reliability and offline-conflict testing.
+- customer onboarding and data accuracy;
+- pricing, credit, payment and return approval;
+- stock reconciliation and exception investigation;
+- employee-impacting rankings and coaching;
+- access reviews, account revocation and incident handling;
+- document, tax and regulatory compliance.
 
-Managers should not use prototype rankings or recommendations for employment, disciplinary, credit or customer decisions.
+Do not load confidential or personal business data into the public sample mode.
+
+## Development provenance
+
+Fifteen substantive default-branch application commits from **1–5 October 2026** added authentication, database transactions, stock replenishment, real document outputs, four-language coverage, account management and interface corrections. Those commits use `claude` as GitHub author and committer, so they do not map to the `zaiwin-lab` contribution graph. Their history has not been rewritten.
+
+Future accepted work should be committed with an email linked to `zaiwin-lab`, while retaining an AI co-author trailer when appropriate.
 
 ## Run locally
 
-Open `index.html` in a modern browser. No install, build, server, login or API key is required.
+### Earlier Winning Salesman demonstration
 
-## Evidence needed for the next maturity stage
+Open the repository-root `index.html` in a modern browser.
 
-Build and test one secure shared workflow:
+### Current Sales Portal
 
-**authenticated salesperson → real device-location consent → outlet visit → approved order → finance-reviewed invoice → auditable payment status**
+Serve the `salesmanapps/` directory with a local static server. Authenticated workflows also require the authorised Supabase configuration and deployed database objects documented under `salesmanapps/db/`.
 
-Use synthetic data until privacy, financial and employment safeguards are approved.
+## Highest-value next validation
+
+Load a fully synthetic but realistic company dataset and run one complete audited cycle:
+
+**management creates salesperson → stock is issued → salesperson serves outlet → transaction posts → document leaves the system → payment settles → management reconciles stock and ageing**
+
+Record the exact Git commit used for the next Netlify deployment.
