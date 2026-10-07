@@ -1131,6 +1131,28 @@ const DICT={
  "l.no":          ["Tidak","No","否","Enda"],
  "lg.revoked":    ["Akses akaun ini sudah ditarik balik. Hubungi pengurusan.","Access for this account has been revoked. Contact management.","此账户的访问权限已被撤销，请联系管理层。","Akses akaun tu udah diambi baru. Kelala ngagai pengurusan."],
  "f.lowsku":      ["{n} SKU rendah","{n} SKUs low","{n} 个 SKU 偏低","{n} SKU baruh"],
+ "rf.add":          ["Rekod referral","Record a referral","登记推荐","Rekod referral"],
+ "rf.addb":         ["Nama kedai yang encik perkenalkan. Bila kedai itu didaftarkan dan invois pertamanya dijelaskan, komisen 5% direkod.","The shop you introduced. When it is registered and its first invoice is settled, the 5% commission is recorded.","您介绍的店铺。待该店完成登记且首张发票结清后，系统即记录 5% 佣金。","Nama kedai ti dikenalka nuan. Lebuh kedai nya didaftar lalu invois ti keterubah dibayar abis, komisen 5% direkod."],
+ "rf.shop":         ["Nama kedai","Shop name","店铺名称","Nama kedai"],
+ "rf.note":         ["Nota","Note","备注","Nota"],
+ "rf.send":         ["Simpan referral","Save referral","保存推荐","Simpan referral"],
+ "rf.sent":         ["Referral direkod","Referral recorded","推荐已登记","Referral udah direkod"],
+ "rf.sentb":        ["Bila {n} didaftarkan sebagai outlet, pilih referral ini pada borang pendaftaran untuk menuntutnya.","When {n} is registered as an outlet, pick this referral on the registration form to claim it.","当 {n} 登记为门店时，在登记表单中选择此推荐即可认领。","Lebuh {n} didaftar nyadi outlet, pilih referral tu ba borang pendaftaran ke nuntut iya."],
+ "rf.pending":      ["Menunggu","Pending","待处理","Nganti"],
+ "rf.registered":   ["Sudah daftar","Registered","已登记","Udah daftar"],
+ "rf.verified":     ["Disahkan","Verified","已确认","Udah dikena"],
+ "rf.none":         ["Belum ada referral","No referrals yet","尚无推荐","Apin bisi referral"],
+ "rf.noneb":        ["Rekod kedai yang encik perkenalkan. Komisen 5% direkod bila invois pertamanya dijelaskan.","Record a shop you introduced. The 5% commission is recorded once its first invoice is settled.","登记您介绍的店铺。首张发票结清后即记录 5% 佣金。","Rekod kedai ti dikenalka nuan. Komisen 5% direkod lebuh invois ti keterubah dibayar abis."],
+ "rf.sent2":        ["Dihantar","Recorded","已登记","Direkod"],
+ "rf.verif":        ["Disahkan","Verified","已确认","Udah dikena"],
+ "rf.com":          ["Komisen","Commission","佣金","Komisen"],
+ "rf.com5":         ["5% invois pertama yang dijelaskan","5% of the first settled invoice","首张已结清发票的 5%","5% invois keterubah ti dibayar abis"],
+ "rf.outlets":      ["outlet aktif","outlets live","已上线门店","outlet aktif"],
+ "rf.fromref":      ["Dari referral","From a referral","来自推荐","Ari referral"],
+ "rf.fromrefb":     ["Jika outlet ini datang daripada referral encik, pilih di sini supaya komisen dikira.","If this outlet came from one of your referrals, pick it here so the commission is credited.","如果此门店来自您的推荐，请在此选择以便计入佣金。","Enti outlet tu datai ari referral nuan, pilih ditu ngambika komisen dikira."],
+ "rf.norefopen":    ["Tiada referral menunggu","No referral waiting","没有待认领的推荐","Nadai referral ti nganti"],
+ "rf.share":        ["Kongsi kod","Share code","分享代码","Kongsi kod"],
+ "rf.wa":         ["Jom daftar outlet anda dengan {co}! Guna kod saya: {code}","Register your outlet with {co} — use my code: {code}","欢迎向 {co} 登记您的门店！请使用我的代码：{code}","Aram daftar outlet nuan enggau {co}! Ngena kod aku: {code}"],
  "lg.noyet":      ["Tiada transaksi direkod lagi. Order, hantaran dan kutipan akan muncul di sini sebaik sahaja direkod.","No transactions recorded yet. Orders, deliveries and collections appear here as soon as they are entered.","尚无交易记录。录入订单、送货与收款后将显示于此。","Nadai transaksi direkod agi. Order, hantaran enggau kutipan deka pegari ditu."],
  "post.failed":["Tidak dapat disimpan","Could not be saved","无法保存","Enda ulih disimpan"],
  "post.saving":   ["Menyimpan…","Saving…","保存中…","Benung nyimpan…"],
@@ -1187,6 +1209,7 @@ function setLang(v){LANG=v;try{localStorage.setItem("sp.lang",v)}catch(_){}docum
 /* One number, and a pre-filled line that names the page the visitor came from
    so an incoming message is recognisable on arrival without having to ask. */
 const WA_NO="60102670177";
+const REFCODE=()=>(ini(ME.name)+"-"+(ME.code||"SM")+"-"+TODAY.getFullYear()).toUpperCase();
 const WA_PAGE=["demo Portal Jualan","Sales Portal demo","销售门户演示","demo Portal Jualan"];
 const waHref=()=>"https://wa.me/"+WA_NO+"?text="+
   encodeURIComponent(T("wa.msg").replace("{p}",WA_PAGE[LI()]||WA_PAGE[1]));
@@ -2688,6 +2711,15 @@ function sRegister(){
             <option value="cash">Cash — bayar di tempat</option></select></div>
         </div>
         <div class="card p">
+          <h3>${T("rf.fromref")}</h3>
+          <div class="sub">${T("rf.fromrefb")}</div>
+          ${(()=>{const open=S.myRefer().filter(r=>r.status==="pending");
+            return `<div class="f" style="margin-top:13px"><select id="rref"${open.length?"":" disabled"}>
+              <option value="">${open.length?"—":T("rf.norefopen")}</option>
+              ${open.map(r=>`<option value="${esc(r.id)}">${esc(r.name)}${r.district?" · "+esc(r.district):""}</option>`).join("")}
+            </select></div>`})()}
+        </div>
+        <div class="card p">
           <h3>${T("r.gps")}</h3>
           <div class="sub">${T("r.gpsn")}</div>
           <div class="f2" style="margin-top:13px">
@@ -3259,23 +3291,34 @@ function sRefer(){
   const mine=S.myRefer();
   const v=mine.filter(r=>r.status==="verified");
   const com=v.reduce((a,r)=>a+r.commission,0);
+  const chip=s=> s==="verified"   ? `<span class="chip k-grn">${T("rf.verified")}</span>`
+              : s==="registered"  ? `<span class="chip k-amb">${T("rf.registered")}</span>`
+              : s==="rejected"    ? `<span class="chip k-red">${T("st.reject")}</span>`
+              :                     `<span class="chip k-mut">${T("rf.pending")}</span>`;
   return SM("refer",`
-    <div class="pgh"><div><h1>${T("s.refer")}</h1><p>${T("rf.code")} <b class="mono">AZ-${ME.code}-2026</b></p></div>
-      <div class="ra"><button class="btn btn-g" data-a="share-ref">${ic(I.wa)} Share</button></div></div>
+    <div class="pgh"><div><h1>${T("s.refer")}</h1><p>${T("rf.code")} <b class="mono">${esc(REFCODE())}</b></p></div>
+      <div class="ra">
+        <button class="btn btn-p" data-a="rf-add">${ic(I.gift)} ${T("rf.add")}</button>
+        <button class="btn btn-g" data-a="share-ref">${ic(I.wa)} ${T("rf.share")}</button></div></div>
     <div class="g g3" style="margin-bottom:18px">
-      ${kpi("Referral",mine.length,"dihantar",I.gift,"#8B5CF6")}
-      ${kpi("Disahkan",v.length,"outlet aktif",I.shield,"#0E9F6E")}
-      ${kpi("Komisen",RM2(com),"5% nilai jualan",I.cash,"#D97706")}
+      ${kpi("Referral",mine.length,T("rf.sent2"),I.gift,"#8B5CF6")}
+      ${kpi(T("rf.verif"),v.length,T("rf.outlets"),I.shield,"#0E9F6E")}
+      ${kpi(T("rf.com"),RM2(com),T("rf.com5"),I.cash,"#D97706")}
     </div>
-    <div class="tw"><table>
-      <thead><tr><th>${T("l.outlet")}</th><th>${T("l.date")}</th><th>${T("l.status")}</th>
-        <th class="r">${T("rf.val")}</th><th class="r">Komisen</th></tr></thead>
+    ${mine.length?`<div class="tw"><table>
+      <thead><tr><th>${T("l.outlet")}</th><th>${T("l.date")}</th><th>${T("st.status")}</th>
+        <th class="r">${T("rf.val")}</th><th class="r">${T("rf.com")}</th></tr></thead>
       <tbody>${mine.map(r=>`<tr>
-        <td><b>${esc(r.name)}</b></td><td>${fd(r.date)}</td>
-        <td>${r.status==="verified"?`<span class="chip k-grn">Disahkan</span>`:`<span class="chip k-mut">${T("rf.wait")}</span>`}</td>
+        <td><b>${esc(r.name)}</b>
+          ${r.phone?`<div style="font-size:11.5px;color:var(--dim)">${esc(r.phone)}${r.district?" · "+esc(r.district):""}</div>`:""}
+          ${r.customerId&&cust(r.customerId)?`<div style="font-size:11.5px;color:var(--mut)">
+             <a class="lk" href="#/s/customer/${r.customerId}">${esc(cust(r.customerId).code)}</a></div>`:""}</td>
+        <td>${fd(r.date)}</td>
+        <td>${chip(r.status)}</td>
         <td class="r num">${r.value?RM(r.value):"—"}</td>
         <td class="r">${r.commission?`<b>${RM2(r.commission)}</b>`:"—"}</td></tr>`).join("")}</tbody>
-    </table></div>`);
+    </table></div>`
+    :`<div class="empty"><b>${T("rf.none")}</b><span>${T("rf.noneb")}</span></div>`}`);
 }
 
 function sNav(id){const c=cust(id); if(!c) return sCust();
@@ -3613,6 +3656,41 @@ const A={
   /* On a phone this reads the device. In the demo it resolves from the district
      typed above, which is the whole point of the fix: the coordinate always
      belongs to the town on the outlet's address. */
+  /* ---- refer & earn ---- */
+  "rf-add"(){
+    modal(`<h3>${T("rf.add")}</h3>
+      <p style="color:var(--mut);font-size:13.5px;margin:9px 0 13px">${T("rf.addb")}</p>
+      <div class="f"><label>${T("rf.shop")} *</label><input id="rfn" autocomplete="off"></div>
+      <div class="f2">
+        <div class="f"><label>${T("u.phone")}</label><input id="rfp" autocomplete="off"></div>
+        <div class="f"><label>${T("l.area")}</label><input id="rfd" autocomplete="off"></div>
+      </div>
+      <div class="f"><label>${T("rf.note")}</label><input id="rfm" autocomplete="off"></div>
+      <button class="btn btn-p btn-w" data-a="rf-save">${T("rf.send")}</button>`);
+  },
+  async "rf-save"(e){
+    const name=(($("#rfn")||{}).value||"").trim();
+    if(!name){
+      modal(`<h3>${T("msg.needname")}</h3>
+        <p style="color:var(--mut);font-size:13.5px;margin:11px 0">${T("rf.addb")}</p>
+        <button class="btn btn-p btn-w" data-a="close">${T("msg.ok")}</button>`); return;
+    }
+    if(LIVE()){
+      const b=busy(e);
+      const r=await post("add_referral",{p_name:name,p_phone:($("#rfp")||{}).value||null,
+        p_district:($("#rfd")||{}).value||null,p_note:($("#rfm")||{}).value||null});
+      unbusy(b);
+      if(!r) return;
+    } else {
+      DB.referrals.unshift({id:newId("RF"),name,phone:($("#rfp")||{}).value||"",
+        district:($("#rfd")||{}).value||"",status:"pending",value:0,commission:0,
+        salesmanId:ME.id,date:TODAY,customerId:null});
+    }
+    A.close(); render();
+    modal(`<h3>${T("rf.sent")}</h3>
+      <p style="color:var(--mut);font-size:13.5px;margin:11px 0">${esc(TF("rf.sentb",{n:name}))}</p>
+      <button class="btn btn-p btn-w" data-a="close">${T("msg.ok")}</button>`);
+  },
   "grab-gps"(){
     const d=$("#rd").value.trim();
     const g=atDistrict(d);
@@ -3637,7 +3715,8 @@ const A={
         address:$("#ra").value, district:dist, state:$("#rs").value, postcode:$("#rpo").value,
         ssm:$("#rssm").value, outlet_type:$("#rt").value, term:$("#rterm").value,
         term_months:$("#rterm").value==="cash"?0:2,
-        lat:$("#rlat").value.trim()||g0.lat, lng:$("#rlng").value.trim()||g0.lng}});
+        lat:$("#rlat").value.trim()||g0.lat, lng:$("#rlng").value.trim()||g0.lng,
+        referral_id:(($("#rref")||{}).value||"")||null}});
       unbusy(b);
       if(!r) return;
       /* The outlet is new, so it is not in the cached master list yet. */
@@ -3801,126 +3880,17 @@ const A={
      set to the selected roll width so the receipt comes out at its real size
      instead of being scaled onto A4. */
   print(){ window.print(); },
-  "share-ref"(){modal(`<h3>Share Referral</h3><div style="background:#ECE5DD;border-radius:12px;padding:15px;margin:13px 0">
-    <div style="background:#D9FDD3;border-radius:9px 9px 2px 9px;padding:12px 14px;font-size:13.5px;max-width:90%">
-      Jom daftar outlet anda dengan ${esc(CO.name)}! Guna kod saya:
-      <b>AZ-${ME.code}-2026</b><span style="display:block;color:#027EB5;font-size:12px;margin-top:5px">majujaya.my/r/AZ-${ME.code}-2026</span></div></div>
-    <button class="btn btn-p btn-w" data-a="close">${T("msg.close")}</button>`)},
-  /* ---- salesman accounts (management) ---- */
-  "u-add"(){
-    modal(`<h3>${T("u.add")}</h3>
-      <div class="f2" style="margin-top:12px">
-        <div class="f"><label>${T("u.name")} *</label><input id="unm" autocomplete="off"></div>
-        <div class="f"><label>${T("u.code")}</label><input id="ucd" autocomplete="off" placeholder="SM06"></div>
-      </div>
-      <div class="f2">
-        <div class="f"><label>${T("u.zone")}</label><input id="uzn" autocomplete="off"></div>
-        <div class="f"><label>${T("u.phone")}</label><input id="uph" autocomplete="off"></div>
-      </div>
-      <div class="f"><label>${T("u.email")} *</label>
-        <input id="uem" type="email" autocomplete="off" inputmode="email" autocapitalize="off" spellcheck="false"></div>
-      <div class="f"><label>${T("u.pw")} *</label><input id="upw" autocomplete="new-password">
-        <div class="hint">${T("u.pwhint")}</div></div>
-      <button class="btn btn-p btn-w" data-a="u-create">${T("u.create")}</button>`);
-  },
-  async "u-create"(e){
-    const pw=($("#upw")||{}).value||"";
-    const b=busy(e);
-    const r=await adminCall({action:"create",
-      name:(($("#unm")||{}).value||"").trim(), email:(($("#uem")||{}).value||"").trim(), password:pw,
-      code:($("#ucd")||{}).value||"", zone:($("#uzn")||{}).value||"", phone:($("#uph")||{}).value||""});
-    unbusy(b);
-    if(!r) return;
-    await loadLive(); render();
-    modal(`<h3>${T("u.created")}</h3>
-      <p style="color:var(--mut);font-size:13.5px;margin:10px 0 13px">${esc(TF("u.createdb",{n:r.name}))}</p>
-      <div class="card" style="padding:14px;margin-bottom:14px">
-        <div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0">
-          <span style="color:var(--mut)">${T("u.email")}</span><b class="mono" style="font-size:12.5px">${esc(r.email)}</b></div>
-        <div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0">
-          <span style="color:var(--mut)">${T("u.pw")}</span><b class="mono" style="font-size:12.5px">${esc(pw)}</b></div>
-      </div>
-      <button class="btn btn-p btn-w" data-a="close">${T("msg.ok")}</button>`);
-  },
-  "u-edit"(e){
-    const s=sm(e.dataset.i);
-    modal(`<h3>${esc(s.name)}</h3>
-      <div class="f2" style="margin-top:12px">
-        <div class="f"><label>${T("u.name")}</label><input id="unm" value="${esc(s.name||"")}"></div>
-        <div class="f"><label>${T("u.code")}</label><input id="ucd" value="${esc(s.code||"")}"></div>
-      </div>
-      <div class="f2">
-        <div class="f"><label>${T("u.zone")}</label><input id="uzn" value="${esc(s.zone||"")}"></div>
-        <div class="f"><label>${T("u.phone")}</label><input id="uph" value="${esc(s.phone||"")}"></div>
-      </div>
-      <div class="f"><label>${T("u.email")}</label>
-        <input id="uem" type="email" autocapitalize="off" spellcheck="false" value="${esc(USER_EMAIL[s.id]||"")}"></div>
-      <div class="f"><label>${T("u.withstock")}</label>
-        <select id="uws"><option value="1"${s.withStock!==false?" selected":""}>${T("l.yes")}</option>
-          <option value="0"${s.withStock===false?" selected":""}>${T("l.no")}</option></select></div>
-      <button class="btn btn-p btn-w" data-a="u-save" data-i="${esc(s.id)}">${T("u.edit")}</button>`);
-  },
-  async "u-save"(e){
-    const id=e.dataset.i, b=busy(e);
-    const em=(($("#uem")||{}).value||"").trim();
-    if(LIVE()){
-      const {error}=await sb.from("profiles").update({
-        name:(($("#unm")||{}).value||"").trim(),
-        code:(($("#ucd")||{}).value||"").trim()||null,
-        zone:(($("#uzn")||{}).value||"").trim()||null,
-        phone:(($("#uph")||{}).value||"").trim()||null,
-        with_stock:(($("#uws")||{}).value)==="1"
-      }).eq("id",id);
-      if(error){ unbusy(b); return postErr(error); }
-      /* The address lives in the auth record, not the profile, so it only
-         changes through the privileged path — and only when it really differs,
-         so an unchanged address is never re-confirmed. */
-      if(em && em!==(USER_EMAIL[id]||"")){
-        const r=await adminCall({action:"set_email",id,email:em});
-        if(!r){ unbusy(b); return; }
-      }
-      await loadLive();
-    }
-    unbusy(b); A.close(); render();
-  },
-  "u-pw"(e){
-    const s=sm(e.dataset.i);
-    modal(`<h3>${T("u.resetpw")}</h3>
-      <p style="color:var(--mut);font-size:13.5px;margin:9px 0 12px">${esc(s.name)} · ${esc(USER_EMAIL[s.id]||"")}</p>
-      <div class="f"><label>${T("u.pw")}</label><input id="upw" autocomplete="new-password">
-        <div class="hint">${T("u.pwhint")}</div></div>
-      <button class="btn btn-p btn-w" data-a="u-pwsave" data-i="${esc(s.id)}">${T("u.resetpw")}</button>`);
-  },
-  async "u-pwsave"(e){
-    const id=e.dataset.i, pw=($("#upw")||{}).value||"", b=busy(e);
-    const r=await adminCall({action:"set_password",id,password:pw});
-    unbusy(b);
-    if(!r) return;
-    const s=sm(id);
-    modal(`<h3>${T("u.resetok")}</h3>
-      <p style="color:var(--mut);font-size:13.5px;margin:10px 0 13px">${esc(TF("u.resetokb",{n:s.name}))}</p>
-      <div class="card" style="padding:14px;margin-bottom:14px">
-        <div style="display:flex;justify-content:space-between;gap:10px">
-          <span style="color:var(--mut)">${T("u.pw")}</span><b class="mono" style="font-size:12.5px">${esc(pw)}</b></div></div>
-      <button class="btn btn-p btn-w" data-a="close">${T("msg.ok")}</button>`);
-  },
-  "u-active"(e){
-    const id=e.dataset.i, turnOn=e.dataset.v==="1", s=sm(id);
-    if(turnOn) return A["u-go"]({dataset:{i:id,v:"1"}});
-    /* Revoking is the one step here that locks a person out of their own work,
-       so it is asked for rather than done on a single tap. */
-    modal(`<h3>${esc(TF("u.revokeq",{n:s.name}))}</h3>
-      <p style="color:var(--mut);font-size:13.5px;margin:11px 0 14px">${T("u.revokeb")}</p>
-      <button class="btn btn-r btn-w" data-a="u-go" data-i="${esc(id)}" data-v="0">${T("u.revoke")}</button>
-      <button class="btn btn-s btn-w" style="margin-top:8px" data-a="close">${T("msg.close")}</button>`);
-  },
-  async "u-go"(e){
-    const b=(e&&e.tagName)?busy(e):null;
-    const r=await adminCall({action:"set_active",id:e.dataset.i,active:e.dataset.v==="1"});
-    unbusy(b);
-    if(!r) return;
-    await loadLive(); A.close(); render();
-  },
+  /* Shares the salesman's own code. It used to carry hardcoded initials and a
+     link to a domain nobody owns, so every salesman shared the same one. */
+  "share-ref"(){
+    const code=REFCODE();
+    modal(`<h3>${T("rf.share")}</h3>
+      <div style="background:#ECE5DD;border-radius:12px;padding:15px;margin:13px 0">
+        <div style="background:#D9FDD3;border-radius:9px 9px 2px 9px;padding:12px 14px;font-size:13.5px;max-width:90%">
+          ${esc(TF("rf.wa",{co:CO.name,code}))}</div></div>
+      <a class="btn btn-g btn-w" target="_blank" rel="noopener"
+         href="https://wa.me/?text=${encodeURIComponent(TF("rf.wa",{co:CO.name,code}))}">${ic(I.wa)} ${T("rf.share")}</a>
+      <button class="btn btn-s btn-w" style="margin-top:8px" data-a="close">${T("msg.close")}</button>`)},
   close(){$("#modal").innerHTML=""}
 };
 document.addEventListener("click",e=>{
@@ -4049,7 +4019,7 @@ async function loadLive(){
    Every post re-reads this, so what is on screen is what is in the database
    rather than a local guess at it. */
 async function loadLedger(){
-  const [{data:dos},{data:sos},{data:lines},{data:invs},{data:pays},{data:recs},{data:rets},{data:cgs},{data:sched},{data:sreq}]
+  const [{data:dos},{data:sos},{data:lines},{data:invs},{data:pays},{data:recs},{data:rets},{data:cgs},{data:sched},{data:sreq},{data:refs}]
     = await Promise.all([
       sb.from("delivery_orders").select("*").order("issued_at"),
       sb.from("sales_orders").select("*").order("issued_at"),
@@ -4060,7 +4030,8 @@ async function loadLedger(){
       sb.from("returns").select("*").order("issued_at"),
       sb.from("consignments").select("*").order("sent_at"),
       sb.from("visit_schedule").select("*").eq("visit_on",new Date().toISOString().slice(0,10)).order("position"),
-      sb.from("stock_requests").select("*").order("requested_at",{ascending:false}).limit(200)
+      sb.from("stock_requests").select("*").order("requested_at",{ascending:false}).limit(200),
+      sb.from("referrals").select("*").order("created_at",{ascending:false}).limit(200)
     ]);
 
   /* Lines are fetched once for every document and bucketed here, rather than a
@@ -4126,9 +4097,10 @@ async function loadLedger(){
     productId:r.product_id,qty:r.qty,issued:r.qty_issued||0,status:r.status,
     note:r.note||"",date:new Date(r.requested_at)})));
 
-  /* Referrals were seeded against the demo roster, so in live mode they belong
-     to salesmen who do not exist. Nothing has been recorded yet; show nothing. */
-  DB.referrals.length=0;
+  put(DB.referrals,(refs||[]).map(r=>({id:r.id,uuid:r.id,salesmanId:r.salesman_id,
+    name:r.outlet_name,phone:r.phone||"",district:r.district||"",note:r.note||"",
+    status:r.status,value:+r.value,commission:+r.commission,
+    customerId:r.customer_id||null,date:new Date(r.created_at)})));
 }
 
 async function authBoot(){

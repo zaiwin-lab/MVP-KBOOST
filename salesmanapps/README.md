@@ -250,6 +250,22 @@ cannot sign in again, and their outlets, documents and sales record all stay.
 The roster deliberately keeps revoked salesmen so their name still resolves on
 documents they raised; screens that hand out new work filter them out.
 
+## Refer & Earn
+
+A salesman records a shop he introduced, with a phone and district. When that
+shop is registered, the registration form offers his pending referrals and
+claims one. When the shop's first invoice is **settled** — paid, not merely
+raised — the referral is verified and 5% of that invoice is recorded as
+commission, once.
+
+Both of those rules are decisions the brief never made; they are the
+conservative reading and they are stated in `db/README.md` so they can be
+changed on a word from the client.
+
+The share button carries the salesman's own code, derived from his initials and
+staff code. It previously carried one person's initials and a link to a domain
+nobody owns, so every salesman shared the same one.
+
 ## Verified
 
 Checked in a real browser (Chromium) before each deploy, on the demo path and

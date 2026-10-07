@@ -23,6 +23,27 @@ why, so the repository is not silent about where the data lives.
 | 10 | `doc_lines_generated_total` | `doc_lines.line_total` is generated, so the three writers stop setting it |
 | 11 | `van_restocking` | `stock_requests`, `stock_issues`, `request_stock()`, `issue_stock()`, `reject_stock_request()` |
 
+## Refer & Earn
+
+Two things the client never specified are decided in migration `referrals`, and
+both are one line to change:
+
+- **"Verified" means the referred outlet's first invoice has been PAID**, not
+  merely registered or ordered. A referral should not earn on a sale the company
+  has not collected.
+- **The 5% is paid once**, on that first settled invoice, not on everything the
+  outlet ever buys. A perpetual cut is a liability nobody has agreed to.
+
+The lifecycle is `pending` → `registered` → `verified`. A salesman records a
+lead; registering the outlet claims it, in the same transaction as the customer
+insert, so a lead and the customer it became are never recorded apart;
+`post_payment` settles it when, and only when, the invoice goes to `paid`.
+
+`settle_referral()` has EXECUTE revoked from `authenticated` as well as `anon` —
+it is reached only from inside `post_payment`, so a commission cannot be
+conjured by calling it directly. A unique partial index on `customer_id` stops
+one outlet being credited to two referrals.
+
 ## Edge function: `admin-users`
 
 Opening a login, changing someone's password and revoking access all need the
