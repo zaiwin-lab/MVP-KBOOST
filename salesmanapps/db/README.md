@@ -23,6 +23,59 @@ why, so the repository is not silent about where the data lives.
 | 10 | `doc_lines_generated_total` | `doc_lines.line_total` is generated, so the three writers stop setting it |
 | 11 | `van_restocking` | `stock_requests`, `stock_issues`, `request_stock()`, `issue_stock()`, `reject_stock_request()` |
 
+## Rebuild to the client's own app — backend foundation
+
+The client's app registers a **reseller**, not an outlet, and registration there
+is a sequence rather than a form: details, four required photographs, the
+payment term, an opening order per product, then a consignment agreement that is
+generated, printed, signed and photographed back in.
+
+Three of his terms are ours unchanged — **Konsainan / Belian Tunai / Bill To
+Bil** are consignment, cash and bill-to-bill — so the document model, the
+running numbers and the posting functions all carry over.
+
+Migrations `reseller_registration_fields` and `reseller_photo_storage` carry the
+data model. Everything added is nullable, so the twelve existing outlets stay
+valid.
+
+| Added | Why |
+|---|---|
+| `reseller_code`, `app_name`, `ssm_name` | his own identifiers, distinct from our running code |
+| `country`, `town` | his geography is Negara / Negeri / Bandar / Poskod, deeper than our flat district |
+| `commission_grp`, `excel_grp` | segmentation we had no equivalent of |
+| `office_phone`, `pic_ic`, `email` | on his form; `pic_ic` is personal data and carries PDPA obligations |
+| `pic_off_days`, `pic_open_time`, `pic_close_time` | **not admin detail** — the planner must not schedule a visit on a day the shop has nobody to receive it |
+| `service_days`, `last_service` | the service cycle his planner buckets by |
+| `products.retail_price` | his sheet carries two prices: Harga Kedai (what the reseller pays, our existing `price`) and Harga Jualan (what the reseller charges the public) |
+
+**Two assumptions worth challenging.** `service_days` defaults to 30, and
+`service_state()` calls a reseller `tamat` only once the interval has actually
+passed, not when it is merely due. Both are guesses from the planner screenshot
+and both are one line to change.
+
+### Photographs
+
+Private bucket `reseller`, laid out as `<customer_id>/<kind>-<timestamp>.<ext>`.
+A shopkeeper's face, an SSM certificate and a signed agreement are not public
+material.
+
+Storage policies on `storage.objects` cannot be written with the tooling here —
+that table belongs to `supabase_storage_admin`. Authorisation lives in the
+`reseller-upload` edge function instead, which is tighter: the phone never holds
+a key that reaches the bucket, only a one-shot URL for one path it has already
+been judged entitled to.
+
+- `sign-upload` → a short-lived URL the phone PUTs the file to. No base64, so a
+  4MB photo on a weak signal is one upload rather than a 5.5MB JSON body.
+- `record` → files the upload against the reseller. The path is checked against
+  the caller's own claim, so a row can never point at another reseller's folder.
+- `list` → signed read URLs, one hour.
+
+Verified against live sessions: a real PNG signed, uploaded, recorded and read
+back; the public path refused; and six refusals held, including another salesman
+signing for an outlet he does not hold, recording a path in someone else's
+folder, and an executable content type.
+
 ## Refer & Earn
 
 Two things the client never specified are decided in migration `referrals`, and
