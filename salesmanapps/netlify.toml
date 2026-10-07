@@ -12,9 +12,11 @@
 # robots.txt and sitemap.xml are fetched by crawlers.
 [build]
   command = """
-    mkdir -p _site/share && \
+    mkdir -p _site/share _site/app && \
     cp index.html playbook.html og.png favicon.svg robots.txt sitemap.xml _site/ && \
-    cp share/index.html _site/share/
+    cp share/index.html _site/share/ && \
+    cp app/index.html app/sw.js app/manifest.webmanifest _site/app/ && \
+    cp app/icon-192.png app/icon-512.png app/icon-maskable.png _site/app/
   """
   publish = "_site"
 
@@ -31,6 +33,25 @@
   for = "/og.png"
   [headers.values]
     Cache-Control = "public, max-age=604800"
+
+# The installable app lives under /app/. Two headers there are not cosmetic.
+#
+# The service worker must never be cached. If a phone holds an old sw.js, it
+# keeps serving an old shell and a deploy never reaches the salesman — the one
+# failure mode of an installed app that the user cannot clear themselves.
+[[headers]]
+  for = "/app/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+    Service-Worker-Allowed = "/app/"
+
+# Netlify serves an unknown extension as octet-stream, and a manifest served
+# that way is ignored, which means no install prompt and no home-screen icon.
+[[headers]]
+  for = "/app/manifest.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json"
+    Cache-Control = "no-cache"
 
 # The proposal page was renamed to the playbook; keep the old link alive.
 [[redirects]]

@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<!-- viewport-fit=cover lets the red header run under the notch, which is what
+     makes it read as an app rather than a page in a browser. -->
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="theme-color" content="#E12B24">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Salesman">
+<meta name="format-detection" content="telephone=no">
+<meta name="robots" content="noindex,nofollow">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="icon" href="./icon-192.png">
+<title>Salesman App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+/* ---------------------------------------------------------------------------
+   SALESMAN APP — phone shell
+   Rebuilt to the client's own design: red, five tabs, one column.
+   Layout: a fixed red header, a scrolling body, a fixed tab bar. The body is
+   the only thing that moves, which is what stops a phone keyboard shoving the
+   navigation up the screen.
+   --------------------------------------------------------------------------- */
+:root{
+  --red:#E12B24; --red-d:#C21F19; --red-lo:#FDEBEA;
+  --grn:#22A45D; --grn-lo:#E3F5EB;
+  --amb:#C77700; --amb-lo:#FDF0DC;
+  --blue:#2563EB;
+  --bg:#F2F3F7; --card:#FFFFFF; --inset:#F7F8FB;
+  --ink:#14161C; --mut:#5A6275; --dim:#8F97A8;
+  --line:#E3E6EE; --line-s:#EDEFF4;
+  --r:14px; --r-s:10px;
+  --sans:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --top:env(safe-area-inset-top,0px);
+  --bot:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;
+  line-height:1.5;overscroll-behavior-y:none;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+img{max-width:100%}
+[hidden]{display:none!important}
+
+/* ---------- frame ---------- */
+#app{min-height:100%;display:flex;flex-direction:column}
+.hd{background:var(--red);color:#fff;padding:calc(var(--top) + 18px) 20px 20px;
+  position:relative;flex:none}
+.hd.sm{padding-bottom:16px}
+.hd .salam{font-size:13.5px;opacity:.9}
+.hd h1{margin:4px 0 0;font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.25;
+  padding-right:92px}
+.hd .acts{position:absolute;right:16px;top:calc(var(--top) + 16px);display:flex;gap:6px}
+.hd .acts button{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+  color:#fff;position:relative}
+.hd .acts button:active{background:rgba(255,255,255,.16)}
+.hd .acts svg{width:21px;height:21px}
+.dot{position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;
+  background:#fff;border:2px solid var(--red)}
+
+.bar{background:var(--red);color:#fff;padding:calc(var(--top) + 10px) 8px 12px;
+  display:flex;align-items:center;gap:6px;flex:none}
+.bar .back{display:flex;align-items:center;gap:4px;padding:8px 10px;font-size:15px;font-weight:600}
+.bar .back svg{width:18px;height:18px}
+.ttl{padding:18px 20px 4px}
+.ttl h2{margin:0;font-size:25px;font-weight:800;color:var(--red);letter-spacing:-.02em}
+
+.body{flex:1;padding:0 16px calc(var(--bot) + 84px)}
+.sheet{background:var(--bg);border-radius:20px 20px 0 0;margin:0 -16px;padding:20px 16px 0;position:relative}
+
+/* ---------- tab bar ---------- */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:50;background:#fff;
+  border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);
+  padding-bottom:var(--bot);box-shadow:0 -2px 12px rgba(20,22,28,.05)}
+.tabs button{padding:8px 2px 7px;display:flex;flex-direction:column;align-items:center;gap:3px;
+  font-size:10.5px;font-weight:600;color:var(--dim)}
+.tabs button svg{width:23px;height:23px}
+.tabs button.on{color:var(--red)}
+.tabs button:active{background:var(--inset)}
+
+/* ---------- blocks ---------- */
+.sec{display:flex;align-items:center;gap:9px;margin:4px 0 12px;font-size:17px;font-weight:800;
+  color:var(--red)}
+.sec svg{width:21px;height:21px}
+.sec .more{margin-left:auto;background:var(--red);color:#fff;font-size:13px;font-weight:700;
+  padding:8px 15px;border-radius:9px}
+.sec.w{color:#fff}
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.card{background:var(--card);border-radius:var(--r);padding:14px;box-shadow:0 1px 3px rgba(20,22,28,.07)}
+
+.quick{background:var(--card);border-radius:var(--r);padding:14px 14px 12px;position:relative;
+  min-height:124px;display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(20,22,28,.07)}
+.quick b{font-size:14px;font-weight:800;line-height:1.3;letter-spacing:-.01em}
+.quick .art{margin-top:auto;height:44px;display:flex;align-items:flex-end}
+.quick .art svg{width:40px;height:40px;color:var(--red);opacity:.3}
+.quick .go{position:absolute;right:12px;bottom:12px;width:30px;height:30px;border-radius:50%;
+  background:var(--red);display:grid;place-items:center}
+.quick .go svg{width:15px;height:15px;color:#fff}
+.quick:active{transform:scale(.985)}
+
+.stat{background:var(--card);border-radius:var(--r);padding:12px 10px;text-align:center;
+  box-shadow:0 1px 3px rgba(20,22,28,.07)}
+.stat .art{height:52px;display:grid;place-items:center;margin-bottom:6px}
+.stat .art svg{width:46px;height:46px}
+.stat .l{font-size:11.5px;color:var(--mut);font-weight:600}
+.stat .v{font-size:15px;font-weight:800;margin-top:2px;letter-spacing:-.01em}
+
+.rowbtn{display:block;width:100%;background:var(--red);color:#fff;font-size:15.5px;font-weight:700;
+  padding:15px;border-radius:11px;margin-top:12px;text-align:center}
+.rowbtn:active{background:var(--red-d)}
+.rowbtn.g{background:var(--grn)}
+.rowbtn.o{background:#fff;color:var(--red);border:1.5px solid var(--red)}
+
+.range{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--mut);margin-bottom:12px}
+
+/* ---------- states ---------- */
+.empty{text-align:center;padding:38px 18px;color:var(--mut)}
+.empty b{display:block;color:var(--ink);font-size:15.5px;margin-bottom:5px}
+.empty span{font-size:13.5px;display:block;max-width:30ch;margin:0 auto}
+.soon{background:var(--card);border-radius:var(--r);padding:22px 18px;text-align:center;
+  box-shadow:0 1px 3px rgba(20,22,28,.07)}
+.soon .k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--red);font-weight:800}
+.soon b{display:block;font-size:17px;margin:7px 0 6px;letter-spacing:-.01em}
+.soon span{font-size:13.5px;color:var(--mut);display:block;max-width:34ch;margin:0 auto}
+.soon ul{text-align:left;margin:14px auto 0;padding-left:18px;max-width:34ch;font-size:13.5px;color:var(--mut)}
+.soon li{margin-top:5px}
+
+/* ---------- login ---------- */
+.lg{min-height:100%;display:flex;flex-direction:column;background:var(--red);color:#fff}
+.lg .top{padding:calc(var(--top) + 54px) 26px 30px;flex:none}
+.lg .mk{width:62px;height:62px;border-radius:17px;background:rgba(255,255,255,.17);
+  display:grid;place-items:center;margin-bottom:17px}
+.lg .mk svg{width:34px;height:34px}
+.lg h1{margin:0;font-size:27px;font-weight:800;letter-spacing:-.02em}
+.lg p{margin:7px 0 0;opacity:.9;font-size:14.5px;max-width:30ch}
+.lg .form{flex:1;background:var(--bg);color:var(--ink);border-radius:24px 24px 0 0;
+  padding:26px 22px calc(var(--bot) + 30px)}
+.f{margin-bottom:14px}
+.f label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--mut);margin-bottom:6px}
+.f input{width:100%;padding:14px;border:1.5px solid var(--line);border-radius:11px;background:#fff;
+  font-size:16px}
+.f input:focus{outline:none;border-color:var(--red)}
+.err{background:var(--red-lo);color:var(--red-d);border-radius:10px;padding:12px 14px;
+  font-size:13.5px;font-weight:600;margin-bottom:14px}
+
+/* ---------- chrome ---------- */
+.offline{position:fixed;left:12px;right:12px;bottom:calc(var(--bot) + 70px);z-index:60;
+  background:var(--ink);color:#fff;border-radius:11px;padding:11px 14px;font-size:13px;
+  font-weight:600;display:flex;align-items:center;gap:9px;box-shadow:0 6px 20px rgba(0,0,0,.26)}
+.offline i{width:8px;height:8px;border-radius:50%;background:#FBBF24;flex:none}
+.install{position:fixed;left:12px;right:12px;bottom:calc(var(--bot) + 70px);z-index:60;
+  background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px 14px;
+  display:flex;align-items:center;gap:11px;box-shadow:0 8px 24px rgba(20,22,28,.14)}
+.install img{width:38px;height:38px;border-radius:9px;flex:none}
+.install b{display:block;font-size:14px}
+.install span{display:block;font-size:12px;color:var(--mut)}
+.install .yes{background:var(--red);color:#fff;font-size:13px;font-weight:700;
+  padding:9px 14px;border-radius:9px;margin-left:auto;flex:none}
+.install .no{color:var(--dim);padding:9px 4px;flex:none;font-size:18px;line-height:1}
+
+.spin{width:26px;height:26px;border-radius:50%;border:2.5px solid rgba(255,255,255,.3);
+  border-top-color:#fff;animation:sp .7s linear infinite;margin:0 auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+.boot{min-height:100%;display:grid;place-items:center;background:var(--red);color:#fff}
+
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition:none!important}}
+@media (min-width:560px){ /* a phone app on a desktop screen stays phone-width */
+  #app{max-width:460px;margin:0 auto;box-shadow:0 0 0 1px var(--line)}
+  .tabs{max-width:460px;margin:0 auto}
+  .offline,.install{max-width:436px;margin:0 auto}
+}
+</style>
+</head>
+<body>
+<div id="app"><div class="boot"><div><div class="spin"></div></div></div></div>
+<div id="chrome"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.min.js"></script>
+<script>
+/* ===========================================================================
+   Backend — the same Supabase project the portal uses. Nothing about this
+   rebuild changes the data; it is the same resellers, documents and money.
+   =========================================================================== */
+const SB_URL = "https://ebjsyramwnyekufvowft.supabase.co";
+const SB_KEY = "sb_publishable_UmBCtnNufjCfi0S1eaw6jw_NjtW5xej";
+const sb = (self.supabase && supabase.createClient)
+  ? supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true } })
+  : null;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const RM = n => "RM " + (Number(n) || 0).toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fd = d => new Date(d).toLocaleDateString("en-MY", { day: "2-digit", month: "short", year: "numeric" });
+
+const ic = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+  stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const I = {
+  home:  '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>',
+  shop:  '<path d="M3 9h18l-1 3H4Z"/><path d="M5 12v9h14v-9"/><path d="M9 21v-5h6v5"/>',
+  box:   '<path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>',
+  pin:   '<path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/>',
+  chart: '<path d="M5 20V10"/><path d="M12 20V4"/><path d="M19 20v-6"/>',
+  bell:  '<path d="M18 16V11a6 6 0 1 0-12 0v5l-2 3h16Z"/><path d="M10 22h4"/>',
+  /* Sliders rather than a cog: a cog drawn with a few paths at 21px reads as a
+     sun, which is what the first build looked like. */
+  gear:  '<path d="M4 7h10M18 7h2M4 12h3M11 12h9M4 17h8M16 17h4"/><circle cx="16" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="14" cy="17" r="2"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/>',
+  note:  '<path d="M5 3h11l3 3v15H5Z"/><path d="M8 9h8M8 13h8M8 17h5"/>',
+  arrow: '<path d="M5 12h13M13 6l6 6-6 6"/>',
+  back:  '<path d="M15 5l-7 7 7 7"/>',
+  out:   '<path d="M15 4h4v16h-4"/><path d="M10 8l-4 4 4 4"/><path d="M6 12h9"/>',
+  wifi:  '<path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1"/>',
+  cash:  '<rect x="2.5" y="6" width="19" height="12" rx="2.2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 10v4M18 10v4"/>',
+  cal:   '<rect x="3" y="5" width="18" height="16" rx="2.4"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8 14h3v3H8z"/>',
+  newshop: '<path d="M3 9h18l-1 3H4Z"/><path d="M5 12v9h9"/><circle cx="18" cy="17.5" r="4"/><path d="M18 15.6v3.8M16.1 17.5h3.8"/>',
+};
+
+/* ===========================================================================
+   State
+   =========================================================================== */
+const S = { tab: "home", view: null, ready: false, me: null, err: "", busy: false,
+            online: navigator.onLine, data: null };
+
+/* Shown on the settings screen. When a salesman reports a fault, the first
+   question is which build he is on, and a phone that has cached an old shell
+   gives a different answer from the one just deployed. */
+const BUILD = "2026-10-07";
+
+/* ===========================================================================
+   Chrome — offline notice and the install prompt
+   =========================================================================== */
+let deferredInstall = null, installDismissed = false;
+try { installDismissed = localStorage.getItem("sa.install") === "no"; } catch (_) {}
+
+function chrome() {
+  let h = "";
+  if (!S.online)
+    h += `<div class="offline"><i></i><span>Tiada sambungan — angka tidak boleh dimuatkan</span></div>`;
+  else if (deferredInstall && !installDismissed)
+    h += `<div class="install">
+      <img src="./icon-192.png" alt="">
+      <span style="min-width:0"><b>Pasang app ini</b><span>Buka terus dari skrin utama telefon</span></span>
+      <button class="yes" data-a="install">Pasang</button>
+      <button class="no" data-a="noinstall" aria-label="Tutup">&times;</button></div>`;
+  $("#chrome").innerHTML = h;
+}
+
+addEventListener("online",  () => { S.online = true;  chrome(); });
+addEventListener("offline", () => { S.online = false; chrome(); });
+addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferredInstall = e; chrome(); });
+addEventListener("appinstalled", () => { deferredInstall = null; chrome(); });
+
+/* ===========================================================================
+   Screens
+   =========================================================================== */
+function vBoot() {
+  return `<div class="boot"><div style="text-align:center">
+    <div class="spin"></div>
+    <p style="margin-top:14px;font-size:14px;opacity:.9">Menyemak sesi…</p></div></div>`;
+}
+
+function vLogin() {
+  return `<div class="lg">
+    <div class="top">
+      <div class="mk">${ic(I.box)}</div>
+      <h1>Salesman App</h1>
+      <p>Log masuk untuk mula. Semua rekod disimpan dan boleh dilihat semula.</p>
+    </div>
+    <form class="form" data-a="login">
+      ${S.err ? `<div class="err">${esc(S.err)}</div>` : ""}
+      <div class="f"><label for="em">E-mel</label>
+        <input id="em" type="email" inputmode="email" autocomplete="username"
+               autocapitalize="off" spellcheck="false" value="${esc(S.lastEmail || "")}"
+               placeholder="nama@syarikat.com"></div>
+      <div class="f"><label for="pw">Kata laluan</label>
+        <input id="pw" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+      <button class="rowbtn" type="submit" id="go">${S.busy ? "Sedang masuk…" : "Log masuk"}</button>
+    </form>
+  </div>`;
+}
+
+/* The bell and the gear sit on every tab's header, not only Home. The gear is
+   the only route to sign out, and a salesman who happens to be on the Stok tab
+   must not have to hunt for the way out. */
+const hdActs = () => `<div class="acts">
+  <button data-a="soon" data-t="Notifikasi" aria-label="Notifikasi">${ic(I.bell)}<i class="dot"></i></button>
+  <button data-a="settings" aria-label="Tetapan">${ic(I.gear)}</button>
+</div>`;
+
+/* Home — built to the client's own layout: greeting, Harian, Kesimpulan, then
+   the three history buttons. */
+function vHome() {
+  const d = S.data;
+  const me = S.me || {};
+  const today = fd(new Date());
+  return `
+  <div class="hd">
+    <div class="salam">Salam sejahtera,</div>
+    <h1>${esc([me.code, me.name, me.zone].filter(Boolean).join(" ").toUpperCase() || "SALESMAN")}</h1>
+    ${hdActs()}
+  </div>
+
+  <div class="body">
+    <div style="padding:18px 0 0">
+      <div class="sec" style="color:var(--red)">${ic(I.clock)}<span>Harian</span></div>
+      <div class="g2">
+        <button class="quick" data-a="soon" data-t="Jadual Harian">
+          <b>Jadual Harian</b>
+          <div class="art">${ic(I.cal)}</div><span class="go">${ic(I.arrow)}</span></button>
+        <button class="quick" data-a="soon" data-t="Pendaftaran Reseller Baru">
+          <b>Pendaftaran Reseller Baru</b>
+          <div class="art">${ic(I.newshop)}</div><span class="go">${ic(I.arrow)}</span></button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px;padding:16px 14px">
+      <div class="sec" style="margin-bottom:14px">${ic(I.note)}<span>Kesimpulan</span>
+        <button class="more" data-a="soon" data-t="Kesimpulan penuh">Lihat Lebih</button></div>
+      <div class="range"><b style="color:var(--ink);font-weight:700">Tarikh :</b> ${today} - ${today}</div>
+      <div class="g3">
+        ${stat("Wang Terima", d ? RM(d.received) : "—", I.cash)}
+        ${stat("Qty Jualan", d ? String(d.qty) : "—", I.chart)}
+        ${stat("Stok Terkini", d ? String(d.stock) : "—", I.box)}
+      </div>
+      ${d ? "" : `<p style="margin:12px 0 0;font-size:12.5px;color:var(--mut);text-align:center">
+        Angka tidak dapat dimuatkan. <button data-a="refresh" style="color:var(--red);font-weight:700">Cuba lagi</button></p>`}
+    </div>
+
+    <button class="rowbtn" data-a="soon" data-t="Invois Lama">Invois Lama</button>
+    <button class="rowbtn" data-a="soon" data-t="D/O Lama">D/O Lama</button>
+    <button class="rowbtn" data-a="soon" data-t="Hutang Lama">Hutang Lama</button>
+  </div>`;
+}
+const stat = (l, v, glyph) => `<div class="stat"><div class="art">${ic(glyph || I.box)}</div>
+  <div class="l">${esc(l)}</div><div class="v">${esc(v)}</div></div>`;
+
+/* The four tabs still to be built. Named honestly rather than left blank, with
+   what each will hold, so the shell can be shown without implying more than is
+   there. */
+const SOON = {
+  reseller: ["Reseller", ["Senarai reseller dengan carian", "Profil reseller dan sejarah",
+    "Pendaftaran reseller baru — borang, gambar, order pertama"]],
+  stok:     ["Stok", ["Stok dalam van mengikut produk", "Request stok dari warehouse",
+    "Stok yang rendah"]],
+  gps:      ["GPS", ["Lokasi reseller atas peta", "Navigasi ke kedai",
+    "Lokasi ditangkap semasa pendaftaran"]],
+  ranking:  ["Ranking", ["Kedudukan salesman", "Hari ini, minggu, bulan, tahun",
+    "Jualan dan kutipan setiap orang"]],
+};
+function vSoon(key) {
+  const [name, bullets] = SOON[key] || [key, []];
+  return `
+  <div class="hd sm"><div class="salam">Salesman App</div><h1>${esc(name)}</h1>${hdActs()}</div>
+  <div class="body"><div style="padding:22px 0">
+    <div class="soon">
+      <div class="k">Sedang dibina</div>
+      <b>${esc(name)}</b>
+      <span>Rangka app sudah siap. Skrin ini akan diisi mengikut reka bentuk asal.</span>
+      <ul>${bullets.map(b => `<li>${esc(b)}</li>`).join("")}</ul>
+    </div>
+  </div></div>`;
+}
+
+function vSettings() {
+  const me = S.me || {};
+  return `
+  <div class="bar"><button class="back" data-a="closeview">${ic(I.back)}<span>Kembali</span></button></div>
+  <div class="ttl"><h2>Tetapan</h2></div>
+  <div class="body">
+    <div class="card" style="margin-top:8px">
+      <div style="font-size:13px;color:var(--mut)">Log masuk sebagai</div>
+      <b style="display:block;font-size:16px;margin-top:3px">${esc(me.name || "—")}</b>
+      <div style="font-size:13px;color:var(--mut)">${esc(me.code || "")}${me.zone ? " · " + esc(me.zone) : ""}</div>
+      <div style="font-size:13px;color:var(--mut);margin-top:2px">${esc(S.email || "")}</div>
+    </div>
+    <button class="rowbtn o" data-a="signout">Log keluar</button>
+    <p style="text-align:center;color:var(--dim);font-size:12px;margin-top:22px">
+      Salesman App · bina ${esc(BUILD)}</p>
+  </div>`;
+}
+
+const TABS = [["home", "Home", I.home], ["reseller", "Reseller", I.shop],
+              ["stok", "Stok", I.box], ["gps", "GPS", I.pin], ["ranking", "Ranking", I.chart]];
+const tabBar = () => `<nav class="tabs">${TABS.map(([k, l, i]) =>
+  `<button data-a="tab" data-v="${k}" class="${S.tab === k && !S.view ? "on" : ""}">${ic(i)}<span>${l}</span></button>`
+).join("")}</nav>`;
+
+function render() {
+  let h;
+  if (!sb)            h = vLogin();
+  else if (!S.ready)  h = vBoot();
+  else if (!S.me)     h = vLogin();
+  else if (S.view === "settings") h = vSettings() + tabBar();
+  else if (S.tab === "home")      h = vHome() + tabBar();
+  else                            h = vSoon(S.tab) + tabBar();
+  $("#app").innerHTML = h;
+  chrome();
+  if (!S.me && !S.busy) { const e = $("#em"); if (e) (e.value ? $("#pw") : e).focus(); }
+}
+
+/* ===========================================================================
+   Actions
+   =========================================================================== */
+const A = {
+  tab(el) { S.tab = el.dataset.v; S.view = null; render(); scrollTo(0, 0); },
+  /* Re-reads identity as well as the figures: a phone that opened from the
+     cached profile has never seen the live one. */
+  async refresh() { await loadMe(); render(); },
+  settings() { S.view = "settings"; render(); scrollTo(0, 0); },
+  /* Back out of a full-screen view to whichever tab it was opened from. */
+  closeview() { S.view = null; render(); scrollTo(0, 0); },
+  soon(el) {
+    const n = el.dataset.t || "Skrin ini";
+    alertBox(n, "Bahagian ini belum dibina. Rangka app sudah siap dan skrin akan diisi mengikut reka bentuk asal.");
+  },
+  install() {
+    if (!deferredInstall) return;
+    deferredInstall.prompt();
+    deferredInstall.userChoice.finally(() => { deferredInstall = null; chrome(); });
+  },
+  noinstall() {
+    installDismissed = true;
+    try { localStorage.setItem("sa.install", "no"); } catch (_) {}
+    chrome();
+  },
+  async signout() {
+    S.me = null; S.data = null; S.view = null; S.tab = "home"; S.err = "";
+    try { localStorage.removeItem(WHO); } catch (_) {}
+    try { if (sb) await sb.auth.signOut(); } catch (_) {}
+    render();
+  },
+};
+
+/* A plain in-page notice. The viewer never shows alert(), and a salesman needs
+   to be told things while standing in a shop. */
+function alertBox(title, body) {
+  const w = document.createElement("div");
+  w.style.cssText = "position:fixed;inset:0;z-index:90;background:rgba(20,22,28,.45);display:grid;place-items:end center";
+  w.innerHTML = `<div style="background:#fff;width:100%;max-width:460px;border-radius:20px 20px 0 0;
+      padding:22px 20px calc(env(safe-area-inset-bottom,0px) + 22px)">
+    <b style="display:block;font-size:17px;letter-spacing:-.01em">${esc(title)}</b>
+    <p style="margin:8px 0 16px;color:var(--mut);font-size:14px">${esc(body)}</p>
+    <button class="rowbtn" style="margin:0">OK</button></div>`;
+  w.addEventListener("click", () => w.remove());
+  document.body.appendChild(w);
+}
+
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-a]");
+  if (!el || el.tagName === "FORM") return;
+  e.preventDefault();
+  const fn = A[el.dataset.a];
+  if (fn) { const r = fn(el); if (r && r.catch) r.catch(err => alertBox("Ralat", err.message || String(err))); }
+});
+
+document.addEventListener("submit", async e => {
+  const f = e.target.closest('[data-a="login"]');
+  if (!f) return;
+  e.preventDefault();
+  const em = ($("#em") || {}).value || "", pw = ($("#pw") || {}).value || "";
+  S.lastEmail = em;
+  if (!em.trim() || !pw) { S.err = "Sila isi e-mel dan kata laluan."; return render(); }
+  S.busy = true; S.err = ""; render();
+  const { data, error } = await sb.auth.signInWithPassword({ email: em.trim(), password: pw });
+  S.busy = false;
+  if (error) { S.err = authMsg(error.message); return render(); }
+  S.email = data.user.email;
+  await loadMe();
+  render();
+});
+
+function authMsg(m) {
+  const s = (m || "").toLowerCase();
+  if (s.includes("invalid login")) return "E-mel atau kata laluan salah. Cuba lagi.";
+  if (s.includes("banned")) return "Akses akaun ini sudah ditarik balik. Hubungi pengurusan.";
+  if (s.includes("failed to fetch")) return "Tiada sambungan. Semak internet anda.";
+  return m;
+}
+
+/* ===========================================================================
+   Data
+   =========================================================================== */
+/* The salesman's own name, code and zone, kept in the phone's own storage.
+   This is identity, not money: it does not go stale in a way that can mislead
+   anybody, and without it a salesman who opens the app with no signal is
+   thrown back to a login screen he cannot possibly get past. */
+const WHO = "sa.who";
+const cacheWho = p => { try { localStorage.setItem(WHO, JSON.stringify(p)); } catch (_) {} };
+const cachedWho = id => {
+  try {
+    const p = JSON.parse(localStorage.getItem(WHO) || "null");
+    return p && p.id === id ? p : null;
+  } catch (_) { return null; }
+};
+
+async function loadMe({ session } = {}) {
+  let user = session && session.user;
+  if (!user) {
+    const { data } = await sb.auth.getUser().catch(() => ({ data: {} }));
+    user = data && data.user;
+  }
+  if (!user) { S.me = null; return; }
+  S.email = user.email;
+
+  const { data: p, error } = await sb.from("profiles")
+    .select("id,name,code,zone,role,active").eq("id", user.id).maybeSingle();
+
+  if (error) {
+    /* Could not reach the server. A token we already hold is evidence enough
+       to open the app; the figures inside it stay as dashes until the signal
+       returns, so nothing unverified is ever shown as fact. */
+    const c = cachedWho(user.id);
+    if (c) { S.me = c; S.data = null; return; }
+    S.me = null; S.err = "Tiada sambungan. Semak internet anda.";
+    return;
+  }
+  if (!p) { S.me = null; S.err = "Tiada profil untuk akaun ini."; return; }
+  if (p.active === false) {
+    S.me = null; S.err = "Akses akaun ini sudah ditarik balik.";
+    try { localStorage.removeItem(WHO); } catch (_) {}
+    await sb.auth.signOut();
+    return;
+  }
+  S.me = p;
+  cacheWho(p);
+  await loadSummary();
+}
+
+/* The three figures on the home screen, read live and only for today. They are
+   left null rather than zeroed when the read fails: a salesman who is shown
+   "RM 0.00" believes he has collected nothing, which is a different and worse
+   statement than "we could not reach the server". */
+async function loadSummary() {
+  const p = S.me;
+  if (!p) return;
+  S.data = null;
+  const day = new Date(); day.setHours(0, 0, 0, 0);
+  const from = day.toISOString();
+  try {
+    const [pay, sos, van] = await Promise.all([
+      sb.from("payments").select("amount").eq("salesman_id", p.id).gte("paid_at", from),
+      sb.from("sales_orders").select("id").eq("salesman_id", p.id).gte("issued_at", from),
+      sb.from("van_stock").select("qty").eq("salesman_id", p.id),
+    ]);
+    if (pay.error || sos.error || van.error) return;
+
+    /* Qty Jualan is units sold, not orders raised, so the lines behind today's
+       orders are what gets summed. */
+    let qty = 0;
+    const ids = (sos.data || []).map(r => r.id);
+    if (ids.length) {
+      const { data: lines, error } = await sb.from("doc_lines").select("qty").in("doc_id", ids);
+      if (error) return;
+      qty = (lines || []).reduce((a, x) => a + Number(x.qty || 0), 0);
+    }
+    S.data = {
+      received: (pay.data || []).reduce((a, x) => a + Number(x.amount || 0), 0),
+      qty,
+      stock: (van.data || []).reduce((a, x) => a + Number(x.qty || 0), 0),
+      orders: ids.length,
+    };
+  } catch (_) { /* leaves S.data null, and the screen shows a dash */ }
+}
+
+async function boot() {
+  if (!sb) { S.err = "Tidak dapat menghubungi pelayan."; S.ready = true; return render(); }
+  const { data } = await sb.auth.getSession().catch(() => ({ data: {} }));
+  if (data && data.session) {
+    try { await loadMe({ session: data.session }); }
+    catch (e) { S.err = authMsg(e.message || String(e)); }
+  }
+  S.ready = true;
+  render();
+  sb.auth.onAuthStateChange((evt) => { if (evt === "SIGNED_OUT") { S.me = null; render(); } });
+}
+
+if ("serviceWorker" in navigator)
+  addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
+
+render();
+boot();
+</script>
+</body>
+</html>

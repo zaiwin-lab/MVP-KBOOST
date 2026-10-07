@@ -13,15 +13,68 @@ wrapped as a mobile app.
 This is a **separate build**. It shares no code with the earlier "Winning
 Salesman" demo at the repository root, which is left untouched.
 
-## Two pages
+## Two pages, and an app
 
 | Page | What it is |
 |---|---|
 | `index.html` | The portal — three access panels, all 16 modules, clickable |
 | `playbook.html` | Operations Playbook — impact, the three models, and how each role uses it |
+| `app/` | The phone app — a rebuild to the client's own design (see below) |
 
 No install and no build step. The Public panel opens without an account; the
 Management and Salesman panels need one.
+
+## The phone app (`app/`)
+
+The client's own design is an app, not a website, and the portal does not look
+like it. `app/` is the rebuild, and it is **additive**: the portal stays live
+and testable at the same URL it always had while this grows beside it.
+
+What it is not is a second system. It signs into the same Supabase project,
+reads the same resellers and documents, and will post through the same six
+functions. Nothing about the data changes; only the surface does.
+
+**Installable.** `manifest.webmanifest` declares it standalone and portrait, so
+adding it to a phone's home screen opens it full-screen with no browser bar.
+The icons are placeholders — a red box glyph — and want replacing with the
+client's artwork before anyone outside the project installs it.
+
+**Offline is handled, carefully.** `sw.js` caches the shell: the page, the
+manifest, the icons. It caches **nothing from the database**. A salesman
+standing in a shop must not be shown last week's outstanding balance because
+his signal dropped — a stale figure is worse than no figure, because he will
+act on it. So Supabase traffic is network-only, and when it fails the three
+figures on the home screen read `—` with *"Angka tidak dapat dimuatkan"*
+underneath, never `RM 0.00`.
+
+One thing *is* kept on the phone: the salesman's own name, code and zone. That
+is identity, not money, and without it a salesman opening the app with no
+signal is thrown back to a login screen he cannot possibly get past.
+
+**Built so far**
+
+| | |
+|---|---|
+| Frame | Red header, five-tab bottom bar, safe areas for notch and home indicator |
+| Login | Email and password against the same accounts the portal uses |
+| Home | Greeting, `Harian` cards, `Kesimpulan` with live Wang Terima / Qty Jualan / Stok Terkini, and the `Invois Lama` / `D/O Lama` / `Hutang Lama` buttons |
+| Settings | Who is signed in, the build date, and sign out — reachable from every tab, not just Home |
+| Reseller, Stok, GPS, Ranking | Named placeholders listing what belongs in each |
+
+The placeholders say *"Sedang dibina"* and name what is coming, rather than
+sitting blank. A blank tab in a demo reads as a bug; a named one reads as a
+plan.
+
+**Verified in Chromium at 390×844**: service worker registers and caches the
+six shell files; the app reloads and still renders with the origin gone; with
+the database refused it stays signed in and shows dashes, not zeroes; signing
+in with no database says *"Tiada sambungan"* and keeps the typed email; a
+stray click anywhere inside the login form does not fire the submit — the fault
+the portal had.
+
+Still to come from the client's design: the Reseller registration sequence,
+order creation, the daily planner, `Pending Acc Approval` as an invoice status,
+`Keluar Invois Muktamad`, and `Request Credit Note`.
 
 ## Three access panels
 
@@ -304,8 +357,18 @@ checked against a live signed-in session.
 
 ## Deployment
 
-Its own Netlify project, separate from the earlier demo. `netlify.toml`
-publishes only `index.html` and `playbook.html`; this README is never served.
+Its own Netlify project, separate from the earlier demo. `netlify.toml` names
+every published file explicitly — the portal, the playbook, their assets, and
+the six files under `app/`. This README is never served.
+
+Two headers under `/app/` are not cosmetic. `sw.js` is sent `no-cache`: a phone
+holding an old service worker keeps serving an old shell, and a deploy never
+reaches the salesman — the one failure of an installed app that the user cannot
+clear himself. And `manifest.webmanifest` is sent as `application/manifest+json`,
+because Netlify would otherwise serve the unknown extension as octet-stream, a
+manifest served that way is ignored, and the app stops being installable with
+no visible error anywhere.
+
 Deploy from **this folder** (the CLI uploads the current directory):
 
 ```shell
