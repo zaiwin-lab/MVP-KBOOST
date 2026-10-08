@@ -63,7 +63,7 @@ a{color:var(--accent)}
 .kicker{font-family:var(--display);font-size:.7rem;font-weight:600;letter-spacing:.17em;
   text-transform:uppercase;color:var(--accent);margin-bottom:18px}
 h1{font-size:clamp(2rem,6vw,3rem);font-weight:700;letter-spacing:-.032em;line-height:1.04}
-.standfirst{font-size:1.17rem;color:var(--muted);margin:16px 0 0;max-width:46ch;line-height:1.5}
+.standfirst{font-size:1.17rem;color:var(--muted);margin:16px 0 0;max-width:48ch;line-height:1.5}
 .byline{font-family:var(--display);font-size:.78rem;color:var(--faint);margin-top:26px;
   display:flex;flex-wrap:wrap;gap:6px 20px}
 
@@ -95,6 +95,15 @@ section:last-of-type{border-bottom:0}
 .key span{font-size:.88rem;color:var(--muted);line-height:1.45}
 .k-v b{color:var(--ok)} .k-o b{color:var(--accent)} .k-i b{color:var(--gap)} .k-u b{color:var(--unk)}
 
+/* ---------- figures ---------- */
+.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:3px;margin-block:26px;
+  overflow:hidden}
+.fig{background:var(--raise);padding:17px 16px}
+.fig b{display:block;font-family:var(--display);font-size:1.75rem;font-weight:700;
+  letter-spacing:-.03em;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
+.fig span{display:block;font-size:.84rem;color:var(--muted);margin-top:6px;line-height:1.4}
+
 /* ---------- callout ---------- */
 .note{background:var(--raise);border:1px solid var(--line);border-left:3px solid var(--accent);
   border-radius:0 3px 3px 0;padding:18px 20px;margin-block:24px}
@@ -120,8 +129,9 @@ td.c{font-family:var(--mono);font-size:.8rem;color:var(--faint);white-space:nowr
 .p-ok{background:var(--ok-soft);color:var(--ok)}
 .p-gap{background:var(--gap-soft);color:var(--gap)}
 .p-unk{background:var(--unk-soft);color:var(--unk)}
+.p-new{background:var(--accent-soft);color:var(--accent)}
 
-/* ---------- two columns of lists ---------- */
+/* ---------- two columns ---------- */
 .sides{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-block:24px}
 @media (max-width:640px){.sides{grid-template-columns:1fr}}
 .side{background:var(--raise);border:1px solid var(--line);border-radius:3px;padding:18px 20px;
@@ -129,7 +139,10 @@ td.c{font-family:var(--mono);font-size:.8rem;color:var(--faint);white-space:nowr
 .side h4{font-size:.73rem;letter-spacing:.11em;text-transform:uppercase;margin-bottom:12px}
 .side.his h4{color:var(--accent)}
 .side.ours h4{color:var(--ok)}
-.side p{font-size:.92rem;line-height:1.6;color:var(--muted);margin:0}
+.side p{font-size:.94rem;line-height:1.62;color:var(--muted);margin:0 0 10px}
+.side p:last-child{margin-bottom:0}
+.side ul{margin:0;padding-left:19px;font-size:.92rem;color:var(--muted)}
+.side li{margin-bottom:6px}
 .side .hi{color:var(--ink);font-weight:600}
 
 /* ---------- questions ---------- */
@@ -163,6 +176,7 @@ td.c{font-family:var(--mono);font-size:.8rem;color:var(--faint);white-space:nowr
   letter-spacing:.09em;text-transform:uppercase;padding:2px 6px;border-radius:2px;
   margin-left:7px;vertical-align:1.5px;background:var(--accent-soft);color:var(--accent)}
 .q .tag.legal{background:var(--gap-soft);color:var(--gap)}
+.q .tag.cost{background:var(--unk-soft);color:var(--unk)}
 
 /* ---------- closing summary ---------- */
 .final{counter-reset:f;list-style:none;padding:0;margin-block:24px}
@@ -181,10 +195,10 @@ td.c{font-family:var(--mono);font-size:.8rem;color:var(--faint);white-space:nowr
 <div class="wrap">
 
 <header class="mast">
-  <div class="kicker">Comparison &amp; Gap Analysis</div>
+  <div class="kicker">Delivery Review &amp; Scope Analysis</div>
   <h1>Salesman Portal</h1>
-  <p class="standfirst">The current build and Coach Aril's app design, measured against
-    the same requirement document.</p>
+  <p class="standfirst">What was asked for, what has been delivered, and what Coach
+    Aril's design adds on top of it.</p>
   <div class="byline">
     <span>8 October 2026</span>
     <span>Prepared as a reference for discussion with Coach Aril</span>
@@ -195,15 +209,16 @@ td.c{font-family:var(--mono);font-size:.8rem;color:var(--faint);white-space:nowr
   <h4>Contents</h4>
   <ol>
     <li><a href="#basis"><span class="t">01</span><span>What this is based on</span></a></li>
-    <li><a href="#headline"><span class="t">02</span><span>The headline finding</span></a></li>
-    <li><a href="#tally"><span class="t">03</span><span>What each side has</span></a></li>
-    <li><a href="#modules"><span class="t">04</span><span>The sixteen modules</span></a></li>
-    <li><a href="#structural"><span class="t">05</span><span>Three structural items</span></a></li>
-    <li><a href="#agree"><span class="t">06</span><span>Where both already agree</span></a></li>
-    <li><a href="#contra"><span class="t">07</span><span>Contradictions</span></a></li>
-    <li><a href="#questions"><span class="t">08</span><span>Questions for Coach Aril</span></a></li>
-    <li><a href="#rec"><span class="t">09</span><span>Recommendation</span></a></li>
-    <li><a href="#meeting"><span class="t">10</span><span>Summary for the meeting</span></a></li>
+    <li><a href="#delivered"><span class="t">02</span><span>What was delivered</span></a></li>
+    <li><a href="#character"><span class="t">03</span><span>The two builds</span></a></li>
+    <li><a href="#additions"><span class="t">04</span><span>Additions beyond the brief</span></a></li>
+    <li><a href="#cost"><span class="t">05</span><span>What the additions cost</span></a></li>
+    <li><a href="#approver"><span class="t">06</span><span>The missing approver</span></a></li>
+    <li><a href="#agree"><span class="t">07</span><span>Where both already agree</span></a></li>
+    <li><a href="#contra"><span class="t">08</span><span>Contradictions</span></a></li>
+    <li><a href="#questions"><span class="t">09</span><span>Questions for Coach Aril</span></a></li>
+    <li><a href="#rec"><span class="t">10</span><span>Recommendation</span></a></li>
+    <li><a href="#meeting"><span class="t">11</span><span>Summary for the meeting</span></a></li>
   </ol>
 </nav>
 
@@ -212,12 +227,16 @@ td.c{font-family:var(--mono);font-size:.8rem;color:var(--faint);white-space:nowr
   <span class="num">01</span>
   <h2>What this is based on</h2>
   <div class="col">
-    <p>Roughly forty screenshots of Coach Aril's app, plus the MASTER FINAL requirement
-      document. No working build was available, and two things were never shown:
-      <strong>Jadual Harian</strong>, and <strong>any management or admin side</strong>.</p>
-    <p>Where this report says something is absent from his design, that means <em>not
-      seen</em> — not <em>proven absent</em>. Those appear as questions rather than
-      findings. Every claim is marked by how far it can be trusted.</p>
+    <p>Two sources. The <strong>MASTER FINAL requirement document</strong> — sixteen
+      modules, three transaction models, Customer Profile as the command center — which
+      is the brief the current portal was built to. And roughly <strong>forty
+      screenshots</strong> of Coach Aril's app design.</p>
+    <p>No working build of his version was available for testing, and two things were
+      never shown: <strong>Jadual Harian</strong>, and <strong>any management or admin
+      side</strong>. Where this report says something is absent from his design, that
+      means <em>not seen</em> — not <em>proven absent</em>. Those appear as questions
+      rather than findings.</p>
+    <p>Claims about the current build were checked directly against the live database.</p>
   </div>
 
   <div class="key">
@@ -229,213 +248,309 @@ td.c{font-family:var(--mono);font-size:.8rem;color:var(--faint);white-space:nowr
 </section>
 
 <!-- ============================================================= -->
-<section id="headline">
+<section id="delivered">
   <span class="num">02</span>
-  <h2>Both versions were built from the same document</h2>
-  <div class="col">
-    <p>The current portal was built to the MASTER FINAL requirement — sixteen modules,
-      three transaction models, Customer Profile as the command center. Coach Aril's app
-      was designed from that same document.</p>
-    <p>This is not a disagreement about what the system should do. It is one brief
-      rendered twice, in two different shapes. What each side produced is close to
-      complementary.</p>
+  <h2>What was delivered against the brief</h2>
+  <p class="lede">MASTER FINAL specified sixteen modules and three transaction models.
+    All sixteen are built, and running against a live database.</p>
+
+  <div class="figs">
+    <div class="fig"><b>16 / 16</b><span>modules built</span></div>
+    <div class="fig"><b>19</b><span>database tables, access-controlled</span></div>
+    <div class="fig"><b>6</b><span>transaction functions, each all-or-nothing</span></div>
+    <div class="fig"><b>9</b><span>business rules proven to refuse the wrong thing</span></div>
   </div>
 
   <div class="scroll">
     <table>
-      <thead><tr><th></th><th>Coach Aril's app</th><th>Current build</th></tr></thead>
+      <thead><tr><th></th><th>Module</th><th>Delivered</th></tr></thead>
       <tbody>
-        <tr><td class="c">Interface</td><td>Wide and detailed, most screens drawn</td><td>Complete, but as a desktop web portal</td></tr>
-        <tr><td class="c">Data</td><td>Hardcoded. No database.</td><td>Live Postgres, 19 tables, row-level security</td></tr>
-        <tr><td class="c">Transactions</td><td>Display only</td><td>Six posting functions, each all-or-nothing</td></tr>
-        <tr><td class="c">Form factor</td><td>Phone app</td><td>Web portal; phone app shell now started</td></tr>
+        <tr><td class="c">01</td><td>Register Customer / Outlet</td><td>Atomic registration, GPS capture, five photograph types, fifteen additional reseller fields added from his design</td></tr>
+        <tr><td class="c">02</td><td>Senarai Outlet</td><td>Search on code, name, PIC, phone and WhatsApp</td></tr>
+        <tr><td class="c">03</td><td>Jadual Harian</td><td>Day ordered by outstanding money, built to the brief's explicit exclusions</td></tr>
+        <tr><td class="c">04</td><td>Order + Harga Tweak</td><td>Order posting with floor-price guard and live van deduction</td></tr>
+        <tr><td class="c">05</td><td>Delivery Order</td><td>Consignment only, with its own running number</td></tr>
+        <tr><td class="c">06</td><td>Sales Order</td><td>Issued on sale, carries the DO it came from</td></tr>
+        <tr><td class="c">07</td><td>Invoice</td><td>Issued from the SO, due date derived from payment term</td></tr>
+        <tr><td class="c">08</td><td>Payment</td><td>Full and partial, updates outstanding and invoice status</td></tr>
+        <tr><td class="c">09</td><td>Payment Receipt</td><td>Own running number, PDF and print</td></tr>
+        <tr><td class="c">10</td><td>Product &amp; Stock</td><td>Van stock per salesman, plus restocking with request, issue and reject</td></tr>
+        <tr><td class="c">11</td><td>Return</td><td>RET document, stock returns to the van</td></tr>
+        <tr><td class="c">12</td><td>Sales Ranking</td><td>Recalculates on every sale, five periods</td></tr>
+        <tr><td class="c">13</td><td>PDF, WhatsApp, Print</td><td>All three, at 58mm and 80mm thermal widths</td></tr>
+        <tr><td class="c">14</td><td>Running Number</td><td>Six sequences off a locked counter; 500 consecutive calls produced 500 distinct values</td></tr>
+        <tr><td class="c">15</td><td>Payment &amp; Stock Control</td><td>Enforced in the database, not in the screen</td></tr>
+        <tr><td class="c">16</td><td>Refer &amp; Earn</td><td>End to end, 5% on the first settled invoice</td></tr>
       </tbody>
     </table>
   </div>
 
-  <div class="note good">
-    <h4>The practical point</h4>
-    <p>When Coach Aril says the app is 80% done and the remaining 20% is the backend,
-      that 20% is the larger and more expensive half of the engineering — and it is the
-      half that already exists and has been tested. <strong>Neither version needs to be
-      scrapped.</strong></p>
+  <div class="col">
+    <p>Four things were built that the brief never asked for, because the system would
+      not have survived contact with real use without them:</p>
+    <ul>
+      <li><strong>Van restocking.</strong> MASTER FINAL describes stock going out but
+        never coming back. Without a restocking path, every van drains to zero and the
+        system becomes unusable within a week of go-live.</li>
+      <li><strong>A management panel.</strong> Someone in the office has to see
+        collections, ageing, stock and the team. It reads everything and posts nothing.</li>
+      <li><strong>Four languages</strong> — Bahasa Malaysia, English, Chinese and Iban,
+        across 365 dictionary entries.</li>
+      <li><strong>Account administration.</strong> Opening a login, resetting a password
+        and revoking access, without the master key ever reaching a phone.</li>
+    </ul>
   </div>
 </section>
 
 <!-- ============================================================= -->
-<section id="tally">
+<section id="character">
   <span class="num">03</span>
-  <h2>What each side has that the other does not</h2>
+  <h2>The two builds are different kinds of thing</h2>
 
   <div class="sides">
     <div class="side his">
-      <h4>In his design, not in ours</h4>
-      <p>Pending Acc Approval · Request Credit Note · price change as an approval request ·
-        Over Payment permitted · Blacklist as a separate state · Set VIP ·
-        Enable TIN QR for e-Invoice · Gaji as a payment method · per-outlet Service Month ·
-        Reseller Removed as a tracked metric · <span class="hi">product variants
-        (flavours)</span> · <span class="hi">FOC and Combo products</span> ·
-        <span class="hi">multi-branch structure</span> · stock request running number ·
-        stock request as one document with many products · Nearest Reseller map ·
-        GPS route recording · Kerja Harian per-customer log · salesman photos</p>
+      <h4>Coach Aril's version</h4>
+      <p>A designed interface, broad and detailed, covering screens the current build
+        presents differently. <span class="hi">The figures in it are hardcoded.</span>
+        There is no database, no stored transaction, and nothing that survives closing
+        the app.</p>
+      <p>It shows what the system should look like. It cannot yet record a sale.</p>
     </div>
     <div class="side ours">
-      <h4>In ours, not seen in his</h4>
-      <p>A database at all · row-level security · six atomic posting functions ·
-        a management panel · four languages (BM, English, 中文, Iban) · real PDF generation
-        at 58mm and 80mm · running numbers off a locked shared counter · van stock per
-        salesman · van restocking with request, issue and reject · Refer &amp; Earn with
-        5% commission · the public-facing panel · consignment reconciliation ·
-        nine enforced business-rule refusals · more ranking periods than his design offers</p>
+      <h4>The current build</h4>
+      <p>A running system. Nineteen tables with access control enforced at the database,
+        so a salesman querying another's outlets gets nothing back however he asks. Six
+        transaction functions, each a single all-or-nothing operation.</p>
+      <p>Submit an order and it is still there after a reload, on another device, next
+        week.</p>
     </div>
   </div>
 
   <div class="col">
-    <p>Nineteen items on his side. Three of them — marked above — require database
-      changes. The rest are a screen, a field or a button.</p>
-    <p><strong>His app is wider. Ours is deeper.</strong> A screen is cheap. A transaction
-      engine is not.</p>
+    <p>This matters for reading the phrase <em>“80% done, the other 20% is the
+      backend.”</em> In a distribution system that handles stock, debt and money, the
+      data layer is not the final fifth of the work. It is the part that has to be
+      correct, the part that takes longest, and the part that cannot be judged by
+      looking at it.</p>
+    <p>A worked example. An order is two document numbers, four inserts and a stock
+      movement. Done from a phone that is five separate requests with no way to undo
+      them: a dropped signal halfway leaves a van decremented against an invoice that was
+      never written. The current build posts it as one transaction that either completes
+      or leaves nothing behind. That distinction is invisible on a screenshot and is the
+      difference between a system that can be trusted with money and one that cannot.</p>
+  </div>
+
+  <div class="note good">
+    <h4>The practical reading</h4>
+    <p>The expensive, slow, invisible half is finished and tested. The visible half is
+      where Coach Aril's design is strongest. <strong>Those are complementary, and the
+      sensible path uses both.</strong></p>
   </div>
 </section>
 
 <!-- ============================================================= -->
-<section id="modules">
+<section id="additions">
   <span class="num">04</span>
-  <h2>The sixteen modules</h2>
-  <p class="lede">Each module of MASTER FINAL, against both versions.</p>
+  <h2>What his design adds beyond the brief</h2>
+  <p class="lede">Nineteen features appear in Coach Aril's screenshots that are not in
+    the current build. The significant point is not the number — it is where they came
+    from.</p>
+
+  <div class="figs">
+    <div class="fig"><b>19</b><span>features added</span></div>
+    <div class="fig"><b>0</b><span>of them specified in MASTER FINAL</span></div>
+    <div class="fig"><b>2</b><span>that contradict it directly</span></div>
+    <div class="fig"><b>3</b><span>that require database changes</span></div>
+  </div>
 
   <div class="scroll">
     <table>
-      <thead><tr><th></th><th>Module</th><th>Current build</th><th>His design</th><th>Status</th></tr></thead>
+      <thead><tr><th>Addition</th><th>In MASTER FINAL?</th><th>Class</th></tr></thead>
       <tbody>
-        <tr><td class="c">01</td><td>Register Customer</td><td>Atomic registration, 15 extra reseller fields, 5 photo types, GPS</td><td>Full registration sequence</td><td><span class="pill p-ok">Aligned</span></td></tr>
-        <tr><td class="c">02</td><td>Senarai Outlet</td><td>Search on code, name, PIC, phone, WhatsApp</td><td>Reseller tab, search, 4-tab profile</td><td><span class="pill p-ok">Aligned</span></td></tr>
-        <tr><td class="c">03</td><td>Jadual Harian</td><td>Day ordered by outstanding money, not plannable</td><td>Never shown</td><td><span class="pill p-unk">Unknown</span></td></tr>
-        <tr><td class="c">04</td><td>Order + Harga Tweak</td><td>Floor-price guard only</td><td>Per-customer pricing, change by request</td><td><span class="pill p-gap">Gap</span></td></tr>
-        <tr><td class="c">05</td><td>Delivery Order</td><td>Consignment only</td><td>Titled “Consignment Order”</td><td><span class="pill p-ok">Aligned</span></td></tr>
-        <tr><td class="c">06</td><td>Sales Order</td><td>Built</td><td>SO numbers throughout</td><td><span class="pill p-ok">Aligned</span></td></tr>
-        <tr><td class="c">07</td><td>Invoice</td><td>Built</td><td>Adds final-issue step and approval status</td><td><span class="pill p-gap">Gap</span></td></tr>
-        <tr><td class="c">08</td><td>Payment</td><td>Partial and full; refuses overpayment</td><td>Partial / Paid / Over, 5 methods, comment</td><td><span class="pill p-gap">Gap</span></td></tr>
-        <tr><td class="c">09</td><td>Payment Receipt</td><td>REC numbers, PDF, print</td><td>Not explicitly shown</td><td><span class="pill p-unk">Unknown</span></td></tr>
-        <tr><td class="c">10</td><td>Product &amp; Stock</td><td>Van stock, restocking, request/issue/reject</td><td>Stok tab, Stock Request, history</td><td><span class="pill p-gap">Gap</span></td></tr>
-        <tr><td class="c">11</td><td>Return</td><td>RET document, stock returns to van</td><td>Returns in summaries; Request Credit Note</td><td><span class="pill p-gap">Gap</span></td></tr>
-        <tr><td class="c">12</td><td>Sales Ranking</td><td>Recalculates live, five periods</td><td>Podium, photos, branch filter, three periods</td><td><span class="pill p-gap">Gap</span></td></tr>
-        <tr><td class="c">13</td><td>PDF, WhatsApp, Print</td><td>All three, thermal widths</td><td>Cetak / Lihat; WhatsApp via Call sheet</td><td><span class="pill p-ok">Aligned</span></td></tr>
-        <tr><td class="c">14</td><td>Running Number</td><td>Six sequences off a locked counter</td><td>SO, DO and RS numbers visible</td><td><span class="pill p-gap">Gap</span></td></tr>
-        <tr><td class="c">15</td><td>Payment &amp; Stock Control</td><td>Nine refusals enforced in the database</td><td>Cannot be enforced without a database</td><td><span class="pill p-ok">Ours ahead</span></td></tr>
-        <tr><td class="c">16</td><td>Refer &amp; Earn</td><td>Built end to end, 5% on first settled invoice</td><td>Not seen anywhere</td><td><span class="pill p-unk">Still wanted?</span></td></tr>
+        <tr><td>Product variants (flavours)</td><td>No</td><td><span class="pill p-new">Schema</span></td></tr>
+        <tr><td>Multi-branch operation (Selangor, Johor, Sabah)</td><td>No</td><td><span class="pill p-new">Schema</span></td></tr>
+        <tr><td>Free goods and combo products (FOC)</td><td>No</td><td><span class="pill p-new">Schema</span></td></tr>
+        <tr><td>Pending Acc Approval on payments</td><td>No — statuses listed are Paid, Partial, Pending, Overdue</td><td><span class="pill p-gap">Workflow</span></td></tr>
+        <tr><td>Price change as an approval request</td><td>Permission is mentioned; an approval workflow is not</td><td><span class="pill p-gap">Workflow</span></td></tr>
+        <tr><td>Request Credit Note</td><td>No — returns are specified, credit notes are not</td><td><span class="pill p-gap">Workflow</span></td></tr>
+        <tr><td>Over Payment permitted</td><td>No</td><td><span class="pill p-gap">Rule change</span></td></tr>
+        <tr><td>Enable TIN QR (LHDN e-Invoice)</td><td>No — only “Tax / SST jika diperlukan”</td><td><span class="pill p-gap">Compliance</span></td></tr>
+        <tr><td>Nearest Reseller map</td><td>Coordinates are stored; no map is specified</td><td><span class="pill p-gap">Screen</span></td></tr>
+        <tr><td>GPS route recording</td><td><strong>Contradicts it</strong> — tracking is explicitly excluded</td><td><span class="pill p-gap">Screen</span></td></tr>
+        <tr><td>Kerja Harian per-customer log</td><td><strong>Contradicts it</strong> — visit tracking is explicitly excluded</td><td><span class="pill p-gap">Screen</span></td></tr>
+        <tr><td>Stock request as one document with many lines</td><td>No</td><td><span class="pill p-gap">Structure</span></td></tr>
+        <tr><td>Stock request running number</td><td>No — six sequences are listed, this is not among them</td><td><span class="pill p-ok">Field</span></td></tr>
+        <tr><td>Blacklist Reseller, as distinct from removal</td><td>No</td><td><span class="pill p-ok">Field</span></td></tr>
+        <tr><td>Set VIP</td><td>No</td><td><span class="pill p-ok">Field</span></td></tr>
+        <tr><td>Reseller Removed as a tracked metric</td><td>No</td><td><span class="pill p-ok">Field</span></td></tr>
+        <tr><td>Per-outlet Service Month</td><td>No</td><td><span class="pill p-ok">Field</span></td></tr>
+        <tr><td>Gaji as a payment method</td><td>Method is mentioned generically</td><td><span class="pill p-ok">Field</span></td></tr>
+        <tr><td>Salesman photographs</td><td>No</td><td><span class="pill p-ok">Field</span></td></tr>
       </tbody>
     </table>
+  </div>
+
+  <div class="col">
+    <p>None of this is unreasonable to want. Several of the additions are plainly good
+      ideas, and two of them — e-Invoice and product variants — would have to be built
+      eventually regardless.</p>
+    <p>But it should be stated plainly, because it governs timeline and budget: taken
+      together, these nineteen items describe a <strong>multi-branch distribution
+      platform with layered internal approvals</strong>, operating across at least three
+      states. That is a materially larger system than the single-company field-sales tool
+      MASTER FINAL describes, and it is a different class of build.</p>
+  </div>
+
+  <div class="note flag">
+    <h4>Worth being direct about</h4>
+    <p>The question is not whether these features are worth having. It is whether they
+      are inside the agreed scope or beyond it — and on the evidence of the requirement
+      document, they are beyond it. <strong>That makes them a second phase to be
+      specified and costed, not a list of things missing from the first.</strong></p>
   </div>
 </section>
 
 <!-- ============================================================= -->
-<section id="structural">
+<section id="cost">
   <span class="num">05</span>
-  <h2>Three structural items</h2>
-  <p class="lede">Everything else on the list is a screen or a field. These three change
-    the database, and cost rises steeply once real data is loaded. Settle them
-    <strong>before</strong> any screen is built.</p>
+  <h2>What the additions cost</h2>
+  <p class="lede">Grouped by effort rather than listed flat, because the nineteen are not
+    remotely equal.</p>
 
-  <h3>Product variants (flavours)</h3>
-  <div class="col">
-    <p><em>Observed.</em> The Stock Request form carries an <strong>Edit Flavour</strong>
-      dropdown under every product.</p>
-    <p>Dwangi is an air freshener. It comes in scents. A salesman cannot restock by asking
-      for twenty units — the warehouse needs to know which scents, or the wrong stock goes
-      on the van.</p>
-    <p>The current <code>products</code> table is flat: one row per product, no variant
-      dimension. If products have flavours, that dimension has to flow through van stock,
-      order lines, consignment balances and every invoice line.</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Effort</th><th>Items</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="pill p-ok">Hours each</span></td>
+          <td>Gaji payment method · payment comment · salesman photographs · Set VIP ·
+            Reseller Removed metric · per-outlet Service Month · stock request number ·
+            Blacklist state</td>
+          <td>A column, a flag or a label. Eight of the nineteen.</td>
+        </tr>
+        <tr>
+          <td><span class="pill p-gap">Days each</span></td>
+          <td>Pending Acc Approval · price-change approval · Request Credit Note ·
+            Over Payment handling · Nearest Reseller map · GPS route recording ·
+            Kerja Harian log · stock request restructure</td>
+          <td>A screen, or a workflow with two parties. Eight more.</td>
+        </tr>
+        <tr>
+          <td><span class="pill p-new">Weeks each</span></td>
+          <td><strong>Product variants</strong> · <strong>Multi-branch</strong> ·
+            <strong>Free goods</strong></td>
+          <td>Each one changes the database and touches every transaction built on it.</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
-  <div class="note flag"><p><strong>This is the single largest technical finding in this
-    report.</strong></p></div>
 
-  <h3>Multi-branch operation</h3>
+  <h3>Why the last three are different</h3>
   <div class="col">
-    <p><em>Observed.</em> Salesman codes on the Ranking screen read <code>SEL001</code>,
-      <code>SEL002</code>, <code>SEL003</code> for Selangor, <code>JB003</code> and
-      <code>JB005</code> for Johor, <code>SBH011</code> for Sabah. One entry reads
-      literally <em>“JB003 SOLIHIN JOHOR BRANCH.”</em> The control above the podium is a
-      branch filter.</p>
-    <p>MASTER FINAL never mentions branches. The current build assumes one company with a
-      text zone label on each salesman — enough to print “Kajang” beside a name, not
-      enough to run a branch. This governs who can see whose data, which is enforced in
-      the database and is far cheaper to design in than to retrofit.</p>
+    <p><strong>Product variants.</strong> <em>Observed</em> — the Stock Request form
+      carries an <strong>Edit Flavour</strong> dropdown under every product. Dwangi is an
+      air freshener; it comes in scents. If every product has variants, that dimension
+      has to flow through van stock, order lines, consignment balances and every invoice
+      line. The current product table is flat because the brief described flat products.</p>
+    <p><strong>Multi-branch.</strong> <em>Observed</em> — salesman codes read
+      <code>SEL001</code>, <code>JB005</code>, <code>SBH011</code>, and one entry reads
+      literally <em>“JB003 SOLIHIN JOHOR BRANCH.”</em> MASTER FINAL never mentions
+      branches at all. This governs who may see whose data, which is enforced in the
+      database, and it is far cheaper to design in than to retrofit.</p>
+    <p><strong>Free goods.</strong> <em>Observed</em> — the Stock Request lists
+      <strong>Combo 3</strong>, <strong>Combo 1 FOC</strong> and <strong>Others</strong>.
+      The current build would refuse a zero-price line, because a floor-price guard was
+      built deliberately to stop salesmen discounting away the margin. Allowing free
+      goods means reworking that rule everywhere it applies.</p>
+    <p>All three are entirely buildable. All three cost a fraction as much decided now as
+      decided after real outlets and real stock are loaded.</p>
   </div>
+</section>
 
-  <h3>Free goods and bundles</h3>
+<!-- ============================================================= -->
+<section id="approver">
+  <span class="num">06</span>
+  <h2>The missing approver</h2>
   <div class="col">
-    <p><em>Observed.</em> The Stock Request lists <strong>Combo 3</strong>,
-      <strong>Combo 1 FOC</strong> and <strong>Others</strong> as orderable items.</p>
-    <p>The current database would reject a free item outright. The floor-price guard
-      refuses any price below a product's floor, so a zero-price promotional unit fails.
-      That guard exists deliberately, to stop salesmen discounting away the margin — and
-      it would also block legitimate free goods.</p>
+    <p>Four of the additions are approval workflows: a payment waits for
+      <strong>Pending Acc Approval</strong>, a price change is submitted as
+      <strong>Mohon</strong>, a stock request is <strong>Approved</strong>, and an
+      invoice has to be issued as <strong>Keluar Invois Muktamad</strong>.</p>
+    <p>Every one of those needs a second person — someone in the office who sees the
+      request and decides. <strong>No such screen appeared anywhere in the forty
+      screenshots.</strong> His design is the salesman's half of four conversations that
+      each require two parties.</p>
+    <p>The current build already has that half: a management panel that reads
+      everything and posts nothing, sitting on access control that distinguishes office
+      from field at the database. Stock requests already flow through it, with issue and
+      reject implemented.</p>
+  </div>
+  <div class="note good">
+    <p>If his design does have an admin side that simply was not shared, we should see it
+      — it changes the estimate. If it does not, that office-side application is
+      unbudgeted scope on his side, and <strong>largely built already on ours</strong>.</p>
   </div>
 </section>
 
 <!-- ============================================================= -->
 <section id="agree">
-  <span class="num">06</span>
-  <h2>Where both versions already agree — against the written spec</h2>
+  <span class="num">07</span>
+  <h2>Where both versions already agree</h2>
   <div class="col">
-    <p>MASTER FINAL contains an internal contradiction about Delivery Orders. Section B
-      lists a DO in the Bil to Bil flow, while its own comparison table marks Bil to Bil
-      as <em>not</em> sending stock ahead. If no stock goes ahead of the sale, there is
-      nothing for a delivery order to deliver.</p>
+    <p>MASTER FINAL contradicts itself about Delivery Orders. Section B lists a DO in the
+      Bil to Bil flow, while its own comparison table marks Bil to Bil as <em>not</em>
+      sending stock ahead. If no stock goes ahead of the sale, there is nothing for a
+      delivery order to deliver.</p>
     <p>The current build resolved this by making <strong>consignment the only source of a
-      DO</strong>. Coach Aril's app resolved it the same way: his delivery order detail
-      screen is titled <strong>“Consignment Order”</strong>, and it carries no total,
-      because nothing is billed at the time of the drop.</p>
+      DO</strong>, and structured the database so the alternative cannot happen by
+      accident. Coach Aril's app resolved it the same way: his delivery order screen is
+      titled <strong>“Consignment Order”</strong> and carries no total, because nothing
+      is billed at the drop.</p>
   </div>
   <div class="note good">
-    <p>Two independent readings arrived at the same answer, against the document both were
-      working from. The hardest part of the data model is the part already agreed.</p>
+    <p>Two independent readings reached the same answer against an ambiguous document.
+      The hardest judgement in the data model is one both sides already share — which is
+      a good indication the foundation is sound.</p>
   </div>
 </section>
 
 <!-- ============================================================= -->
 <section id="contra">
-  <span class="num">07</span>
-  <h2>Contradictions and inconsistencies</h2>
+  <span class="num">08</span>
+  <h2>Contradictions and unknowns</h2>
 
-  <h3>Inside MASTER FINAL itself</h3>
+  <h3>Inside the requirement document</h3>
   <div class="col">
-    <p><strong>Cash flow is described twice, differently.</strong> Section C says
+    <p><strong>Cash is described twice, differently.</strong> Section C says
       <code>Order → Bill → Payment Terus → Receipt</code>. The Full Transaction Flow
       section says <code>ORDER → DO → SO → INVOICE → PAYMENT TERUS → RECEIPT</code>.
-      These are different systems.</p>
-    <p><strong>The Bil to Bil delivery order</strong>, as described in the previous
-      section.</p>
-    <p><strong>“No visit tracking” appears to be superseded.</strong> MASTER FINAL states
+      These are different systems, and a ruling is needed.</p>
+    <p><strong>Visit tracking is excluded, then built.</strong> MASTER FINAL states
       emphatically that Jadual Harian is not attendance, not visit tracking, and needs no
-      pending or completed state. His app contradicts this three separate times: a
-      <strong>Kerja Harian Report</strong> per customer, GPS <strong>Today / Past / Reset
-      Route</strong>, and a per-shop daily work log. The current build deliberately built
-      <em>less</em> here because the spec said so.</p>
+      pending or completed state. The current build followed that instruction and
+      deliberately built less. His design contradicts it in three places: a
+      <strong>Kerja Harian Report</strong>, GPS <strong>Today / Past / Reset Route</strong>,
+      and a per-shop daily log. If the instruction has changed, that is a scope addition
+      rather than an omission.</p>
   </div>
 
   <h3>In the demo data</h3>
   <div class="col">
-    <p>Almost certainly artefacts of hardcoded sample data rather than design decisions,
-      but they prevented the rules being read with confidence:</p>
+    <p>Several figures in his screenshots do not reconcile, which is expected of
+      hardcoded sample data but prevented some rules being read with confidence:</p>
     <ul>
-      <li>On the order detail screen: Total Paid <span class="mono">RM 0.00</span>, Total
-        Pending <span class="mono">RM 0.00</span>, Total <span class="mono">RM 348.00</span>.
-        The three do not reconcile.</li>
+      <li>An order detail shows Total Paid <span class="mono">RM 0.00</span>, Total
+        Pending <span class="mono">RM 0.00</span> and Total
+        <span class="mono">RM 348.00</span>. The three do not add up.</li>
       <li>In Sales History, some rows marked <strong>Paid</strong> show
-        <span class="mono">RM 0.00</span> while others show <span class="mono">RM 40.00</span>.
-        Unclear whether that figure is the outstanding balance or the amount paid.</li>
-      <li>By contrast, the Kesimpulan screen's arithmetic is internally consistent
-        throughout, which is why its figures were trusted here.</li>
+        <span class="mono">RM 0.00</span> and others <span class="mono">RM 40.00</span>.
+        Unclear whether the figure is outstanding or paid.</li>
+      <li>The Kesimpulan screen, by contrast, is internally consistent throughout, which
+        is why its figures were the ones relied on here.</li>
     </ul>
   </div>
 
-  <h3>Undefined abbreviations</h3>
-  <div class="col">
-    <p>Several labels cannot be interpreted by anyone outside Coach Aril's own team.</p>
-  </div>
+  <h3>Labels nobody outside his team can read</h3>
   <div class="scroll">
     <table>
       <thead><tr><th>Label</th><th>Where it appears</th><th>Status</th></tr></thead>
@@ -448,19 +563,20 @@ td.c{font-family:var(--mono);font-size:.8rem;color:var(--faint);white-space:nowr
     </table>
   </div>
   <div class="note flag">
-    <h4>Recommendation</h4>
-    <p>Spell terms out in full in the interface, and keep a short written glossary for any
-      that must stay abbreviated. A new salesman cannot be trained on a column nobody can
-      name, and a developer cannot build a field whose meaning is undocumented.</p>
+    <p>These cannot be built, because nobody outside his team knows what they mean. They
+      also cannot be trained — a new salesman cannot be taught a column that has no name.
+      <strong>Recommendation: spell terms out in full in the interface, and keep a short
+      written glossary for any that must stay short.</strong></p>
   </div>
 </section>
 
 <!-- ============================================================= -->
 <section id="questions">
-  <span class="num">08</span>
+  <span class="num">09</span>
   <h2>Questions for Coach Aril</h2>
-  <p class="lede">Every open question raised during the analysis, grouped by topic. Most
-    take a minute to answer and would take weeks to discover the wrong way.</p>
+  <p class="lede">Every open question from the analysis, grouped by topic. Most take a
+    minute to answer and would take weeks to discover the wrong way. Items marked
+    <span class="tag" style="margin:0">Scope</span> change the size of the job.</p>
 
   <div class="qbar">
     <span><b id="qdone">0</b> of <b id="qtotal">0</b> answered</span>
@@ -468,158 +584,164 @@ td.c{font-family:var(--mono);font-size:.8rem;color:var(--faint);white-space:nowr
   </div>
 
   <div class="qgroup">
+    <h3>Scope and sequencing <span class="n">5</span></h3>
+    <div class="q"><input type="checkbox" id="q1"><label for="q1"><span class="qn">1</span><strong>Do all products have flavours or variants?</strong> Which ones, and how many each? This is the largest single item in the report.<span class="tag cost">Scope</span></label></div>
+    <div class="q"><input type="checkbox" id="q2"><label for="q2"><span class="qn">2</span><strong>How many branches, and in which states?</strong> Selangor, Johor and Sabah appear in the salesman codes. Nothing in the requirement mentions branches.<span class="tag cost">Scope</span></label></div>
+    <div class="q"><input type="checkbox" id="q3"><label for="q3"><span class="qn">3</span>How should <strong>FOC</strong> items be handled — a zero-price line on the invoice, or tracked outside it entirely?<span class="tag cost">Scope</span></label></div>
+    <div class="q"><input type="checkbox" id="q4"><label for="q4"><span class="qn">4</span><strong>Is there a management or admin side to the app?</strong> Four approval workflows appear in the design with no screen for the approver. If there is one, we should see it; if not, who approves payments and price changes, issues stock and issues final invoices?<span class="tag cost">Scope</span></label></div>
+    <div class="q"><input type="checkbox" id="q5"><label for="q5"><span class="qn">5</span>Which additions are <strong>needed at launch</strong>, and which can follow? Several are a column; three are a rebuild of part of the database.<span class="tag cost">Scope</span></label></div>
+  </div>
+
+  <div class="qgroup">
     <h3>Terminology <span class="n">5</span></h3>
-    <div class="q"><input type="checkbox" id="q1"><label for="q1"><span class="qn">1</span>What does <strong>TPP</strong> stand for, and what does that column count?</label></div>
-    <div class="q"><input type="checkbox" id="q2"><label for="q2"><span class="qn">2</span>What does <strong>RTN</strong> stand for — Return, or something else?</label></div>
-    <div class="q"><input type="checkbox" id="q3"><label for="q3"><span class="qn">3</span>In the Stock Request table, what are the <strong>Pt.</strong>, <strong>Hc.</strong> and <strong>Tst</strong> columns?</label></div>
-    <div class="q"><input type="checkbox" id="q4"><label for="q4"><span class="qn">4</span>What do the reseller code prefixes mean — <strong>SE</strong>, <strong>SMS</strong>, <strong>NTN</strong>, <strong>SM</strong>?</label></div>
-    <div class="q"><input type="checkbox" id="q5"><label for="q5"><span class="qn">5</span>Are reseller codes <strong>auto-generated</strong>, or entered from the chain's own site codes? MASTER FINAL says the system must generate them, but the codes look like they come from Shell, Petron and Caltex.</label></div>
+    <div class="q"><input type="checkbox" id="q6"><label for="q6"><span class="qn">6</span>What does <strong>TPP</strong> stand for, and what does that column count?</label></div>
+    <div class="q"><input type="checkbox" id="q7"><label for="q7"><span class="qn">7</span>What does <strong>RTN</strong> stand for — Return, or something else?</label></div>
+    <div class="q"><input type="checkbox" id="q8"><label for="q8"><span class="qn">8</span>In the Stock Request table, what are the <strong>Pt.</strong>, <strong>Hc.</strong> and <strong>Tst</strong> columns?</label></div>
+    <div class="q"><input type="checkbox" id="q9"><label for="q9"><span class="qn">9</span>What do the reseller code prefixes mean — <strong>SE</strong>, <strong>SMS</strong>, <strong>NTN</strong>, <strong>SM</strong>?</label></div>
+    <div class="q"><input type="checkbox" id="q10"><label for="q10"><span class="qn">10</span>Are reseller codes <strong>auto-generated</strong>, or entered from the chain's own site codes? MASTER FINAL says the system must generate them, but the codes look like they come from Shell, Petron and Caltex.</label></div>
   </div>
 
   <div class="qgroup">
     <h3>Payment <span class="n">6</span></h3>
-    <div class="q"><input type="checkbox" id="q6"><label for="q6"><span class="qn">6</span>What does <strong>Pending Acc Approval</strong> mean operationally — who approves, how long does it take, and what happens on rejection?<span class="tag">Key</span></label></div>
-    <div class="q"><input type="checkbox" id="q7"><label for="q7"><span class="qn">7</span>Is <strong>Total Pending</strong> the amount awaiting that approval? <em>Our reading; it would explain the orange status.</em></label></div>
-    <div class="q"><input type="checkbox" id="q8"><label for="q8"><span class="qn">8</span>In the Sales History list, is the RM figure the <strong>outstanding balance</strong> or the <strong>amount paid</strong>?</label></div>
-    <div class="q"><input type="checkbox" id="q9"><label for="q9"><span class="qn">9</span>Should <strong>Over Payment</strong> be allowed? Our database refuses it deliberately. If allowed, does the excess carry forward as credit, or is it refunded?<span class="tag">Key</span></label></div>
-    <div class="q"><input type="checkbox" id="q10"><label for="q10"><span class="qn">10</span>What is the <strong>Gaji</strong> payment method — salary deduction, and for whom?</label></div>
-    <div class="q"><input type="checkbox" id="q11"><label for="q11"><span class="qn">11</span>Is the payment <strong>comment</strong> free text, and should it print on the receipt?</label></div>
+    <div class="q"><input type="checkbox" id="q11"><label for="q11"><span class="qn">11</span>What does <strong>Pending Acc Approval</strong> mean operationally — who approves, how long does it take, and what happens on rejection?<span class="tag">Key</span></label></div>
+    <div class="q"><input type="checkbox" id="q12"><label for="q12"><span class="qn">12</span>Is <strong>Total Pending</strong> the amount awaiting that approval? <em>Our reading; it would explain the orange status.</em></label></div>
+    <div class="q"><input type="checkbox" id="q13"><label for="q13"><span class="qn">13</span>In the Sales History list, is the RM figure the <strong>outstanding balance</strong> or the <strong>amount paid</strong>?</label></div>
+    <div class="q"><input type="checkbox" id="q14"><label for="q14"><span class="qn">14</span>Should <strong>Over Payment</strong> be allowed? The current build refuses it deliberately, as a safeguard. If allowed, does the excess carry forward as credit, or is it refunded?<span class="tag">Key</span></label></div>
+    <div class="q"><input type="checkbox" id="q15"><label for="q15"><span class="qn">15</span>What is the <strong>Gaji</strong> payment method — salary deduction, and for whom?</label></div>
+    <div class="q"><input type="checkbox" id="q16"><label for="q16"><span class="qn">16</span>Is the payment <strong>comment</strong> free text, and should it print on the receipt?</label></div>
   </div>
 
   <div class="qgroup">
     <h3>Pricing <span class="n">3</span></h3>
-    <div class="q"><input type="checkbox" id="q12"><label for="q12"><span class="qn">12</span>Price change is a <strong>Mohon</strong> (request) — who approves it, and how quickly?</label></div>
-    <div class="q"><input type="checkbox" id="q13"><label for="q13"><span class="qn">13</span>Should there still be a <strong>floor price</strong> below which a salesman cannot go?</label></div>
-    <div class="q"><input type="checkbox" id="q14"><label for="q14"><span class="qn">14</span>Does the full audit trail MASTER FINAL asks for still apply — original price, requested price, final price, who changed it, when?</label></div>
+    <div class="q"><input type="checkbox" id="q17"><label for="q17"><span class="qn">17</span>Price change is a <strong>Mohon</strong> (request) — who approves it, and how quickly? A salesman standing at a counter cannot wait long.</label></div>
+    <div class="q"><input type="checkbox" id="q18"><label for="q18"><span class="qn">18</span>Should there still be a <strong>floor price</strong> below which a salesman cannot go?</label></div>
+    <div class="q"><input type="checkbox" id="q19"><label for="q19"><span class="qn">19</span>Does the audit trail MASTER FINAL asks for still apply — original price, requested price, final price, who changed it, when?</label></div>
   </div>
 
   <div class="qgroup">
-    <h3>Products <span class="n">5</span></h3>
-    <div class="q"><input type="checkbox" id="q15"><label for="q15"><span class="qn">15</span><strong>Do all products have flavours or variants?</strong> Which ones, and how many each?<span class="tag">Key</span></label></div>
-    <div class="q"><input type="checkbox" id="q16"><label for="q16"><span class="qn">16</span>How should <strong>FOC</strong> items be handled — a zero-price line on the invoice, or tracked outside it entirely?<span class="tag">Key</span></label></div>
-    <div class="q"><input type="checkbox" id="q17"><label for="q17"><span class="qn">17</span>What are <strong>Combo 3</strong> and <strong>Combo 1 FOC</strong> — products with their own SKU, or groups of other products?</label></div>
-    <div class="q"><input type="checkbox" id="q18"><label for="q18"><span class="qn">18</span>What is the <strong>Others</strong> line in the Stock Request?</label></div>
-    <div class="q"><input type="checkbox" id="q19"><label for="q19"><span class="qn">19</span>Can we have the <strong>full product list</strong> — SKUs, variants, Harga Kedai and Harga Jualan?</label></div>
+    <h3>Products <span class="n">4</span></h3>
+    <div class="q"><input type="checkbox" id="q20"><label for="q20"><span class="qn">20</span>What are <strong>Combo 3</strong> and <strong>Combo 1 FOC</strong> — products with their own SKU, or groups of other products?</label></div>
+    <div class="q"><input type="checkbox" id="q21"><label for="q21"><span class="qn">21</span>What is the <strong>Others</strong> line in the Stock Request?</label></div>
+    <div class="q"><input type="checkbox" id="q22"><label for="q22"><span class="qn">22</span>Can we have the <strong>full product list</strong> — SKUs, variants, Harga Kedai and Harga Jualan?<span class="tag">Key</span></label></div>
+    <div class="q"><input type="checkbox" id="q23"><label for="q23"><span class="qn">23</span>The Stock Request asks for name, address, telephone, SO/DO number and order reference. Is stock ever delivered somewhere other than to the salesman?</label></div>
   </div>
 
   <div class="qgroup">
     <h3>Documents <span class="n">5</span></h3>
-    <div class="q"><input type="checkbox" id="q20"><label for="q20"><span class="qn">20</span><strong>Keluar Invois Muktamad</strong> — what happens between the Sales Order and the final invoice? Who issues it, and when?</label></div>
-    <div class="q"><input type="checkbox" id="q21"><label for="q21"><span class="qn">21</span><strong>Request Credit Note</strong> — when is a credit note used instead of a return?</label></div>
-    <div class="q"><input type="checkbox" id="q22"><label for="q22"><span class="qn">22</span>Should the Order have its own running number (<span class="mono">ORD000001</span>)? MASTER FINAL lists one; neither version has one.</label></div>
-    <div class="q"><input type="checkbox" id="q23"><label for="q23"><span class="qn">23</span>Should stock requests carry a running number like <span class="mono">RS014199</span>? Easy to add; ours uses an internal ID.</label></div>
-    <div class="q"><input type="checkbox" id="q24"><label for="q24"><span class="qn">24</span>Running number format: MASTER FINAL specifies <span class="mono">SO000001</span>, the app shows <span class="mono">SO378767</span>. We assume the latter is demo data — please confirm.</label></div>
-  </div>
-
-  <div class="qgroup">
-    <h3>Company structure <span class="n">5</span></h3>
-    <div class="q"><input type="checkbox" id="q25"><label for="q25"><span class="qn">25</span><strong>How many branches, and in which states?</strong> Selangor, Johor and Sabah are visible.<span class="tag">Key</span></label></div>
-    <div class="q"><input type="checkbox" id="q26"><label for="q26"><span class="qn">26</span>Does a branch manager see <strong>only their own branch</strong>, or everything?</label></div>
-    <div class="q"><input type="checkbox" id="q27"><label for="q27"><span class="qn">27</span>Does each branch hold <strong>its own stock and warehouse</strong>?</label></div>
-    <div class="q"><input type="checkbox" id="q28"><label for="q28"><span class="qn">28</span>Is ranking competed <strong>within a branch, nationally, or both</strong>?</label></div>
-    <div class="q"><input type="checkbox" id="q29"><label for="q29"><span class="qn">29</span><strong>Is there a management or admin side?</strong> Nothing resembling one appeared in any screenshot. If not, who approves payments, approves price changes, issues stock and issues final invoices?<span class="tag">Key</span></label></div>
+    <div class="q"><input type="checkbox" id="q24"><label for="q24"><span class="qn">24</span><strong>Keluar Invois Muktamad</strong> — what happens between the Sales Order and the final invoice? Who issues it, and when?</label></div>
+    <div class="q"><input type="checkbox" id="q25"><label for="q25"><span class="qn">25</span><strong>Request Credit Note</strong> — when is a credit note used instead of a return? These are different documents with different accounting treatment.</label></div>
+    <div class="q"><input type="checkbox" id="q26"><label for="q26"><span class="qn">26</span>Should the Order have its own running number (<span class="mono">ORD000001</span>)? MASTER FINAL lists one; neither version has one.</label></div>
+    <div class="q"><input type="checkbox" id="q27"><label for="q27"><span class="qn">27</span>Should stock requests carry a running number like <span class="mono">RS014199</span>? Straightforward to add.</label></div>
+    <div class="q"><input type="checkbox" id="q28"><label for="q28"><span class="qn">28</span>Running number format: MASTER FINAL specifies <span class="mono">SO000001</span>, the app shows <span class="mono">SO378767</span>. We assume the latter is demo data — please confirm.</label></div>
   </div>
 
   <div class="qgroup">
     <h3>Customer lifecycle <span class="n">3</span></h3>
-    <div class="q"><input type="checkbox" id="q30"><label for="q30"><span class="qn">30</span>What is the difference between <strong>Keluarkan Dari Apps</strong> and <strong>Blacklist Reseller</strong>? We read the first as housekeeping and the second as a credit decision.</label></div>
-    <div class="q"><input type="checkbox" id="q31"><label for="q31"><span class="qn">31</span>Why does the remove / reactivate button appear on <strong>only some rows</strong> in the reseller list?</label></div>
-    <div class="q"><input type="checkbox" id="q32"><label for="q32"><span class="qn">32</span>What does <strong>Set VIP</strong> change — pricing, priority, visibility?</label></div>
+    <div class="q"><input type="checkbox" id="q29"><label for="q29"><span class="qn">29</span>What is the difference between <strong>Keluarkan Dari Apps</strong> and <strong>Blacklist Reseller</strong>? We read the first as housekeeping and the second as a credit decision.</label></div>
+    <div class="q"><input type="checkbox" id="q30"><label for="q30"><span class="qn">30</span>Why does the remove / reactivate button appear on <strong>only some rows</strong> in the reseller list?</label></div>
+    <div class="q"><input type="checkbox" id="q31"><label for="q31"><span class="qn">31</span>What does <strong>Set VIP</strong> change — pricing, priority, visibility?</label></div>
   </div>
 
   <div class="qgroup">
     <h3>Schedule and tracking <span class="n">3</span></h3>
-    <div class="q"><input type="checkbox" id="q33"><label for="q33"><span class="qn">33</span>MASTER FINAL says Jadual Harian is explicitly <strong>not</strong> visit tracking, but the app has a Kerja Harian Report and GPS route recording. Which is correct?<span class="tag">Key</span></label></div>
-    <div class="q"><input type="checkbox" id="q34"><label for="q34"><span class="qn">34</span>What does <strong>Kerja Harian</strong> record — what was done at the shop, or whether the salesman attended?</label></div>
-    <div class="q"><input type="checkbox" id="q35"><label for="q35"><span class="qn">35</span><strong>Can we see the Jadual Harian screens?</strong> They were never shared, and it is module 03.<span class="tag">Key</span></label></div>
+    <div class="q"><input type="checkbox" id="q32"><label for="q32"><span class="qn">32</span>MASTER FINAL says Jadual Harian is explicitly <strong>not</strong> visit tracking. The design tracks visits in three places. <strong>Which instruction stands?</strong><span class="tag">Key</span></label></div>
+    <div class="q"><input type="checkbox" id="q33"><label for="q33"><span class="qn">33</span>What does <strong>Kerja Harian</strong> record — what was done at the shop, or whether the salesman attended?</label></div>
+    <div class="q"><input type="checkbox" id="q34"><label for="q34"><span class="qn">34</span><strong>Can we see the Jadual Harian screens?</strong> They were never shared, and it is module 03.<span class="tag">Key</span></label></div>
   </div>
 
   <div class="qgroup">
     <h3>GPS <span class="n">3</span></h3>
-    <div class="q"><input type="checkbox" id="q36"><label for="q36"><span class="qn">36</span>On the Nearest Reseller map, what do the <strong>blue, green and red pins</strong> mean?</label></div>
-    <div class="q"><input type="checkbox" id="q37"><label for="q37"><span class="qn">37</span>Should GPS be <strong>captured from the phone</strong> at registration? Ours derives coordinates from the registered district, accurate to roughly 600 metres — not precise enough for a nearest-shop feature.</label></div>
-    <div class="q"><input type="checkbox" id="q38"><label for="q38"><span class="qn">38</span>What does <strong>Reset Route</strong> do?</label></div>
+    <div class="q"><input type="checkbox" id="q35"><label for="q35"><span class="qn">35</span>On the Nearest Reseller map, what do the <strong>blue, green and red pins</strong> mean?</label></div>
+    <div class="q"><input type="checkbox" id="q36"><label for="q36"><span class="qn">36</span>Should GPS be <strong>captured from the phone</strong> at registration? The current build derives coordinates from the registered district, accurate to roughly 600 metres.</label></div>
+    <div class="q"><input type="checkbox" id="q37"><label for="q37"><span class="qn">37</span>What does <strong>Reset Route</strong> do?</label></div>
   </div>
 
   <div class="qgroup">
     <h3>e-Invoice <span class="n">2</span></h3>
-    <div class="q"><input type="checkbox" id="q39"><label for="q39"><span class="qn">39</span><strong>Enable TIN QR</strong> is LHDN e-Invoice. What is the compliance deadline? This is the only item on either list that is a legal requirement rather than a preference.<span class="tag legal">Legal</span></label></div>
-    <div class="q"><input type="checkbox" id="q40"><label for="q40"><span class="qn">40</span>Is it enabled <strong>per reseller</strong>, outlet by outlet, as the screen suggests?</label></div>
+    <div class="q"><input type="checkbox" id="q38"><label for="q38"><span class="qn">38</span><strong>Enable TIN QR</strong> is LHDN e-Invoice. What is the compliance deadline? This is the only item anywhere in this report that is a legal requirement rather than a preference.<span class="tag legal">Legal</span></label></div>
+    <div class="q"><input type="checkbox" id="q39"><label for="q39"><span class="qn">39</span>Is it enabled <strong>per reseller</strong>, outlet by outlet, as the screen suggests?</label></div>
   </div>
 
   <div class="qgroup">
-    <h3>Consignment and stock <span class="n">3</span></h3>
-    <div class="q"><input type="checkbox" id="q41"><label for="q41"><span class="qn">41</span>Service Month shows <strong>1</strong> — is the interval always monthly, or does it vary by outlet? Ours assumes 30 days and allows it to be changed.</label></div>
-    <div class="q"><input type="checkbox" id="q42"><label for="q42"><span class="qn">42</span><strong>Where is the consignment balance entered?</strong> Entering baki stock at the next visit is the heart of the consignment model, and no screen for it was shared.<span class="tag">Key</span></label></div>
-    <div class="q"><input type="checkbox" id="q43"><label for="q43"><span class="qn">43</span>The Stock Request form asks for name, address, telephone, SO/DO number and order reference. Is stock ever delivered somewhere other than to the salesman?</label></div>
+    <h3>Consignment <span class="n">2</span></h3>
+    <div class="q"><input type="checkbox" id="q40"><label for="q40"><span class="qn">40</span><strong>Where is the consignment balance entered?</strong> Entering baki stock at the next visit is the heart of the consignment model, and no screen for it was shared.<span class="tag">Key</span></label></div>
+    <div class="q"><input type="checkbox" id="q41"><label for="q41"><span class="qn">41</span>Service Month shows <strong>1</strong> — is the interval always monthly, or does it vary by outlet?</label></div>
   </div>
 
   <div class="qgroup">
-    <h3>Scope and outstanding data <span class="n">5</span></h3>
-    <div class="q"><input type="checkbox" id="q44"><label for="q44"><span class="qn">44</span><strong>Is Refer &amp; Earn still wanted?</strong> It is module 16, fully built in the current system, and appears nowhere in the app design.</label></div>
-    <div class="q"><input type="checkbox" id="q45"><label for="q45"><span class="qn">45</span>Is the <strong>four-language switch</strong> wanted? Ours supports Bahasa Malaysia, English, Chinese and Iban. His design is Malay only.</label></div>
-    <div class="q"><input type="checkbox" id="q46"><label for="q46"><span class="qn">46</span>Is the <strong>public-facing panel</strong> wanted?</label></div>
-    <div class="q"><input type="checkbox" id="q47"><label for="q47"><span class="qn">47</span>Company <strong>SSM number, registered address and phone</strong> — needed for document headers. Invoices currently print a placeholder.</label></div>
-    <div class="q"><input type="checkbox" id="q48"><label for="q48"><span class="qn">48</span>The <strong>real outlet list</strong> and <strong>salesman list with email addresses</strong>, so accounts can be opened.</label></div>
+    <h3>Confirmations and outstanding data <span class="n">5</span></h3>
+    <div class="q"><input type="checkbox" id="q42"><label for="q42"><span class="qn">42</span><strong>Is Refer &amp; Earn still wanted?</strong> It is module 16, fully built and tested, and appears nowhere in the app design.</label></div>
+    <div class="q"><input type="checkbox" id="q43"><label for="q43"><span class="qn">43</span>Is the <strong>four-language switch</strong> wanted? Bahasa Malaysia, English, Chinese and Iban are built. His design is Malay only.</label></div>
+    <div class="q"><input type="checkbox" id="q44"><label for="q44"><span class="qn">44</span>Is the <strong>public-facing panel</strong> wanted?</label></div>
+    <div class="q"><input type="checkbox" id="q45"><label for="q45"><span class="qn">45</span>Company <strong>SSM number, registered address and phone</strong> — needed for document headers. Invoices currently print a placeholder.</label></div>
+    <div class="q"><input type="checkbox" id="q46"><label for="q46"><span class="qn">46</span>The <strong>real outlet list</strong> and <strong>salesman list with email addresses</strong>, so accounts can be opened and testing can begin on real data.</label></div>
   </div>
 </section>
 
 <!-- ============================================================= -->
 <section id="rec">
-  <span class="num">09</span>
+  <span class="num">10</span>
   <h2>Recommendation</h2>
   <div class="col">
-    <p><strong>Keep the database and rebuild the surface to Coach Aril's design.</strong>
-      The reasoning is practical rather than defensive.</p>
+    <p><strong>Build forward from the current system, and treat the additions as a
+      specified, costed second phase.</strong></p>
     <ul>
-      <li><strong>The expensive half already exists and is tested.</strong> Nineteen
-        tables, access control enforced in the database rather than in the screen, six
-        transaction functions that either complete or leave nothing behind, running
-        numbers that cannot collide between two salesmen submitting at the same moment,
-        and nine business rules proven to refuse the wrong thing.</li>
-      <li><strong>His design is the agreed target, and it is mostly drawn.</strong> That
-        removes the largest source of rework — nobody has to guess what the screens
-        should look like.</li>
-      <li><strong>It has already been shown to work.</strong> A phone-shaped app shell now
-        exists, signs in against the same database, installs to a phone's home screen and
-        works without a signal. It took one session. The form factor is not the
-        obstacle.</li>
-      <li><strong>The three structural items should be settled first.</strong> Variants,
-        branches and free goods all touch the schema. Deciding them now costs days;
-        deciding them after real data is loaded costs considerably more.</li>
+      <li><strong>The agreed brief is delivered.</strong> All sixteen modules, running
+        against a live database, with the business rules enforced where they cannot be
+        bypassed. That is a finished first phase, and it should be signed off as one.</li>
+      <li><strong>The hard half is the half that exists.</strong> Transaction integrity,
+        access control, collision-free document numbering and consignment reconciliation
+        are the parts that take longest and cannot be judged by eye. Rebuilding them
+        from a prototype would mean paying for them twice.</li>
+      <li><strong>The form factor is not an obstacle.</strong> A phone app shell now
+        exists that signs in against the same database, installs to a home screen and
+        works without a signal. It took one working session, which is a fair measure of
+        what re-skinning to his design actually costs.</li>
+      <li><strong>His design should drive the interface.</strong> It is detailed, it is
+        the client's own, and adopting it removes the largest source of rework. Where it
+        improves on ours — the per-outlet consignment view, the stock request as one
+        document, the customer profile layout — it should simply be followed.</li>
+      <li><strong>The three schema items must be settled first.</strong> Variants,
+        branches and free goods are weeks of work each if decided late and days if
+        decided now.</li>
     </ul>
-    <p>That said, the questions in the previous section matter more than the
-      recommendation.</p>
+    <p>The alternative — restarting from the prototype — means rebuilding a tested data
+      layer that already does the job, while the nineteen additions remain unbuilt in
+      either version.</p>
   </div>
 </section>
 
 <!-- ============================================================= -->
 <section id="meeting">
-  <span class="num">10</span>
+  <span class="num">11</span>
   <h2>Summary for the meeting</h2>
   <ol class="final">
-    <li>Both versions came from the same requirement document. This is not a disagreement
-      about scope.</li>
-    <li>His app has the interface. The current build has the engine. They fit together.</li>
-    <li>Nineteen things in his design are new to us. Sixteen are small.
-      <strong>Three change the database and should be decided before any screen is built:
-      product flavours, multiple branches, and free goods.</strong></li>
-    <li>Both versions independently departed from MASTER FINAL in the same place, on
-      delivery orders, and both were right.</li>
-    <li>The written spec says visit tracking is not wanted. His app tracks visits in three
-      places. That needs a ruling.</li>
-    <li><strong>Enable TIN QR is LHDN e-Invoice — the only legal deadline on the
-      table.</strong> We need the date.</li>
+    <li><strong>All sixteen modules of the agreed requirement are built and running
+      against a live database.</strong> The brief has been delivered.</li>
+    <li>Coach Aril's design is a detailed interface with hardcoded figures and no data
+      layer. It shows what the system should look like; it cannot yet record a sale.</li>
+    <li>The two fit together. His design should drive the screens; the existing system
+      should remain underneath them.</li>
+    <li><strong>Nineteen features in his design were never in the requirement
+      document</strong>, and two of them contradict it directly. They are worth having,
+      but they are a second phase, not a list of omissions.</li>
+    <li>Eight of those nineteen are hours of work. Eight are days.
+      <strong>Three — product flavours, multiple branches and free goods — change the
+      database and should be decided before anything else is built.</strong></li>
+    <li>His design contains four approval workflows and no screen for the approver.
+      That office-side application already exists on our side.</li>
+    <li>Both versions independently departed from the requirement in the same place, on
+      delivery orders, and both were right. The foundation is sound.</li>
+    <li><strong>Enable TIN QR is LHDN e-Invoice — the only legal deadline anywhere in
+      this.</strong> We need the date.</li>
     <li>Several labels — TPP, RTN, Pt., Hc., Tst — cannot be read by anyone outside his
-      team, and need defining before they can be built.</li>
-    <li>Jadual Harian and any admin side were never shared. Module 03 and the entire
-      office-side workflow remain unknown.</li>
+      team, and cannot be built until they are defined.</li>
   </ol>
 </section>
 
 <p class="foot">Based on approximately forty screenshots of Coach Aril's app and the
-  MASTER FINAL requirement document. Database claims verified against the live Supabase
-  project on 8 October 2026.</p>
+  MASTER FINAL requirement document. Claims about the current build were verified against
+  the live Supabase project on 8 October 2026.</p>
 
 </div>
 
@@ -627,7 +749,7 @@ td.c{font-family:var(--mono);font-size:.8rem;color:var(--faint);white-space:nowr
 /* Ticking questions off during the meeting. Per-viewer only — it never leaves
    this browser, and the page reads correctly if storage is unavailable. */
 (function () {
-  var KEY = "spq.v1";
+  var KEY = "spq.v2";
   var boxes = Array.prototype.slice.call(document.querySelectorAll(".q input"));
   var done = document.getElementById("qdone");
   var total = document.getElementById("qtotal");
