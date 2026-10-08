@@ -190,6 +190,52 @@ td.c{font-family:var(--mono);font-size:.8rem;color:var(--faint);white-space:nowr
   border-top:1px solid var(--line);margin-top:8px}
 
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- print ----------
+   Printed on paper the question checkboxes become something to tick with a
+   pen during the meeting, so they stay visible and empty. Everything that
+   only works on a screen is dropped. */
+@media print{
+  /* Both selectors are needed, and neither is decoration. The dark-theme rule
+     above is `:root:not([data-theme="light"])`, which outranks a bare `:root`
+     — so a bare `:root` here loses to it and the page prints light-grey text
+     on white. These two match every root at the same specificity and later in
+     the source, so print always wins. */
+  :root:not([data-theme="light"]), :root[data-theme="light"]{
+    --paper:#FFFFFF; --raise:#FFFFFF; --ink:#111; --muted:#444; --faint:#6A6A6A;
+    --line:#CFCACB; --line-soft:#E6E1E2;
+    --accent:#A8170F; --accent-soft:#F8EDEC;
+    --ok:#15603A; --ok-soft:#ECF4EF;
+    --gap:#8A5000; --gap-soft:#FAF2E3;
+    --unk:#3F4854; --unk-soft:#EFF1F4;
+    color-scheme:light;
+  }
+  @page{margin:16mm 14mm}
+  body{font-size:10.5pt;line-height:1.5;padding:0;background:#fff}
+  .wrap{max-width:none}
+  .mast{padding-block:0 20px}
+  h1{font-size:30pt}
+  .standfirst{font-size:12pt}
+  section{padding-block:22px;break-inside:auto}
+  h2{font-size:15pt;break-after:avoid}
+  h3{break-after:avoid;margin-top:14px}
+  .num{break-after:avoid}
+  .toc{break-after:page}
+  .scroll{overflow:visible;break-inside:auto}
+  table{font-size:8.6pt}
+  th{break-after:avoid}
+  tr,.q,.note,.fig,.side,.key div,.final li{break-inside:avoid}
+  .qgroup{break-inside:auto}
+  .qgroup > h3{break-after:avoid}
+  .qbar button{display:none}
+  .q input{appearance:none;border:1pt solid #555;background:#fff;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .q input:checked{background:#fff;border-color:#555}
+  .q input:checked::after{border-color:#111}
+  .q input:checked ~ label{color:var(--ink);text-decoration:none}
+  a{color:var(--ink);text-decoration:none}
+  .foot{break-inside:avoid}
+}
 </style>
 
 <div class="wrap">
