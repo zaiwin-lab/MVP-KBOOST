@@ -22,6 +22,17 @@ why, so the repository is not silent about where the data lives.
 | 9 | `post_payment_return_customer` | `post_payment()`, `post_return()`, `register_customer()`, and the grants |
 | 10 | `doc_lines_generated_total` | `doc_lines.line_total` is generated, so the three writers stop setting it |
 | 11 | `van_restocking` | `stock_requests`, `stock_issues`, `request_stock()`, `issue_stock()`, `reject_stock_request()` |
+| 12 | `ranking_board` | `ranking_board(from, to)` — the leaderboard, without breaking row level security |
+
+## The leaderboard, without a hole in row level security
+
+A salesman must not read another salesman's invoices, and the policies enforce
+that. But a ranking screen has to show the whole team. `ranking_board()` is a
+`SECURITY DEFINER` function returning one row per salesman — code, name, zone,
+sales, collected, order count — and nothing else. No document, no customer, no
+line ever leaves through it. It is the only thing one salesman sees of
+another's figures, and it is aggregate by construction rather than by a filter
+someone could forget.
 
 ## Rebuild to the client's own app — backend foundation
 

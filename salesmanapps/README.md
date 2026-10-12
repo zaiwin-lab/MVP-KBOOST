@@ -53,28 +53,55 @@ signal is thrown back to a login screen he cannot possibly get past.
 
 **Built so far**
 
-| | |
+| Screen | What it does |
 |---|---|
-| Frame | Red header, five-tab bottom bar, safe areas for notch and home indicator |
 | Login | Email and password against the same accounts the portal uses |
-| Home | Greeting, `Harian` cards, `Kesimpulan` with live Wang Terima / Qty Jualan / Stok Terkini, and the `Invois Lama` / `D/O Lama` / `Hutang Lama` buttons |
-| Settings | Who is signed in, the build date, and sign out — reachable from every tab, not just Home |
-| Reseller, Stok, GPS, Ranking | Named placeholders listing what belongs in each |
+| Home | Greeting, `Harian` cards, `Kesimpulan` with live Wang Terima / Qty Jualan / Stok Terkini, then `Invois Lama` / `D/O Lama` / `Hutang Lama` |
+| Sales History | Every invoice, with month and date-range picker, search by invoice number, SSM name, app name or reseller code, and his three status colours |
+| Maklumat Pesanan | Order Info block, the `Pesanan Produk` table, and the document buttons |
+| Buat Bayaran | His two-step modal — Partial / Paid / Over, then Tunai · Cek · Pindahan Bank · Gaji · QR Code, amount and comment. **Posts a real payment** through `post_payment()` and issues a receipt |
+| D/O Lepas | Delivery orders with quantity per drop |
+| Consignment Order | The DO detail, with the consignment balance behind it |
+| List Hutang | Outstanding invoices, oldest first, with the total owed |
+| Kesimpulan | Date range, Wang Terima split by payment method, Qty Jualan and Stok Terkini per product |
+| Reseller | Searchable list, and a profile with his four tabs — General, Sejarah Invois, Galeri, Kerja Harian |
+| Customer Profile | Payment-term badge, Call (Dialer / WhatsApp), Location (Google Maps / Waze), consignment stock on the shelf, Service Month |
+| Galeri | The five registration photograph types, read through the signed-URL edge function |
+| Stok | Van stock per product, with Stok Request and Sejarah Stok Request |
+| Stock Request | **Posts a real request** through `request_stock()` |
+| GPS | Nearest Reseller by distance from the handset, with map links |
+| Ranking | His blue leaderboard — podium, periods, whole team |
+| Settings | Who is signed in, the build date, reload, sign out — reachable from every tab |
 
-The placeholders say *"Sedang dibina"* and name what is coming, rather than
-sitting blank. A blank tab in a demo reads as a bug; a named one reads as a
-plan.
+**Ranking needed a new database function.** Row level security stops a salesman
+reading another salesman's invoices, which is correct and stays. `ranking_board()`
+returns a name, a zone and two totals per salesman and never a single document,
+customer or line — the only thing one salesman sees of another's figures.
 
-**Verified in Chromium at 390×844**: service worker registers and caches the
-six shell files; the app reloads and still renders with the origin gone; with
-the database refused it stays signed in and shows dashes, not zeroes; signing
-in with no database says *"Tiada sambungan"* and keeps the typed email; a
-stray click anywhere inside the login form does not fire the submit — the fault
-the portal had.
+**What is deliberately not faked.** Several controls in his design have no
+backend yet and say so rather than pretending: `Keluar Invois Muktamad`,
+`Request Credit Note`, `Blacklist Reseller`, `Set VIP`, `Enable TIN QR`, the
+`Mohon` price-change request, Jadual Harian, and Kerja Harian. Over Payment
+appears in the payment modal, as in his design, and explains that the database
+still refuses it pending a decision. `Tpp` is left blank because nobody has
+confirmed what it means. All of these are open items in
+`COMPARISON-REPORT.md`.
 
-Still to come from the client's design: the Reseller registration sequence,
-order creation, the daily planner, `Pending Acc Approval` as an invoice status,
-`Keluar Invois Muktamad`, and `Request Credit Note`.
+**Two readings his demo data left ambiguous**, settled here: Sales History
+shows what the invoice was worth, List Hutang shows what is still owed. And the
+three invoice states are shown in his words and colours — Paid, Separa Bayar,
+Unpaid — since `Pending Acc Approval` is an approval step we have no workflow
+for.
+
+**Verified in Chromium at 390×844**, driven through every screen: a payment
+posted for real and the invoice flipped to Paid; a stock request posted and
+came back in the history; search keeps keyboard focus; the date range picker
+filters; the call and location sheets open; the service worker caches the shell
+and the app still renders with the origin gone; with the database refused it
+stays signed in and shows dashes, not zeroes. No console errors.
+
+Still to come from his design: the Reseller registration sequence, order
+creation, and the daily planner.
 
 ## Three access panels
 

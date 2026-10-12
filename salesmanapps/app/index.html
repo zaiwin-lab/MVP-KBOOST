@@ -21,17 +21,19 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
 <style>
 /* ---------------------------------------------------------------------------
-   SALESMAN APP — phone shell
-   Rebuilt to the client's own design: red, five tabs, one column.
+   SALESMAN APP
+   Rebuilt to the client's own design. Red, five tabs, one column.
+
    Layout: a fixed red header, a scrolling body, a fixed tab bar. The body is
    the only thing that moves, which is what stops a phone keyboard shoving the
    navigation up the screen.
    --------------------------------------------------------------------------- */
 :root{
   --red:#E12B24; --red-d:#C21F19; --red-lo:#FDEBEA;
-  --grn:#22A45D; --grn-lo:#E3F5EB;
-  --amb:#C77700; --amb-lo:#FDF0DC;
-  --blue:#2563EB;
+  --grn:#22A45D; --grn-d:#1B8A4D; --grn-lo:#E3F5EB;
+  --amb:#E08A00; --amb-lo:#FDF3E2;
+  --blue:#2563EB; --blue-d:#1D4FD7;
+  --rank:#2F4FD8;
   --bg:#F2F3F7; --card:#FFFFFF; --inset:#F7F8FB;
   --ink:#14161C; --mut:#5A6275; --dim:#8F97A8;
   --line:#E3E6EE; --line-s:#EDEFF4;
@@ -67,15 +69,35 @@ img{max-width:100%}
 .dot{position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;
   background:#fff;border:2px solid var(--red)}
 
-.bar{background:var(--red);color:#fff;padding:calc(var(--top) + 10px) 8px 12px;
-  display:flex;align-items:center;gap:6px;flex:none}
-.bar .back{display:flex;align-items:center;gap:4px;padding:8px 10px;font-size:15px;font-weight:600}
+/* back bar + big red page title, as on his inner screens */
+.bar{padding:calc(var(--top) + 10px) 10px 2px;display:flex;align-items:center;gap:8px;flex:none;
+  background:var(--bg)}
+.bar .back{display:flex;align-items:center;gap:3px;padding:8px 6px;font-size:15.5px;font-weight:600}
 .bar .back svg{width:18px;height:18px}
-.ttl{padding:18px 20px 4px}
-.ttl h2{margin:0;font-size:25px;font-weight:800;color:var(--red);letter-spacing:-.02em}
+.bar .home{margin-left:auto;background:var(--blue);color:#fff;font-size:13px;font-weight:700;
+  padding:9px 14px;border-radius:8px}
+.ttl{padding:6px 20px 16px;background:var(--bg);flex:none}
+.ttl h2{margin:0;font-size:26px;font-weight:800;color:var(--red);letter-spacing:-.025em}
+
+/* the red band that carries date range + search */
+.band{background:var(--red);padding:16px;flex:none}
+.band .mrow{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.band .mon{color:#fff;font-size:17px;font-weight:800;line-height:1.15;max-width:5.5em}
+.band .cal{color:#fff;display:grid;place-items:center;width:30px;flex:none}
+.band .cal svg{width:24px;height:24px}
+.range{flex:1;min-width:0;background:#fff;border-radius:9px;display:flex;align-items:center;
+  height:46px;overflow:hidden;text-align:left}
+.range span{flex:1;min-width:0;padding:0 10px;font-size:12.5px;color:var(--ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.range i{width:1.5px;height:26px;background:var(--red);flex:none}
+.range .ph{color:var(--dim)}
+.srch{background:#fff;border-radius:22px;display:flex;align-items:center;gap:8px;
+  padding:0 14px;height:44px}
+.srch input{flex:1;min-width:0;border:0;outline:none;font-size:13.5px;background:none}
+.srch svg{width:19px;height:19px;color:var(--dim);flex:none}
 
 .body{flex:1;padding:0 16px calc(var(--bot) + 84px)}
-.sheet{background:var(--bg);border-radius:20px 20px 0 0;margin:0 -16px;padding:20px 16px 0;position:relative}
+.body.pad{padding-top:16px}
 
 /* ---------- tab bar ---------- */
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:50;background:#fff;
@@ -93,14 +115,15 @@ img{max-width:100%}
 .sec svg{width:21px;height:21px}
 .sec .more{margin-left:auto;background:var(--red);color:#fff;font-size:13px;font-weight:700;
   padding:8px 15px;border-radius:9px}
-.sec.w{color:#fff}
 
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.card{background:var(--card);border-radius:var(--r);padding:14px;box-shadow:0 1px 3px rgba(20,22,28,.07)}
+.card{background:var(--card);border-radius:var(--r);padding:14px;
+  box-shadow:0 1px 3px rgba(20,22,28,.07)}
 
 .quick{background:var(--card);border-radius:var(--r);padding:14px 14px 12px;position:relative;
-  min-height:124px;display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(20,22,28,.07)}
+  min-height:124px;display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(20,22,28,.07);
+  text-align:left}
 .quick b{font-size:14px;font-weight:800;line-height:1.3;letter-spacing:-.01em}
 .quick .art{margin-top:auto;height:44px;display:flex;align-items:flex-end}
 .quick .art svg{width:40px;height:40px;color:var(--red);opacity:.3}
@@ -112,29 +135,182 @@ img{max-width:100%}
 .stat{background:var(--card);border-radius:var(--r);padding:12px 10px;text-align:center;
   box-shadow:0 1px 3px rgba(20,22,28,.07)}
 .stat .art{height:52px;display:grid;place-items:center;margin-bottom:6px}
-.stat .art svg{width:46px;height:46px}
+.stat .art svg{width:46px;height:46px;color:var(--red);opacity:.85}
 .stat .l{font-size:11.5px;color:var(--mut);font-weight:600}
 .stat .v{font-size:15px;font-weight:800;margin-top:2px;letter-spacing:-.01em}
 
 .rowbtn{display:block;width:100%;background:var(--red);color:#fff;font-size:15.5px;font-weight:700;
   padding:15px;border-radius:11px;margin-top:12px;text-align:center}
 .rowbtn:active{background:var(--red-d)}
-.rowbtn.g{background:var(--grn)}
-.rowbtn.o{background:#fff;color:var(--red);border:1.5px solid var(--red)}
+.rowbtn.g{background:var(--grn)} .rowbtn.g:active{background:var(--grn-d)}
+.rowbtn.b{background:var(--blue)} .rowbtn.b:active{background:var(--blue-d)}
+.rowbtn.o{background:#fff;color:var(--red);border:1.5px solid var(--red);font-size:14px;padding:13px}
+.rowbtn.o:active{background:var(--red-lo)}
+.rowbtn[disabled]{opacity:.45;pointer-events:none}
 
-.range{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--mut);margin-bottom:12px}
+/* ---------- list cards, the shape used by every history screen ---------- */
+.list{background:var(--card);border-radius:var(--r);overflow:hidden;margin-bottom:14px;
+  box-shadow:0 1px 3px rgba(20,22,28,.07)}
+.row{display:block;width:100%;text-align:left;padding:13px 14px;border-bottom:1px solid var(--line-s)}
+.row:last-child{border-bottom:0}
+.row:active{background:var(--inset)}
+.row .when{font-size:11.5px;color:var(--dim);margin-bottom:6px}
+.row .main{display:flex;align-items:flex-start;gap:10px}
+.row .who{flex:1.5;min-width:0}
+.row .code{color:var(--red);font-size:12.5px;font-weight:800}
+.row .nm{font-size:13.5px;font-weight:700;line-height:1.3;margin-top:1px}
+.row .mid{flex:1;min-width:0;font-size:12.5px;color:var(--mut);line-height:1.35}
+.row .st{font-size:12.5px;font-weight:700;text-align:right;flex:none;min-width:62px}
+.row .amt{font-size:13.5px;font-weight:800;text-align:right;flex:none;min-width:74px}
+.row .qty{font-size:15px;font-weight:800;text-align:right;flex:none;min-width:38px}
+.paid{color:var(--grn)} .unpaid{color:var(--red)} .part{color:var(--amb)}
+
+/* reseller list */
+.rrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px;
+  border-bottom:1px solid var(--line-s)}
+.rrow:last-child{border-bottom:0}
+.rrow:active{background:var(--inset)}
+.rrow .t{flex:1;min-width:0}
+.rrow .code{color:var(--red);font-size:12px;font-weight:800}
+.rrow .nm{font-size:14px;font-weight:700;line-height:1.3}
+.rrow .chev{color:var(--dim);flex:none}
+.rrow .chev svg{width:18px;height:18px}
+.chip{display:inline-block;font-size:11px;font-weight:700;padding:5px 11px;border-radius:14px;
+  margin-top:7px;color:#fff}
+.chip.out{background:var(--grn)} .chip.in{background:var(--blue)}
+
+/* ---------- red section header + table, as on his detail screens ---------- */
+.block{background:var(--card);border-radius:var(--r);overflow:hidden;margin-bottom:16px;
+  box-shadow:0 1px 3px rgba(20,22,28,.07)}
+.block > h3{margin:0;background:var(--red);color:#fff;font-size:14.5px;font-weight:700;
+  padding:11px 15px}
+.block .in{padding:14px 15px}
+.kv{display:flex;gap:12px;padding:7px 0;font-size:13.5px;align-items:flex-start}
+.kv dt{width:94px;flex:none;color:var(--ink);font-weight:600}
+.kv dd{margin:0;flex:1;min-width:0;color:var(--mut);word-break:break-word}
+.kv dd b{color:var(--ink)}
+dl{margin:0}
+
+table.t{width:100%;border-collapse:collapse;font-size:13px}
+table.t thead th{background:var(--red);color:#fff;font-size:12.5px;font-weight:700;
+  padding:10px 8px;text-align:left}
+table.t thead th.r{text-align:right}
+table.t td{padding:11px 8px;border-bottom:1px solid var(--line-s);vertical-align:top}
+table.t td.r{text-align:right}
+table.t td.c{text-align:center}
+table.t tbody tr:last-child td{border-bottom:0}
+table.t .pname{font-weight:700}
+table.t .price{color:var(--red);font-weight:700}
+.tfoot{padding:12px 15px;border-top:1px solid var(--line-s)}
+.tfoot div{display:flex;justify-content:flex-end;gap:14px;font-size:13.5px;padding:3px 0}
+.tfoot b{font-weight:800;min-width:92px;text-align:right}
+
+.photo{width:100%;height:190px;object-fit:cover;display:block;background:var(--line-s)}
+.ph-ph{width:100%;height:190px;display:grid;place-items:center;background:var(--line-s);color:var(--dim)}
+.ph-ph svg{width:40px;height:40px}
+.avatar{width:76px;height:76px;border-radius:50%;object-fit:cover;flex:none;background:var(--line-s)}
+.avatar.ph{display:grid;place-items:center;color:var(--dim)}
+.avatar.ph svg{width:28px;height:28px}
+
+.cust{display:flex;gap:14px;align-items:flex-start;margin-bottom:16px}
+.cust .t{flex:1;min-width:0}
+.cust .code{color:var(--red);font-size:13.5px;font-weight:800}
+.cust .nm{font-size:16px;font-weight:800;line-height:1.25;letter-spacing:-.01em}
+.cust .ad{font-size:12.5px;color:var(--dim);margin-top:5px;line-height:1.4}
+
+/* ---------- profile ---------- */
+.ptabs{display:flex;gap:4px;overflow-x:auto;background:var(--bg);padding:0 14px;flex:none;
+  border-bottom:1px solid var(--line);scrollbar-width:none}
+.ptabs::-webkit-scrollbar{display:none}
+.ptabs button{padding:12px 10px;font-size:14px;font-weight:600;color:var(--mut);
+  border-bottom:2.5px solid transparent;white-space:nowrap}
+.ptabs button.on{color:var(--red);font-weight:700;border-bottom-color:var(--red)}
+.pcard{background:var(--card);border-radius:18px;margin-top:-26px;position:relative;
+  padding:18px 16px;box-shadow:0 -2px 14px rgba(20,22,28,.06)}
+.prow{display:flex;align-items:center;gap:13px;padding:12px 0;border-bottom:1px solid var(--line-s)}
+.prow:last-child{border-bottom:0}
+.prow .ic{width:30px;flex:none;color:var(--red);display:grid;place-items:center}
+.prow .ic svg{width:22px;height:22px}
+.prow .lb{width:78px;flex:none;color:var(--red);font-size:13.5px;font-weight:700;line-height:1.2}
+.prow .vl{flex:1;min-width:0;font-size:13px;color:var(--mut);line-height:1.45}
+.prow .ac{flex:none}
+.sbtn{background:var(--red);color:#fff;font-size:12.5px;font-weight:700;padding:8px 13px;
+  border-radius:8px;display:inline-flex;align-items:center;gap:5px}
+.sbtn svg{width:14px;height:14px}
+.sbtn:active{background:var(--red-d)}
+.term{background:var(--blue);color:#fff;font-size:11.5px;font-weight:700;padding:5px 10px;
+  border-radius:7px;display:inline-flex;align-items:center;gap:5px;flex:none}
+.term svg{width:13px;height:13px}
+
+/* ---------- galeri ---------- */
+.gal{margin-bottom:14px}
+.gal h4{margin:0;background:var(--red);color:#fff;font-size:13.5px;font-weight:700;
+  padding:10px 14px;border-radius:var(--r) var(--r) 0 0}
+.gal .in{background:var(--card);border-radius:0 0 var(--r) var(--r);padding:12px 14px;
+  box-shadow:0 1px 3px rgba(20,22,28,.07)}
+.gal img{width:84px;height:104px;object-fit:cover;border-radius:4px;background:var(--line-s)}
+.gal .none{font-size:12.5px;color:var(--dim);padding:10px 0}
+.gal .acts{display:flex;gap:10px;margin-top:12px}
+.gal .acts button{flex:1}
+
+/* ---------- ranking (his only blue screen) ---------- */
+/* The ranking screen is the one place his app leaves red for blue. The blue
+   has to reach the bottom of the screen even when the list is short, so the
+   page background changes with it rather than the panel alone. */
+body[data-rk="1"]{background:var(--rank)}
+.rk{background:var(--rank);min-height:100%;margin:0 -16px;padding:0 16px calc(var(--bot) + 84px);
+  color:#fff}
+.rk .hd2{padding:calc(var(--top) + 18px) 4px 16px;font-size:24px;font-weight:800;
+  letter-spacing:-.02em}
+.seg{display:flex;background:#fff;border-radius:9px;overflow:hidden;margin-bottom:18px}
+.seg button{flex:1;padding:12px 6px;font-size:13px;font-weight:700;color:var(--ink)}
+.seg button.on{background:#F0A800;color:#fff}
+.allrow{display:flex;align-items:center;justify-content:center;gap:16px;font-size:14px;
+  font-weight:700;margin-bottom:18px}
+.podium{display:grid;grid-template-columns:1fr 1.15fr 1fr;align-items:end;gap:8px;margin-bottom:22px}
+.pod{text-align:center}
+.pod .medal{font-size:26px;line-height:1}
+.pod .pic{width:72px;height:72px;border-radius:50%;margin:6px auto 0;object-fit:cover;
+  background:rgba(255,255,255,.25);border:2.5px solid rgba(255,255,255,.5);display:grid;
+  place-items:center;font-size:21px;font-weight:800;color:#fff}
+.pod.first .pic{width:86px;height:86px}
+.pod .nm{font-size:11.5px;font-weight:700;margin-top:7px;line-height:1.25;word-break:break-word}
+.pod .amt{font-size:12.5px;font-weight:800;color:#FFC94A;margin-top:3px}
+.rkrow{display:flex;align-items:center;gap:11px;background:#fff;color:var(--ink);
+  border-radius:10px;padding:11px 13px;margin-bottom:9px}
+.rkrow .n{width:26px;height:26px;border-radius:6px;background:#F0A800;color:#fff;flex:none;
+  display:grid;place-items:center;font-size:12.5px;font-weight:800}
+.rkrow .t{flex:1;min-width:0}
+.rkrow .t b{display:block;font-size:13.5px;font-weight:700}
+.rkrow .t span{font-size:11.5px;color:var(--mut)}
+.rkrow .v{font-size:13.5px;font-weight:800;text-align:right}
+.rkrow.me{outline:2px solid #FFC94A}
 
 /* ---------- states ---------- */
-.empty{text-align:center;padding:38px 18px;color:var(--mut)}
+.empty{text-align:center;padding:40px 18px;color:var(--mut)}
 .empty b{display:block;color:var(--ink);font-size:15.5px;margin-bottom:5px}
 .empty span{font-size:13.5px;display:block;max-width:30ch;margin:0 auto}
-.soon{background:var(--card);border-radius:var(--r);padding:22px 18px;text-align:center;
-  box-shadow:0 1px 3px rgba(20,22,28,.07)}
+.soon{background:var(--card);border-radius:var(--r);padding:20px 18px;text-align:center;
+  box-shadow:0 1px 3px rgba(20,22,28,.07);margin-bottom:14px}
 .soon .k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--red);font-weight:800}
-.soon b{display:block;font-size:17px;margin:7px 0 6px;letter-spacing:-.01em}
+.soon b{display:block;font-size:16px;margin:7px 0 6px;letter-spacing:-.01em}
 .soon span{font-size:13.5px;color:var(--mut);display:block;max-width:34ch;margin:0 auto}
-.soon ul{text-align:left;margin:14px auto 0;padding-left:18px;max-width:34ch;font-size:13.5px;color:var(--mut)}
-.soon li{margin-top:5px}
+.hint{font-size:12.5px;color:var(--dim);text-align:center;margin:10px 0 0;line-height:1.5}
+
+/* ---------- forms ---------- */
+.f{margin-bottom:14px}
+.f label{display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink);margin-bottom:6px}
+.f input,.f textarea,.f select{width:100%;padding:13px;border:1px solid var(--line);
+  border-radius:9px;background:#fff;font-size:15px}
+.f textarea{min-height:76px;resize:vertical}
+.f input:focus,.f textarea:focus,.f select:focus{outline:none;border-color:var(--red)}
+.err{background:var(--red-lo);color:var(--red-d);border-radius:10px;padding:12px 14px;
+  font-size:13.5px;font-weight:600;margin-bottom:14px}
+.ok{background:var(--grn-lo);color:var(--grn-d);border-radius:10px;padding:12px 14px;
+  font-size:13.5px;font-weight:600;margin-bottom:14px}
+.qin{width:54px;padding:8px 4px;border:1px solid var(--line);border-radius:6px;text-align:center;
+  font-size:14px}
 
 /* ---------- login ---------- */
 .lg{min-height:100%;display:flex;flex-direction:column;background:var(--red);color:#fff}
@@ -146,14 +322,55 @@ img{max-width:100%}
 .lg p{margin:7px 0 0;opacity:.9;font-size:14.5px;max-width:30ch}
 .lg .form{flex:1;background:var(--bg);color:var(--ink);border-radius:24px 24px 0 0;
   padding:26px 22px calc(var(--bot) + 30px)}
-.f{margin-bottom:14px}
-.f label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
-  color:var(--mut);margin-bottom:6px}
-.f input{width:100%;padding:14px;border:1.5px solid var(--line);border-radius:11px;background:#fff;
-  font-size:16px}
-.f input:focus{outline:none;border-color:var(--red)}
-.err{background:var(--red-lo);color:var(--red-d);border-radius:10px;padding:12px 14px;
-  font-size:13.5px;font-weight:600;margin-bottom:14px}
+.lg .f label{color:var(--mut)}
+
+/* ---------- sheets and modals ---------- */
+.scrim{position:fixed;inset:0;z-index:90;background:rgba(20,22,28,.45);display:flex;
+  flex-direction:column;justify-content:flex-end}
+.sheet{background:#fff;border-radius:20px 20px 0 0;padding:10px 0 calc(var(--bot) + 10px);
+  max-height:88vh;overflow:auto}
+.sheet .opt{display:flex;align-items:center;gap:14px;padding:16px 22px;width:100%;text-align:left;
+  font-size:15.5px;font-weight:600}
+.sheet .opt:active{background:var(--inset)}
+.sheet .opt svg{width:22px;height:22px;color:var(--mut)}
+.modal{position:fixed;inset:0;z-index:95;background:rgba(20,22,28,.5);display:grid;
+  place-items:center;padding:18px}
+.mbox{background:#F3F1F6;border-radius:16px;width:100%;max-width:380px;max-height:86vh;
+  overflow:auto}
+.mbox .mh{display:flex;align-items:center;justify-content:space-between;padding:17px 20px;
+  border-bottom:1px solid var(--line)}
+.mbox .mh b{font-size:16px;font-weight:700}
+.mbox .mh button{font-size:22px;color:var(--mut);line-height:1;padding:0 4px}
+.mbox .mi{padding:20px}
+.pay-tot{text-align:center;font-size:15px;font-weight:600;margin-bottom:18px}
+.pay-tot b{color:var(--red);font-weight:800}
+.ck{display:flex;align-items:center;gap:12px;padding:11px 2px;width:100%;text-align:left;
+  font-size:14.5px}
+.ck i{width:19px;height:19px;border:1.5px solid var(--dim);border-radius:3px;flex:none;
+  display:grid;place-items:center;background:#fff}
+.ck.on i{border-color:var(--red)}
+.ck.on i::after{content:"";width:5px;height:10px;border:solid var(--red);border-width:0 2.5px 2.5px 0;
+  transform:rotate(42deg) translate(-1px,-1px)}
+.ck[disabled]{opacity:.45}
+.mi h5{margin:16px 0 4px;font-size:14.5px;font-weight:700}
+.mi h5:first-child{margin-top:0}
+
+/* ---------- calendar ---------- */
+.cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:10px}
+.cal-g .dow{text-align:center;font-size:12px;color:var(--mut);font-weight:600;padding:6px 0}
+.cal-g button{aspect-ratio:1;border-radius:50%;font-size:13.5px;display:grid;place-items:center}
+.cal-g button.in{background:#E6E1F2;border-radius:0}
+.cal-g button.e1{border-radius:50% 0 0 50%}
+.cal-g button.e2{border-radius:0 50% 50% 0}
+.cal-g button.pick{background:#6B4FD8;color:#fff;border-radius:50%}
+.cal-g button[disabled]{visibility:hidden}
+.cal-h{display:flex;align-items:center;justify-content:space-between;font-size:15.5px;
+  font-weight:700;padding:0 4px}
+.cal-h button{width:34px;height:34px;display:grid;place-items:center;font-size:19px;color:var(--mut)}
+.cal-a{display:flex;gap:12px;margin-top:18px}
+.cal-a button{flex:1;padding:13px;border-radius:9px;font-size:14.5px;font-weight:700}
+.cal-a .no{background:#D8D4DC;color:var(--mut)}
+.cal-a .yes{background:var(--red);color:#fff}
 
 /* ---------- chrome ---------- */
 .offline{position:fixed;left:12px;right:12px;bottom:calc(var(--bot) + 70px);z-index:60;
@@ -169,23 +386,30 @@ img{max-width:100%}
 .install .yes{background:var(--red);color:#fff;font-size:13px;font-weight:700;
   padding:9px 14px;border-radius:9px;margin-left:auto;flex:none}
 .install .no{color:var(--dim);padding:9px 4px;flex:none;font-size:18px;line-height:1}
+.toast{position:fixed;left:16px;right:16px;bottom:calc(var(--bot) + 76px);z-index:99;
+  background:var(--ink);color:#fff;border-radius:11px;padding:13px 16px;font-size:13.5px;
+  font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.toast.good{background:var(--grn-d)}
+.toast.bad{background:var(--red-d)}
 
 .spin{width:26px;height:26px;border-radius:50%;border:2.5px solid rgba(255,255,255,.3);
   border-top-color:#fff;animation:sp .7s linear infinite;margin:0 auto}
+.spin.dark{border-color:var(--line);border-top-color:var(--red)}
 @keyframes sp{to{transform:rotate(360deg)}}
 .boot{min-height:100%;display:grid;place-items:center;background:var(--red);color:#fff}
 
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition:none!important}}
 @media (min-width:560px){ /* a phone app on a desktop screen stays phone-width */
-  #app{max-width:460px;margin:0 auto;box-shadow:0 0 0 1px var(--line)}
+  #app{max-width:460px;margin:0 auto;box-shadow:0 0 0 1px var(--line);min-height:100vh}
   .tabs{max-width:460px;margin:0 auto}
-  .offline,.install{max-width:436px;margin:0 auto}
+  .offline,.install,.toast{max-width:436px;margin:0 auto}
 }
 </style>
 </head>
 <body>
 <div id="app"><div class="boot"><div><div class="spin"></div></div></div></div>
 <div id="chrome"></div>
+<div id="over"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.min.js"></script>
 <script>
@@ -202,8 +426,22 @@ const sb = (self.supabase && supabase.createClient)
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const RM = n => "RM " + (Number(n) || 0).toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const fd = d => new Date(d).toLocaleDateString("en-MY", { day: "2-digit", month: "short", year: "numeric" });
+const RM = n => "RM " + (Number(n) || 0).toLocaleString("en-MY",
+  { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const N = n => (Number(n) || 0).toLocaleString("en-MY");
+
+const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const MONS = ["January","February","March","April","May","June","July","August","September",
+              "October","November","December"];
+const p2 = n => String(n).padStart(2, "0");
+/* His two date formats, kept exactly: "Friday, 11.09.2026" on a sales row and
+   "September 11, 2026 6:18:42 PM" on a delivery row. */
+const fDay = d => `${DAYS[d.getDay()]}, ${p2(d.getDate())}.${p2(d.getMonth()+1)}.${d.getFullYear()}`;
+const fStamp = d => `${MONS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} ` +
+  `${((d.getHours()+11)%12)+1}:${p2(d.getMinutes())}:${p2(d.getSeconds())} ` +
+  (d.getHours() < 12 ? "AM" : "PM");
+const fLong = d => `${p2(d.getDate())} ${MONS[d.getMonth()]} ${d.getFullYear()}`;
+const dOnly = d => { const x = new Date(d); x.setHours(0,0,0,0); return x; };
 
 const ic = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
   stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
@@ -213,36 +451,63 @@ const I = {
   box:   '<path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>',
   pin:   '<path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/>',
   chart: '<path d="M5 20V10"/><path d="M12 20V4"/><path d="M19 20v-6"/>',
+  star:  '<path d="m12 3 2.6 5.6 6 .8-4.4 4.2 1.1 6-5.3-2.9L6.7 19.6l1.1-6L3.4 9.4l6-.8Z"/>',
   bell:  '<path d="M18 16V11a6 6 0 1 0-12 0v5l-2 3h16Z"/><path d="M10 22h4"/>',
-  /* Sliders rather than a cog: a cog drawn with a few paths at 21px reads as a
-     sun, which is what the first build looked like. */
   gear:  '<path d="M4 7h10M18 7h2M4 12h3M11 12h9M4 17h8M16 17h4"/><circle cx="16" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="14" cy="17" r="2"/>',
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/>',
   note:  '<path d="M5 3h11l3 3v15H5Z"/><path d="M8 9h8M8 13h8M8 17h5"/>',
   arrow: '<path d="M5 12h13M13 6l6 6-6 6"/>',
   back:  '<path d="M15 5l-7 7 7 7"/>',
-  out:   '<path d="M15 4h4v16h-4"/><path d="M10 8l-4 4 4 4"/><path d="M6 12h9"/>',
-  wifi:  '<path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1"/>',
+  chev:  '<path d="M9 5l7 7-7 7"/>',
   cash:  '<rect x="2.5" y="6" width="19" height="12" rx="2.2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 10v4M18 10v4"/>',
   cal:   '<rect x="3" y="5" width="18" height="16" rx="2.4"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8 14h3v3H8z"/>',
-  newshop: '<path d="M3 9h18l-1 3H4Z"/><path d="M5 12v9h9"/><circle cx="18" cy="17.5" r="4"/><path d="M18 15.6v3.8M16.1 17.5h3.8"/>',
+  newshop:'<path d="M3 9h18l-1 3H4Z"/><path d="M5 12v9h9"/><circle cx="18" cy="17.5" r="4"/><path d="M18 15.6v3.8M16.1 17.5h3.8"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  phone: '<path d="M6 3h4l2 5-2.5 1.5a12 12 0 0 0 5 5L16 12l5 2v4a2 2 0 0 1-2.2 2A17 17 0 0 1 4 5.2 2 2 0 0 1 6 3Z"/>',
+  wa:    '<path d="M3.5 20.5 5 16a8.5 8.5 0 1 1 3.3 3.2Z"/><path d="M9 9.5c.4 2.5 3 5 5.5 5.4"/>',
+  user:  '<circle cx="12" cy="8" r="3.6"/><path d="M5 20a7 7 0 0 1 14 0"/>',
+  img:   '<rect x="3" y="5" width="18" height="14" rx="2.2"/><circle cx="8.5" cy="10" r="1.6"/><path d="m5 17 4.5-4.5 3.5 3L16 13l3 3"/>',
+  list:  '<path d="M4 6h2M9 6h11M4 12h2M9 12h11M4 18h2M9 18h11"/>',
+  edit:  '<path d="M4 20h4L19 9l-4-4L4 16Z"/><path d="M14 6l4 4"/>',
+  dollar:'<path d="M12 3v18"/><path d="M16.5 7.5c0-1.9-2-3-4.5-3s-4.5 1.1-4.5 3 2 2.8 4.5 3.3 4.5 1.4 4.5 3.3-2 3-4.5 3-4.5-1.1-4.5-3"/>',
+  out:   '<path d="M15 4h4v16h-4"/><path d="M10 8l-4 4 4 4"/><path d="M6 12h9"/>',
+  truck: '<path d="M3 7h11v9H3Z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
+  swap:  '<path d="M4 8h13l-3-3M20 16H7l3 3"/>',
+  map:   '<path d="m3 6 6-2 6 2 6-2v14l-6 2-6-2-6 2Z"/><path d="M9 4v14M15 6v14"/>',
 };
 
 /* ===========================================================================
    State
    =========================================================================== */
-const S = { tab: "home", view: null, ready: false, me: null, err: "", busy: false,
-            online: navigator.onLine, data: null };
+const S = {
+  tab: "home", stack: [], ready: false, me: null, email: "", err: "", busy: false,
+  online: navigator.onLine, data: null, loaded: false, lastEmail: "",
+  q: "", range: null, rkPeriod: "month", rkRows: null,
+};
+const BUILD = "2026-10-12";
 
-/* Shown on the settings screen. When a salesman reports a fault, the first
-   question is which build he is on, and a phone that has cached an old shell
-   gives a different answer from the one just deployed. */
-const BUILD = "2026-10-07";
+/* Everything the salesman may see, read once at sign-in. At this scale — a
+   dozen outlets, a few hundred documents — one round of queries is cheaper
+   than a query per screen, and every screen then opens instantly. A larger
+   book of business would want paging instead. */
+const DB = { products: [], customers: [], invoices: [], sos: [], dos: [], lines: {},
+             payments: [], consign: [], reqs: [], van: {}, returns: [] };
+
+const prodOf = id => DB.products.find(p => p.id === id) || { name: "—", sku: "" };
+const custOf = id => DB.customers.find(c => c.id === id) || null;
+const rcode  = c => c ? (c.reseller_code || c.code) : "";
+const soOf   = id => DB.sos.find(s => s.id === id) || null;
+const linesOf = id => DB.lines[id] || [];
+const TERM = { consign: "Konsainan", biltobil: "Bill To Bil", cash: "Tunai" };
+/* Our three invoice states, in his words and his colours. He also shows
+   "Pending Acc Approval", which is an approval step we have no workflow for —
+   it is in the report as an open question, not faked here. */
+const STAT = { paid: ["Paid", "paid"], partial: ["Separa Bayar", "part"], pending: ["Unpaid", "unpaid"] };
 
 /* ===========================================================================
-   Chrome — offline notice and the install prompt
+   Chrome — offline notice, install prompt, toasts
    =========================================================================== */
-let deferredInstall = null, installDismissed = false;
+let deferredInstall = null, installDismissed = false, toastT = null;
 try { installDismissed = localStorage.getItem("sa.install") === "no"; } catch (_) {}
 
 function chrome() {
@@ -257,19 +522,752 @@ function chrome() {
       <button class="no" data-a="noinstall" aria-label="Tutup">&times;</button></div>`;
   $("#chrome").innerHTML = h;
 }
-
+function toast(msg, kind) {
+  const el = document.createElement("div");
+  el.className = "toast " + (kind || "");
+  el.textContent = msg;
+  document.body.appendChild(el);
+  clearTimeout(toastT);
+  toastT = setTimeout(() => el.remove(), 3600);
+}
 addEventListener("online",  () => { S.online = true;  chrome(); });
 addEventListener("offline", () => { S.online = false; chrome(); });
 addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferredInstall = e; chrome(); });
 addEventListener("appinstalled", () => { deferredInstall = null; chrome(); });
 
 /* ===========================================================================
-   Screens
+   Navigation — a stack over the five tabs
    =========================================================================== */
-function vBoot() {
-  return `<div class="boot"><div style="text-align:center">
-    <div class="spin"></div>
-    <p style="margin-top:14px;font-size:14px;opacity:.9">Menyemak sesi…</p></div></div>`;
+/* Not `top` — that is `window.top`, and redeclaring it kills the whole script
+   with "Identifier 'top' has already been declared" before anything renders. */
+const cur = () => S.stack.length ? S.stack[S.stack.length - 1] : null;
+/* The search box and the date range belong to the screen, not to the session.
+   Each of his list screens carries its own picker, and a range chosen on Sales
+   History silently emptying D/O Lepas is the kind of fault nobody reports —
+   they just think there are no delivery orders. */
+function push(name, p) { S.stack.push(Object.assign({ name: name }, p || {}));
+                         S.q = ""; S.range = null; draw(); scrollTo(0, 0); }
+function pop()  { S.stack.pop(); S.q = ""; S.range = null; draw(); scrollTo(0, 0); }
+function root() { S.stack = []; S.tab = "home"; S.q = ""; S.range = null; draw(); scrollTo(0, 0); }
+
+const backBar = (withHome) => `<div class="bar">
+  <button class="back" data-a="pop">${ic(I.back)}<span>Kembali</span></button>
+  ${withHome ? `<button class="home" data-a="root">Halaman Utama</button>` : ""}
+</div>`;
+const title = t => `<div class="ttl"><h2>${esc(t)}</h2></div>`;
+
+const hdActs = () => `<div class="acts">
+  <button data-a="soon" data-t="Notifikasi" aria-label="Notifikasi">${ic(I.bell)}<i class="dot"></i></button>
+  <button data-a="settings" aria-label="Tetapan">${ic(I.gear)}</button>
+</div>`;
+
+/* The red band: month label, date-range picker, and a search box. Shared by
+   Sales History, D/O Lepas and List Hutang, which is how his app does it. */
+function band(opts) {
+  const r = S.range;
+  const mon = r ? `${MONS[r.from.getMonth()]}<br>${r.from.getFullYear()}`
+                : `${MONS[new Date().getMonth()]}<br>${new Date().getFullYear()}`;
+  return `<div class="band">
+    ${opts.dates === false ? "" : `<div class="mrow">
+      <div class="mon">${mon}</div>
+      <button class="cal" data-a="cal" aria-label="Pilih tarikh">${ic(I.cal)}</button>
+      <button class="range" data-a="cal">
+        <span class="${r ? "" : "ph"}">${r ? fLong(r.from) : "Dari"}</span><i></i>
+        <span class="${r ? "" : "ph"}">${r ? fLong(r.to) : "Hingga"}</span>
+      </button>
+    </div>`}
+    <div class="srch">${ic(I.search)}
+      <input id="q" type="search" placeholder="${esc(opts.ph)}" value="${esc(S.q)}"
+             autocapitalize="off" autocomplete="off" spellcheck="false">
+    </div>
+  </div>`;
+}
+
+const TABS = [["home","Home",I.home],["reseller","Reseller",I.shop],["stok","Stok",I.box],
+              ["gps","GPS",I.pin],["ranking","Ranking",I.star]];
+const tabBar = () => `<nav class="tabs">${TABS.map(([k,l,i]) =>
+  `<button data-a="tab" data-v="${k}" class="${S.tab===k && !S.stack.length ? "on" : ""}">${ic(i)}<span>${l}</span></button>`
+).join("")}</nav>`;
+
+/* ===========================================================================
+   Screens — tabs
+   =========================================================================== */
+function vHome() {
+  const d = S.data, me = S.me || {};
+  const today = fLong(new Date());
+  return `
+  <div class="hd">
+    <div class="salam">Salam sejahtera,</div>
+    <h1>${esc([me.code, me.name, me.zone].filter(Boolean).join(" ").toUpperCase() || "SALESMAN")}</h1>
+    ${hdActs()}
+  </div>
+  <div class="body">
+    <div style="padding:18px 0 0">
+      <div class="sec">${ic(I.clock)}<span>Harian</span></div>
+      <div class="g2">
+        <button class="quick" data-a="soon" data-t="Jadual Harian">
+          <b>Jadual Harian</b><div class="art">${ic(I.cal)}</div>
+          <span class="go">${ic(I.arrow)}</span></button>
+        <button class="quick" data-a="soon" data-t="Pendaftaran Reseller Baru">
+          <b>Pendaftaran Reseller Baru</b><div class="art">${ic(I.newshop)}</div>
+          <span class="go">${ic(I.arrow)}</span></button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px;padding:16px 14px">
+      <div class="sec" style="margin-bottom:14px">${ic(I.note)}<span>Kesimpulan</span>
+        <button class="more" data-a="go" data-v="kesimpulan">Lihat Lebih</button></div>
+      <div style="display:flex;gap:10px;font-size:13.5px;color:var(--mut);margin-bottom:12px">
+        <b style="color:var(--ink);font-weight:700">Tarikh :</b> ${today} - ${today}</div>
+      <div class="g3">
+        ${stat("Wang Terima", d ? RM(d.received) : "—", I.cash)}
+        ${stat("Qty Jualan",  d ? N(d.qty)      : "—", I.chart)}
+        ${stat("Stok Terkini", d ? N(d.stock)   : "—", I.box)}
+      </div>
+      ${d ? "" : `<p class="hint">Angka tidak dapat dimuatkan.
+        <button data-a="refresh" style="color:var(--red);font-weight:700">Cuba lagi</button></p>`}
+    </div>
+
+    <button class="rowbtn" data-a="go" data-v="sales">Invois Lama</button>
+    <button class="rowbtn" data-a="go" data-v="dolist">D/O Lama</button>
+    <button class="rowbtn" data-a="go" data-v="hutang">Hutang Lama</button>
+  </div>`;
+}
+const stat = (l, v, g) => `<div class="stat"><div class="art">${ic(g || I.box)}</div>
+  <div class="l">${esc(l)}</div><div class="v">${esc(v)}</div></div>`;
+
+function vReseller() {
+  const q = S.q.toLowerCase();
+  const rows = DB.customers.filter(c => !q ||
+    (c.name + " " + rcode(c) + " " + (c.app_name||"") + " " + (c.pic||"")).toLowerCase().includes(q));
+  return `
+  <div class="bar" style="padding-top:calc(var(--top) + 14px)">
+    <div class="ttl" style="padding:0;flex:1"><h2>Reseller</h2></div>
+    <button class="home" style="background:#fff;color:var(--red);border:1px solid var(--line)"
+      data-a="latest">View Latest Reseller ${ic(I.arrow)}</button>
+  </div>
+  <div style="padding:10px 16px 0;background:var(--bg)">
+    <div class="srch" style="border:1px solid var(--line)">${ic(I.search)}
+      <input id="q" type="search" placeholder="Search" value="${esc(S.q)}"
+             autocapitalize="off" autocomplete="off"></div>
+  </div>
+  <div class="body pad">
+    ${rows.length ? `<div class="list">${rows.map(c => `
+      <button class="rrow" data-a="cust" data-id="${c.id}">
+        <div class="t">
+          <div class="code">#${esc(rcode(c))}</div>
+          <div class="nm">${esc(c.name)}</div>
+          ${c.active === false ? `<span class="chip in">Reactivate Customer</span>` : ""}
+        </div>
+        <span class="chev">${ic(I.chev)}</span>
+      </button>`).join("")}</div>`
+      : `<div class="empty"><b>Tiada reseller</b><span>Tiada reseller sepadan dengan carian ini.</span></div>`}
+  </div>`;
+}
+
+function vStok() {
+  const rows = DB.products.map(p => [p, DB.van[p.id] || 0]);
+  const last = DB.reqs.filter(r => r.decided_at).sort((a,b) =>
+    new Date(b.decided_at) - new Date(a.decided_at))[0];
+  return `
+  <div class="bar" style="padding-top:calc(var(--top) + 14px)">
+    <div class="ttl" style="padding:0;flex:1"><h2>Stok</h2></div>
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+      <button class="home" style="background:#fff;color:var(--red);border:1px solid var(--line)"
+        data-a="go" data-v="stockreq">Stok Request ${ic(I.arrow)}</button>
+      <button class="home" style="background:#fff;color:var(--red);border:1px solid var(--line);margin:0"
+        data-a="go" data-v="reqhist">Sejarah Stok Request ${ic(I.arrow)}</button>
+    </div>
+  </div>
+  <div class="body pad">
+    <div class="block">
+      <h3>Stock Akhir Diubah</h3>
+      <div class="in" style="text-align:center;font-weight:600">
+        ${last ? esc(fDay(new Date(last.decided_at)).replace(/,/, ",")) : "Tiada rekod"}</div>
+    </div>
+    <div class="block">
+      <table class="t"><thead><tr><th>Nama Item</th><th class="r">Kuantiti</th></tr></thead>
+      <tbody>${rows.map(([p, q]) => `<tr>
+        <td class="pname">${esc(p.name)}</td><td class="r"><b>${N(q)}</b></td></tr>`).join("")}
+      </tbody></table>
+      <div class="tfoot"><div><span>Total</span><b>${N(rows.reduce((a,[,q])=>a+q,0))}</b></div></div>
+    </div>
+    <div class="sec" style="justify-content:center">Kesimpulan Tpp &amp; Rtn</div>
+    <div class="soon">
+      <div class="k">Perlu penjelasan</div>
+      <b>Tpp &amp; Rtn</b>
+      <span>Maksud “Tpp” belum disahkan, jadi ruangan ini tidak diisi dengan tekaan.
+        Ia ada dalam laporan sebagai soalan.</span>
+    </div>
+  </div>`;
+}
+
+function vGps() {
+  const me = S.me || {};
+  const withLoc = DB.customers.filter(c => c.lat && c.lng);
+  return `
+  <div class="bar" style="padding-top:calc(var(--top) + 14px)">
+    <div class="ttl" style="padding:0;flex:1"><h2>GPS</h2></div>
+    <button class="home" style="background:#fff;color:var(--red);border:1px solid var(--line)"
+      data-a="go" data-v="nearest">Nearest Reseller ${ic(I.arrow)}</button>
+  </div>
+  <div class="body pad">
+    <div class="block">
+      <h3>Lokasi Reseller</h3>
+      <div class="in">
+        <p style="margin:0 0 4px;font-size:13.5px;color:var(--mut)">
+          ${withLoc.length} daripada ${DB.customers.length} reseller mempunyai koordinat tersimpan.
+          Tekan <b>Nearest Reseller</b> untuk senarai mengikut jarak, dengan pautan Waze dan
+          Google Maps.</p>
+      </div>
+    </div>
+    <div class="soon">
+      <div class="k">Sedang dibina</div>
+      <b>Peta &amp; Rakaman Laluan</b>
+      <span>Peta penuh memerlukan kunci Google Maps, dan koordinat sekarang dikira dari daerah
+        (tepat lebih kurang 600m) bukan dari telefon. Kedua-duanya ada dalam laporan.</span>
+    </div>
+  </div>`;
+}
+
+function vRanking() {
+  const rows = S.rkRows;
+  const me = S.me || {};
+  const seg = [["month","This Month"],["last","Last Month"],["custom","Custom Ran..."]];
+  let inner;
+  if (!rows) inner = `<div style="padding:50px 0"><div class="spin"></div></div>`;
+  else if (!rows.length) inner = `<div class="empty" style="color:rgba(255,255,255,.85)">
+      <b style="color:#fff">Tiada jualan</b><span>Tiada jualan direkod dalam tempoh ini.</span></div>`;
+  else {
+    const top3 = rows.slice(0, 3), rest = rows.slice(3);
+    const pod = (r, pos) => r ? `<div class="pod ${pos===1?"first":""}">
+        <div class="medal">${pos===1?"🥇":pos===2?"🥈":"🥉"}</div>
+        <div class="pic">${esc((r.name||"?").trim().charAt(0).toUpperCase())}</div>
+        <div class="nm">${esc(r.code)} ${esc((r.name||"").toUpperCase())}</div>
+        <div class="amt">${RM(r.sales)}</div></div>` : `<div class="pod"></div>`;
+    inner = `<div class="podium">${pod(top3[1],2)}${pod(top3[0],1)}${pod(top3[2],3)}</div>
+      ${rest.map((r, i) => `<div class="rkrow ${r.salesman_id===me.id?"me":""}">
+        <span class="n">${i+4}</span>
+        <span class="t"><b>${esc(r.code)} ${esc(r.name)}</b><span>${esc(r.zone||"")}</span></span>
+        <span class="v">${RM(r.sales)}</span></div>`).join("")}`;
+  }
+  return `<div class="body" style="padding:0 16px 0"><div class="rk">
+    <div class="hd2">Ranking</div>
+    <div class="seg">${seg.map(([k,l]) =>
+      `<button data-a="rkp" data-v="${k}" class="${S.rkPeriod===k?"on":""}">${l}</button>`).join("")}</div>
+    <div class="allrow"><span>&lsaquo;</span><span>ALL</span><span>&rsaquo;</span></div>
+    ${inner}
+  </div></div>`;
+}
+
+/* ===========================================================================
+   Screens — history lists
+   =========================================================================== */
+function inRange(d) {
+  if (!S.range) return true;
+  const t = new Date(d);
+  return t >= S.range.from && t < new Date(S.range.to.getTime() + 864e5);
+}
+
+function vSales() {
+  const q = S.q.toLowerCase();
+  const rows = DB.invoices.filter(v => inRange(v.issued_at)).filter(v => {
+    const c = custOf(v.customer_id); if (!c) return false;
+    const so = soOf(v.so_id);
+    return !q || (c.name + " " + rcode(c) + " " + (c.ssm_name||"") + " " + (c.app_name||"") +
+      " " + (so ? so.doc_no : "") + " " + v.doc_no).toLowerCase().includes(q);
+  });
+  return backBar() + title("Sales History") + band({ ph: "Search by Invoice No./SSM Name/App Name/Rese..." }) +
+  `<div class="body pad">${rows.length ? `<div class="list">${rows.map(v => {
+      const c = custOf(v.customer_id), so = soOf(v.so_id);
+      const [lbl, cls] = STAT[v.status] || STAT.pending;
+      /* The sales list shows what the invoice was worth; the debt list shows
+         what is still owed. In his screenshots this column is ambiguous —
+         some settled rows read RM 0.00 and others a real figure — so the two
+         screens are given the reading each is actually for. */
+      return `<button class="row" data-a="order" data-id="${v.id}">
+        <div class="when">${esc(fDay(new Date(v.issued_at)))}</div>
+        <div class="main">
+          <span class="who"><span class="code">#${esc(rcode(c))}</span>
+            <span class="nm">${esc(c.name)}</span></span>
+          <span class="mid">Invois :<br>${esc(so ? so.doc_no : v.doc_no)}</span>
+          <span class="st ${cls}">${lbl}</span>
+          <span class="amt ${cls}">${RM(v.total)}</span>
+        </div></button>`;
+    }).join("")}</div>`
+    : `<div class="empty"><b>Tiada invois</b><span>Tiada invois dalam tempoh atau carian ini.</span></div>`}
+  </div>`;
+}
+
+function vDoList() {
+  const q = S.q.toLowerCase();
+  const rows = DB.dos.filter(d => inRange(d.issued_at)).filter(d => {
+    const c = custOf(d.customer_id); if (!c) return false;
+    return !q || (c.name + " " + rcode(c) + " " + (c.app_name||"")).toLowerCase().includes(q);
+  });
+  return backBar() + title("D/O Lepas") + band({ ph: "Search by App Name or Reseller Code" }) +
+  `<div class="body pad">${rows.length ? `<div class="list">${rows.map(d => {
+      const c = custOf(d.customer_id);
+      const qty = linesOf(d.id).reduce((a, l) => a + l.qty, 0);
+      return `<button class="row" data-a="dodet" data-id="${d.id}">
+        <div class="when">${esc(fStamp(new Date(d.issued_at)))}</div>
+        <div class="main">
+          <span class="who"><span class="code">#${esc(rcode(c))}</span>
+            <span class="nm">${esc(c.name)}</span></span>
+          <span class="mid">D/O No. :<br>${esc(d.doc_no)}</span>
+          <span class="qty">${N(qty)}</span>
+        </div></button>`;
+    }).join("")}</div>`
+    : `<div class="empty"><b>Tiada D/O</b><span>Konsainan sahaja yang menghasilkan D/O.</span></div>`}
+  </div>`;
+}
+
+function vHutang() {
+  const q = S.q.toLowerCase();
+  /* A chase list is every outstanding invoice, not a period — which is why
+     his List Hutang has a search box and no date filter. */
+  const rows = DB.invoices.filter(v => v.status !== "paid").filter(v => {
+    const c = custOf(v.customer_id); if (!c) return false;
+    return !q || (c.name + " " + rcode(c) + " " + (c.app_name||"")).toLowerCase().includes(q);
+  }).sort((a, b) => new Date(a.issued_at) - new Date(b.issued_at));
+  const owed = rows.reduce((a, v) => a + (Number(v.total) - Number(v.paid)), 0);
+  return backBar() + title("List Hutang") + band({ dates: false, ph: "Search by App Name or Reseller Code" }) +
+  `<div class="body pad">
+    <div class="card" style="margin-bottom:14px;display:flex;justify-content:space-between;
+      align-items:center"><b style="font-size:13.5px">Jumlah Hutang</b>
+      <b style="font-size:17px;color:var(--red)">${RM(owed)}</b></div>
+    ${rows.length ? `<div class="list">${rows.map(v => {
+      const c = custOf(v.customer_id), so = soOf(v.so_id);
+      const [lbl, cls] = STAT[v.status] || STAT.pending;
+      return `<button class="row" data-a="order" data-id="${v.id}">
+        <div class="when">${esc(fDay(new Date(v.issued_at)))}</div>
+        <div class="main">
+          <span class="who"><span class="code">#${esc(rcode(c))}</span>
+            <span class="nm">${esc(c.name)}</span></span>
+          <span class="mid">Invois :<br>${esc(so ? so.doc_no : v.doc_no)}</span>
+          <span class="st ${cls}">${lbl}</span>
+          <span class="amt ${cls}">${RM(Number(v.total) - Number(v.paid))}</span>
+        </div></button>`;
+    }).join("")}</div>`
+    : `<div class="empty"><b>Tiada hutang</b><span>Semua invois sudah dijelaskan.</span></div>`}
+  </div>`;
+}
+
+/* ===========================================================================
+   Screens — document detail
+   =========================================================================== */
+function vOrder(id) {
+  const v = DB.invoices.find(x => x.id === id);
+  if (!v) return backBar(true) + title("Maklumat Pesanan") +
+    `<div class="body pad"><div class="empty"><b>Tiada rekod</b></div></div>`;
+  const c = custOf(v.customer_id), so = soOf(v.so_id);
+  const lines = linesOf(v.so_id);
+  const [lbl, cls] = STAT[v.status] || STAT.pending;
+  const bal = Number(v.total) - Number(v.paid);
+  const qty = lines.reduce((a, l) => a + l.qty, 0);
+  const img = S.photos && S.photos[c.id];
+  return backBar(true) + title("Maklumat Pesanan") + `
+  <div class="body pad">
+    <div class="cust">
+      ${img ? `<img class="avatar" src="${esc(img)}" alt="">`
+            : `<div class="avatar ph">${ic(I.shop)}</div>`}
+      <div class="t"><span class="code">${esc(rcode(c))}</span>
+        <div class="nm">${esc(c.name)}</div>
+        <div class="ad">${esc([c.address, c.postcode, c.district, c.state].filter(Boolean).join(", "))}</div>
+      </div>
+    </div>
+
+    <div class="block"><h3>Order Info</h3><div class="in"><dl>
+      ${kv("Invois", esc(so ? so.doc_no : v.doc_no))}
+      ${kv("Status", `<b class="${cls}">${lbl}</b>`)}
+      ${kv("Syarikat", esc(c.ssm_name || c.name))}
+      ${kv("No Tel", esc(c.phone || "—"))}
+      ${kv("Alamat", esc([c.address, c.postcode, c.district, c.state].filter(Boolean).join(", ") || "—"))}
+      ${kv("Total Paid", `<b>${RM(v.paid)}</b>`)}
+      ${kv("Total Pending", `<b>${RM(0)}</b>`)}
+      ${kv("Total Amount", `<b>${RM(v.total)}</b>`)}
+      ${kv("Balance", `<b class="${bal > 0 ? "unpaid" : "paid"}">${RM(bal)}</b>`)}
+    </dl></div></div>
+
+    <div class="block"><h3>Sales Order &amp; Invois</h3><div class="in">
+      <button class="rowbtn o" style="margin-top:0" data-a="doc" data-id="${v.id}" data-k="so">Sales Order</button>
+      <button class="rowbtn o" data-a="soon" data-t="Keluar Invois Muktamad">Keluar Invois Muktamad</button>
+      <button class="rowbtn o" data-a="soon" data-t="Request Credit Note">Request Credit Note</button>
+    </div></div>
+
+    <div class="sec" style="font-size:15px">Pesanan Produk</div>
+    <div class="block">
+      <table class="t"><thead><tr>
+        <th>Produk</th><th class="r">Harga/Unit</th><th class="c">Kuantiti</th><th class="r">Harga</th>
+      </tr></thead><tbody>${lines.map(l => `<tr>
+        <td class="pname">${esc(prodOf(l.product_id).name)}</td>
+        <td class="r price">${RM(l.unit_price)}</td>
+        <td class="c">${N(l.qty)}</td>
+        <td class="r">${RM(l.qty * l.unit_price)}</td></tr>`).join("")}
+      </tbody></table>
+      <div class="tfoot">
+        <div><span>Total Kuantiti :</span><b>${N(qty)}</b></div>
+        <div><span>Total :</span><b>${RM(v.total)}</b></div>
+      </div>
+    </div>
+
+    ${bal > 0
+      ? `<button class="rowbtn g" data-a="pay" data-id="${v.id}">Buat Bayaran</button>`
+      : `<div class="ok" style="text-align:center;margin-top:12px">Invois ini sudah dijelaskan sepenuhnya.</div>`}
+
+    <button class="rowbtn o" data-a="doc" data-id="${v.id}" data-k="do">Cetak DO Lama</button>
+    <button class="rowbtn o" data-a="doc" data-id="${v.id}" data-k="so">Cetak Sales Order</button>
+    <button class="rowbtn o" data-a="doc" data-id="${v.id}" data-k="do">Lihat DO Lama</button>
+    <button class="rowbtn o" data-a="doc" data-id="${v.id}" data-k="so">Lihat Sales Order</button>
+    <button class="rowbtn o" data-a="soon" data-t="Jadual Harian">Jadual Harian</button>
+  </div>`;
+}
+const kv = (k, v) => `<div class="kv"><dt>${k}</dt><dd>${v}</dd></div>`;
+
+function vDoDet(id) {
+  const d = DB.dos.find(x => x.id === id);
+  if (!d) return backBar(true) + title("Consignment Order") +
+    `<div class="body pad"><div class="empty"><b>Tiada rekod</b></div></div>`;
+  const c = custOf(d.customer_id), lines = linesOf(d.id);
+  const cg = DB.consign.filter(g => g.do_id === d.id);
+  const img = S.photos && S.photos[c.id];
+  return backBar(true) + title("Consignment Order") + `
+  <div class="body pad">
+    <div class="cust">
+      ${img ? `<img class="avatar" src="${esc(img)}" alt="">`
+            : `<div class="avatar ph">${ic(I.img)}</div>`}
+      <div class="t"><span class="code">${esc(rcode(c))}</span>
+        <div class="nm">${esc(c.name)}</div></div>
+    </div>
+    <div class="sec" style="font-size:15px">Order Cart</div>
+    <div class="block">
+      <table class="t"><thead><tr>
+        <th>Produk</th><th class="r">Harga/Unit</th><th class="c">Kuantiti</th>
+      </tr></thead><tbody>${lines.map(l => `<tr>
+        <td class="pname">${esc(prodOf(l.product_id).name)}</td>
+        <td class="r price">${RM(l.unit_price)}</td>
+        <td class="c">${N(l.qty)}</td></tr>`).join("")}
+      </tbody></table>
+      <div class="in" style="padding-top:0">
+        <button class="rowbtn" data-a="soon" data-t="Jadual Harian">Jadual Harian</button>
+      </div>
+    </div>
+    ${cg.length ? `<div class="block"><h3>Baki Stok</h3>
+      <table class="t"><thead><tr><th>Produk</th><th class="c">Hantar</th>
+        <th class="c">Baki</th><th class="c">Terjual</th></tr></thead>
+      <tbody>${cg.map(g => `<tr>
+        <td class="pname">${esc(prodOf(g.product_id).name)}</td>
+        <td class="c">${N(g.qty_sent)}</td>
+        <td class="c">${g.checked_at ? N(g.balance) : "—"}</td>
+        <td class="c"><b>${g.checked_at ? N(g.qty_sold) : "Belum dikira"}</b></td></tr>`).join("")}
+      </tbody></table></div>` : ""}
+    <div class="g2" style="margin-top:12px">
+      <button class="rowbtn o" style="margin:0" data-a="doc" data-id="${d.id}" data-k="dodoc">Cetak DO Terbaru</button>
+      <button class="rowbtn o" style="margin:0" data-a="doc" data-id="${d.id}" data-k="dodoc">Lihat DO Terbaru</button>
+    </div>
+  </div>`;
+}
+
+/* ===========================================================================
+   Screens — Kesimpulan
+   =========================================================================== */
+function vKesimpulan() {
+  const r = S.range || { from: dOnly(new Date(Date.now() - 29 * 864e5)), to: dOnly(new Date()) };
+  const inR = d => { const t = new Date(d); return t >= r.from && t < new Date(r.to.getTime() + 864e5); };
+  const pays = DB.payments.filter(p => inR(p.paid_at));
+  const sum = m => pays.filter(p => (p.method || "").toLowerCase() === m)
+    .reduce((a, p) => a + Number(p.amount), 0);
+  const total = pays.reduce((a, p) => a + Number(p.amount), 0);
+  const hutang = DB.invoices.filter(v => v.status !== "paid")
+    .reduce((a, v) => a + Number(v.total) - Number(v.paid), 0);
+  const sos = DB.sos.filter(s => inR(s.issued_at));
+  const soldBy = {};
+  sos.forEach(s => linesOf(s.id).forEach(l => { soldBy[l.product_id] = (soldBy[l.product_id]||0) + l.qty; }));
+  const soldTotal = Object.values(soldBy).reduce((a, n) => a + n, 0);
+  const newR = DB.customers.filter(c => c.registered_at && inR(c.registered_at)).length;
+  const gone = DB.customers.filter(c => c.active === false).length;
+  const vanTotal = DB.products.reduce((a, p) => a + (DB.van[p.id] || 0), 0);
+
+  return backBar() + title("Kesimpulan") + `
+  <div class="band"><div class="mrow">
+    <div class="cal">${ic(I.cal)}</div>
+    <div class="mon" style="max-width:none;font-size:15px">Tarikh</div>
+  </div>
+  <button class="range" data-a="cal">
+    <span>${fLong(r.from)}</span><i></i><span>${fLong(r.to)}</span>
+  </button></div>
+  <div class="body pad">
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        <div style="width:58px;flex:none;color:var(--red);opacity:.85">${ic(I.cash)}</div>
+        <div style="flex:1;min-width:0">
+          <b style="font-size:15px">Wang Terima</b>
+          <dl style="margin-top:8px;font-size:13.5px">
+            ${li("Total", RM(total))}${li("Cash", RM(sum("tunai")))}
+            ${li("Qr_code", RM(sum("qr")))}${li("Pindahan Bank", RM(sum("pindahan")))}
+            ${li("Cek", RM(sum("cek")))}${li("Hutang", RM(hutang))}
+            ${li("S/O Issued", N(sos.length))}${li("New Reseller", N(newR))}
+            ${li("Reseller Removed", N(gone))}
+          </dl></div></div></div>
+
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        <div style="width:58px;flex:none;color:var(--red);opacity:.85">${ic(I.chart)}</div>
+        <div style="flex:1;min-width:0">
+          <b style="font-size:15px">Qty Jualan</b>
+          <dl style="margin-top:8px;font-size:13.5px">${li("Total", N(soldTotal))}
+            ${DB.products.filter(p => soldBy[p.id]).map(p => li(p.name, N(soldBy[p.id]))).join("")}
+          </dl></div></div></div>
+
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        <div style="width:58px;flex:none;color:var(--red);opacity:.85">${ic(I.truck)}</div>
+        <div style="flex:1;min-width:0">
+          <b style="font-size:15px">Stok Terkini</b>
+          <dl style="margin-top:8px;font-size:13.5px">${li("Total", N(vanTotal))}
+            ${DB.products.map(p => li(p.name, N(DB.van[p.id] || 0))).join("")}
+          </dl></div></div></div>
+
+    <div class="sec" style="justify-content:center">Kesimpulan Tpp &amp; Rtn</div>
+    <div class="block"><table class="t">
+      <thead><tr><th>Produk</th><th class="c">Tpp</th><th class="c">Rtn</th></tr></thead>
+      <tbody><tr><td class="pname">Total</td><td class="c">—</td>
+        <td class="c">${N(DB.returns.filter(x => inR(x.issued_at)).reduce((a,x)=>a+x.qty,0))}</td></tr>
+      </tbody></table></div>
+    <p class="hint">“Rtn” diambil sebagai Pulangan. “Tpp” belum disahkan maksudnya.</p>
+  </div>`;
+}
+const li = (k, v) => `<div style="display:flex;gap:8px;padding:2px 0">
+  <span style="color:var(--mut)">${esc(k)} :</span><b>${esc(v)}</b></div>`;
+
+/* ===========================================================================
+   Screens — customer profile
+   =========================================================================== */
+function vCust(id, sub) {
+  const c = custOf(id);
+  if (!c) return backBar(true) + `<div class="body pad"><div class="empty"><b>Tiada rekod</b></div></div>`;
+  const img = S.photos && S.photos[c.id];
+  const tabs = [["general","General"],["invois","Sejarah Invois"],["galeri","Galeri"],["kerja","Kerja Harian"]];
+  let inner;
+  if (sub === "invois")      inner = custInvois(c);
+  else if (sub === "galeri") inner = custGaleri(c);
+  else if (sub === "kerja")  inner = custKerja(c);
+  else                       inner = custGeneral(c);
+  return backBar(true) +
+  `<div class="ptabs">${tabs.map(([k, l]) =>
+    `<button data-a="csub" data-v="${k}" class="${(sub||"general")===k?"on":""}">${l}</button>`).join("")}</div>
+  ${img ? `<img class="photo" src="${esc(img)}" alt="">` : `<div class="ph-ph">${ic(I.img)}</div>`}
+  <div class="body" style="padding-top:0">${inner}</div>`;
+}
+
+function custGeneral(c) {
+  const stock = {};
+  DB.consign.filter(g => g.customer_id === c.id && !g.checked_at)
+    .forEach(g => { stock[g.product_id] = (stock[g.product_id] || 0) + g.qty_sent; });
+  const stockRows = Object.keys(stock);
+  const months = c.service_days ? Math.max(1, Math.round(c.service_days / 30)) : 1;
+  return `<div class="pcard">
+    <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:6px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:19px;font-weight:800;letter-spacing:-.02em;line-height:1.2">
+          ${esc(rcode(c))}<br>${esc(c.name)}</div>
+        <div style="font-size:12.5px;color:var(--dim);margin-top:4px">${esc(c.app_name || c.ssm_name || c.name)}</div>
+      </div>
+      <span class="term">${esc(TERM[c.term] || c.term)} ${ic(I.swap)}</span>
+    </div>
+
+    <div class="prow"><span class="ic">${ic(I.user)}</span><span class="lb">Contact</span>
+      <span class="vl">${esc(c.phone || "—")}${c.pic ? ` (${esc(c.pic)})` : ""}</span></div>
+    <div class="prow" style="padding-top:0"><span class="ic"></span><span class="lb"></span>
+      <span class="vl"></span><span class="ac">
+      <button class="sbtn" data-a="call" data-id="${c.id}">${ic(I.phone)} Call</button></span></div>
+
+    <div class="prow"><span class="ic">${ic(I.pin)}</span><span class="lb">Alamat</span>
+      <span class="vl">${esc([c.address, c.postcode, c.district, c.state].filter(Boolean).join(", ") || "—")}</span></div>
+    <div class="prow" style="padding-top:0"><span class="ic"></span><span class="lb"></span>
+      <span class="vl"></span><span class="ac">
+      <button class="sbtn" data-a="loc" data-id="${c.id}">${ic(I.pin)} Location</button></span></div>
+
+    <div class="prow"><span class="ic">${ic(I.box)}</span><span class="lb">Stok</span>
+      <span class="vl">${stockRows.length
+        ? stockRows.map(k => `${esc(prodOf(k).name)}: ${N(stock[k])}`).join("<br>") +
+          `<br><b>Total: ${N(Object.values(stock).reduce((a,n)=>a+n,0))}</b>`
+        : (c.term === "consign" ? "Tiada stok konsainan terbuka" : "Bukan konsainan")}</span></div>
+
+    <div class="prow"><span class="ic">${ic(I.list)}</span><span class="lb">Service Month</span>
+      <span class="vl">${months}</span>
+      <span class="ac"><button class="sbtn" data-a="soon" data-t="Edit Service Month">${ic(I.edit)} Edit</button></span></div>
+
+    <div class="prow"><span class="ic">${ic(I.dollar)}</span><span class="lb">Tukar Harga</span>
+      <span class="vl"></span>
+      <span class="ac"><button class="sbtn" data-a="soon" data-t="Mohon Tukar Harga">Mohon</button></span></div>
+
+    <button class="rowbtn o" data-a="soon" data-t="Blacklist Reseller">Blacklist Reseller</button>
+    <button class="rowbtn o" data-a="soon" data-t="Set VIP">Set VIP</button>
+    <button class="rowbtn g" data-a="soon" data-t="Enable TIN QR">Enable TIN QR</button>
+    <p class="hint">Blacklist, Set VIP, Tukar Harga dan TIN QR memerlukan kelulusan pejabat
+      dan belum dibina. Semuanya ada dalam laporan.</p>
+  </div>`;
+}
+
+function custInvois(c) {
+  const rows = DB.invoices.filter(v => v.customer_id === c.id)
+    .sort((a, b) => new Date(b.issued_at) - new Date(a.issued_at));
+  return `<div class="pcard">
+    ${rows.length ? `<div class="list" style="box-shadow:none">${rows.map(v => {
+      const so = soOf(v.so_id); const [lbl, cls] = STAT[v.status] || STAT.pending;
+      return `<button class="row" data-a="order" data-id="${v.id}">
+        <div class="when">${esc(fDay(new Date(v.issued_at)))}</div>
+        <div class="main">
+          <span class="who"><span class="code">#${esc(rcode(c))}</span>
+            <span class="nm">${esc(c.name)}</span></span>
+          <span class="mid">Invois :<br>${esc(so ? so.doc_no : v.doc_no)}</span>
+          <span class="st ${cls}">${lbl}</span>
+          <span class="amt ${cls}">${RM(Number(v.total) - Number(v.paid))}</span>
+        </div></button>`; }).join("")}</div>`
+    : `<div class="empty"><b>Tiada invois</b><span>Reseller ini belum mempunyai invois.</span></div>`}
+  </div>`;
+}
+
+const GAL = [["depan","Gambar Depan Kedai"],["produk","Gambar Produk"],["penjaga","Gambar Penjaga"],
+             ["ssm","SSM"],["konsainan","Borang Konsainan"]];
+function custGaleri(c) {
+  const files = (S.gal && S.gal[c.id]) || null;
+  if (files === null) return `<div class="pcard"><div style="padding:30px 0">
+    <div class="spin dark"></div></div></div>`;
+  return `<div class="pcard" style="padding:14px 10px">
+    ${GAL.map(([k, lbl]) => {
+      const f = files.filter(x => (x.kind || "").toLowerCase().includes(k));
+      return `<div class="gal"><h4>${lbl}</h4><div class="in">
+        ${f.length ? f.map(x => `<img src="${esc(x.url)}" alt="${lbl}">`).join(" ")
+                   : `<div class="none">Tiada gambar.</div>`}
+        ${k === "konsainan" ? `<div class="acts">
+          <button class="rowbtn o" style="margin:0" data-a="soon" data-t="Preview Borang">Preview</button>
+          <button class="rowbtn o" style="margin:0" data-a="soon" data-t="Cetak Borang">Cetak</button>
+        </div>` : ""}
+      </div></div>`; }).join("")}
+    <button class="rowbtn" disabled>Save</button>
+  </div>`;
+}
+
+function custKerja(c) {
+  return `<div class="pcard">
+    <div class="cust" style="margin-bottom:12px">
+      <div class="t"><span class="code">${esc(rcode(c))}</span>
+        <div class="nm">${esc(c.name)}</div>
+        <div class="ad">${esc([c.address, c.postcode, c.district, c.state].filter(Boolean).join(", "))}</div>
+      </div></div>
+    <div class="empty"><b>Tiada Kerja Harian Lama...</b>
+      <span>Rekod kerja harian per reseller belum dibina. Spesifikasi asal tidak mahu
+        penjejakan lawatan, jadi ini soalan terbuka dalam laporan.</span></div>
+  </div>`;
+}
+
+/* ===========================================================================
+   Screens — stock
+   =========================================================================== */
+function vStockReq() {
+  const last = DB.reqs.filter(r => r.decided_at).sort((a,b) =>
+    new Date(b.decided_at) - new Date(a.decided_at))[0];
+  return backBar() + title("Stock Request") + `
+  <div class="body pad">
+    <div class="block"><h3>Stock Akhir Diubah</h3>
+      <div class="in" style="text-align:center;font-weight:600">
+        ${last ? esc(fDay(new Date(last.decided_at))) : "Tiada rekod"}</div></div>
+    <div class="f"><label for="sr_who">Nama / Alamat / Tel-No</label>
+      <textarea id="sr_who" placeholder="Nama / Alamat / Tel-No"></textarea></div>
+    <div class="f"><label for="sr_doc">SO / DO No.</label>
+      <input id="sr_doc" placeholder="SO / DO No."></div>
+    <div class="f"><label for="sr_ref">Order Ref No.</label>
+      <input id="sr_ref" placeholder="Order Ref No."></div>
+    <div class="f"><label for="sr_rm">Remarks</label>
+      <input id="sr_rm" placeholder="Remarks"></div>
+    <div class="block">
+      <table class="t"><thead><tr><th>Nama Item</th><th class="c">Dalam Van</th>
+        <th class="c">Kuantiti</th></tr></thead>
+      <tbody>${DB.products.map(p => `<tr>
+        <td class="pname">${esc(p.name)}<div style="font-size:11.5px;color:var(--dim);
+          font-weight:400">${esc(p.sku)}</div></td>
+        <td class="c">${N(DB.van[p.id] || 0)}</td>
+        <td class="c"><input class="qin" type="number" min="0" inputmode="numeric"
+          data-p="${p.id}" placeholder="0"></td></tr>`).join("")}
+      </tbody></table>
+    </div>
+    <p class="hint">Reka bentuk asal ada tiga ruangan kuantiti (Pt. / Hc. / Tst) dan pilihan
+      <b>Edit Flavour</b> bagi setiap produk. Maksud ketiga-tiga ruangan itu belum disahkan,
+      dan pangkalan data belum ada dimensi perisa — kedua-duanya ada dalam laporan.</p>
+    <button class="rowbtn b" data-a="dorequest">Request</button>
+  </div>`;
+}
+
+function vReqHist() {
+  const rows = DB.reqs.slice().sort((a, b) => new Date(b.requested_at) - new Date(a.requested_at));
+  const ST = { issued: ["Approved", "paid"], pending: ["Pending", "part"], rejected: ["Rejected", "unpaid"] };
+  return backBar() + title("Sejarah Request Stok") + `
+  <div class="body pad">${rows.length ? `<div class="list">${rows.map(r => {
+      const [lbl, cls] = ST[r.status] || ST.pending;
+      /* No "Request No." is shown, because there isn't one. Inventing a
+         reference a salesman could not quote back to the warehouse would be
+         worse than leaving it out. */
+      return `<div class="row">
+        <div class="when">${esc(fDay(new Date(r.requested_at)))}</div>
+        <div class="main">
+          <span class="who"><span class="nm">${esc(prodOf(r.product_id).name)}</span>
+            <span class="code" style="font-weight:600">${esc(prodOf(r.product_id).sku)}</span></span>
+          <span class="qty">${N(r.qty)}</span>
+          <span class="st ${cls}">${lbl}</span>
+        </div></div>`; }).join("")}</div>`
+    : `<div class="empty"><b>Tiada request</b><span>Belum ada permintaan stok direkod.</span></div>`}
+    <p class="hint">Reka bentuk asal memberi setiap request satu nombor berjalan
+      (contoh <b>RS014199</b>) dan satu request merangkumi banyak produk. Sistem sekarang
+      merekod satu baris bagi setiap produk tanpa nombor berjalan. Ada dalam laporan.</p>
+  </div>`;
+}
+
+function vNearest() {
+  const me = S.here;
+  const rows = DB.customers.filter(c => c.lat && c.lng).map(c => {
+    let d = null;
+    if (me) {
+      const R = 6371, t = x => x * Math.PI / 180;
+      const dLat = t(c.lat - me.lat), dLng = t(c.lng - me.lng);
+      const a = Math.sin(dLat/2) ** 2 + Math.cos(t(me.lat)) * Math.cos(t(c.lat)) * Math.sin(dLng/2) ** 2;
+      d = 2 * R * Math.asin(Math.sqrt(a));
+    }
+    return { c: c, d: d };
+  }).sort((a, b) => (a.d == null ? 1 : b.d == null ? -1 : a.d - b.d));
+  return backBar() + title("Nearest Reseller") + `
+  <div class="body pad">
+    ${me ? "" : `<div class="card" style="margin-bottom:14px">
+      <button class="rowbtn" style="margin:0" data-a="here">Guna lokasi saya</button>
+      <p class="hint" style="margin-top:10px">Tanpa lokasi, senarai di bawah tidak diisih
+        mengikut jarak.</p></div>`}
+    ${rows.length ? `<div class="list">${rows.map(({ c, d }) => `
+      <div class="rrow">
+        <div class="t"><div class="code">#${esc(rcode(c))}</div>
+          <div class="nm">${esc(c.name)}</div>
+          <div style="font-size:12px;color:var(--dim);margin-top:2px">
+            ${esc(c.district || "")}${d != null ? ` · ${d.toFixed(1)} km` : ""}</div></div>
+        <button class="sbtn" data-a="loc" data-id="${c.id}">${ic(I.pin)}</button>
+      </div>`).join("")}</div>`
+      : `<div class="empty"><b>Tiada koordinat</b></div>`}
+  </div>`;
+}
+
+function vSettings() {
+  const me = S.me || {};
+  return backBar() + title("Tetapan") + `
+  <div class="body pad">
+    <div class="card">
+      <div style="font-size:13px;color:var(--mut)">Log masuk sebagai</div>
+      <b style="display:block;font-size:16px;margin-top:3px">${esc(me.name || "—")}</b>
+      <div style="font-size:13px;color:var(--mut)">${esc(me.code || "")}${me.zone ? " · " + esc(me.zone) : ""}</div>
+      <div style="font-size:13px;color:var(--mut);margin-top:2px">${esc(S.email || "")}</div>
+    </div>
+    <button class="rowbtn o" data-a="reload">Muat semula data</button>
+    <button class="rowbtn o" data-a="signout">Log keluar</button>
+    <p class="hint" style="margin-top:22px">Salesman App · bina ${esc(BUILD)}</p>
+  </div>`;
 }
 
 function vLogin() {
@@ -283,7 +1281,7 @@ function vLogin() {
       ${S.err ? `<div class="err">${esc(S.err)}</div>` : ""}
       <div class="f"><label for="em">E-mel</label>
         <input id="em" type="email" inputmode="email" autocomplete="username"
-               autocapitalize="off" spellcheck="false" value="${esc(S.lastEmail || "")}"
+               autocapitalize="off" spellcheck="false" value="${esc(S.lastEmail)}"
                placeholder="nama@syarikat.com"></div>
       <div class="f"><label for="pw">Kata laluan</label>
         <input id="pw" type="password" autocomplete="current-password" placeholder="••••••••"></div>
@@ -292,178 +1290,273 @@ function vLogin() {
   </div>`;
 }
 
-/* The bell and the gear sit on every tab's header, not only Home. The gear is
-   the only route to sign out, and a salesman who happens to be on the Stok tab
-   must not have to hunt for the way out. */
-const hdActs = () => `<div class="acts">
-  <button data-a="soon" data-t="Notifikasi" aria-label="Notifikasi">${ic(I.bell)}<i class="dot"></i></button>
-  <button data-a="settings" aria-label="Tetapan">${ic(I.gear)}</button>
-</div>`;
-
-/* Home — built to the client's own layout: greeting, Harian, Kesimpulan, then
-   the three history buttons. */
-function vHome() {
-  const d = S.data;
-  const me = S.me || {};
-  const today = fd(new Date());
-  return `
-  <div class="hd">
-    <div class="salam">Salam sejahtera,</div>
-    <h1>${esc([me.code, me.name, me.zone].filter(Boolean).join(" ").toUpperCase() || "SALESMAN")}</h1>
-    ${hdActs()}
-  </div>
-
-  <div class="body">
-    <div style="padding:18px 0 0">
-      <div class="sec" style="color:var(--red)">${ic(I.clock)}<span>Harian</span></div>
-      <div class="g2">
-        <button class="quick" data-a="soon" data-t="Jadual Harian">
-          <b>Jadual Harian</b>
-          <div class="art">${ic(I.cal)}</div><span class="go">${ic(I.arrow)}</span></button>
-        <button class="quick" data-a="soon" data-t="Pendaftaran Reseller Baru">
-          <b>Pendaftaran Reseller Baru</b>
-          <div class="art">${ic(I.newshop)}</div><span class="go">${ic(I.arrow)}</span></button>
-      </div>
-    </div>
-
-    <div class="card" style="margin-top:18px;padding:16px 14px">
-      <div class="sec" style="margin-bottom:14px">${ic(I.note)}<span>Kesimpulan</span>
-        <button class="more" data-a="soon" data-t="Kesimpulan penuh">Lihat Lebih</button></div>
-      <div class="range"><b style="color:var(--ink);font-weight:700">Tarikh :</b> ${today} - ${today}</div>
-      <div class="g3">
-        ${stat("Wang Terima", d ? RM(d.received) : "—", I.cash)}
-        ${stat("Qty Jualan", d ? String(d.qty) : "—", I.chart)}
-        ${stat("Stok Terkini", d ? String(d.stock) : "—", I.box)}
-      </div>
-      ${d ? "" : `<p style="margin:12px 0 0;font-size:12.5px;color:var(--mut);text-align:center">
-        Angka tidak dapat dimuatkan. <button data-a="refresh" style="color:var(--red);font-weight:700">Cuba lagi</button></p>`}
-    </div>
-
-    <button class="rowbtn" data-a="soon" data-t="Invois Lama">Invois Lama</button>
-    <button class="rowbtn" data-a="soon" data-t="D/O Lama">D/O Lama</button>
-    <button class="rowbtn" data-a="soon" data-t="Hutang Lama">Hutang Lama</button>
-  </div>`;
-}
-const stat = (l, v, glyph) => `<div class="stat"><div class="art">${ic(glyph || I.box)}</div>
-  <div class="l">${esc(l)}</div><div class="v">${esc(v)}</div></div>`;
-
-/* The four tabs still to be built. Named honestly rather than left blank, with
-   what each will hold, so the shell can be shown without implying more than is
-   there. */
-const SOON = {
-  reseller: ["Reseller", ["Senarai reseller dengan carian", "Profil reseller dan sejarah",
-    "Pendaftaran reseller baru — borang, gambar, order pertama"]],
-  stok:     ["Stok", ["Stok dalam van mengikut produk", "Request stok dari warehouse",
-    "Stok yang rendah"]],
-  gps:      ["GPS", ["Lokasi reseller atas peta", "Navigasi ke kedai",
-    "Lokasi ditangkap semasa pendaftaran"]],
-  ranking:  ["Ranking", ["Kedudukan salesman", "Hari ini, minggu, bulan, tahun",
-    "Jualan dan kutipan setiap orang"]],
-};
-function vSoon(key) {
-  const [name, bullets] = SOON[key] || [key, []];
-  return `
-  <div class="hd sm"><div class="salam">Salesman App</div><h1>${esc(name)}</h1>${hdActs()}</div>
-  <div class="body"><div style="padding:22px 0">
-    <div class="soon">
-      <div class="k">Sedang dibina</div>
-      <b>${esc(name)}</b>
-      <span>Rangka app sudah siap. Skrin ini akan diisi mengikut reka bentuk asal.</span>
-      <ul>${bullets.map(b => `<li>${esc(b)}</li>`).join("")}</ul>
-    </div>
-  </div></div>`;
-}
-
-function vSettings() {
-  const me = S.me || {};
-  return `
-  <div class="bar"><button class="back" data-a="closeview">${ic(I.back)}<span>Kembali</span></button></div>
-  <div class="ttl"><h2>Tetapan</h2></div>
-  <div class="body">
-    <div class="card" style="margin-top:8px">
-      <div style="font-size:13px;color:var(--mut)">Log masuk sebagai</div>
-      <b style="display:block;font-size:16px;margin-top:3px">${esc(me.name || "—")}</b>
-      <div style="font-size:13px;color:var(--mut)">${esc(me.code || "")}${me.zone ? " · " + esc(me.zone) : ""}</div>
-      <div style="font-size:13px;color:var(--mut);margin-top:2px">${esc(S.email || "")}</div>
-    </div>
-    <button class="rowbtn o" data-a="signout">Log keluar</button>
-    <p style="text-align:center;color:var(--dim);font-size:12px;margin-top:22px">
-      Salesman App · bina ${esc(BUILD)}</p>
-  </div>`;
-}
-
-const TABS = [["home", "Home", I.home], ["reseller", "Reseller", I.shop],
-              ["stok", "Stok", I.box], ["gps", "GPS", I.pin], ["ranking", "Ranking", I.chart]];
-const tabBar = () => `<nav class="tabs">${TABS.map(([k, l, i]) =>
-  `<button data-a="tab" data-v="${k}" class="${S.tab === k && !S.view ? "on" : ""}">${ic(i)}<span>${l}</span></button>`
-).join("")}</nav>`;
-
-function render() {
+/* ===========================================================================
+   Render
+   =========================================================================== */
+function draw() {
   let h;
-  if (!sb)            h = vLogin();
-  else if (!S.ready)  h = vBoot();
-  else if (!S.me)     h = vLogin();
-  else if (S.view === "settings") h = vSettings() + tabBar();
-  else if (S.tab === "home")      h = vHome() + tabBar();
-  else                            h = vSoon(S.tab) + tabBar();
+  if (!sb)           h = vLogin();
+  else if (!S.ready) h = `<div class="boot"><div style="text-align:center"><div class="spin"></div>
+      <p style="margin-top:14px;font-size:14px;opacity:.9">Menyemak sesi…</p></div></div>`;
+  else if (!S.me)    h = vLogin();
+  else if (!S.loaded) h = `<div class="boot"><div style="text-align:center"><div class="spin"></div>
+      <p style="margin-top:14px;font-size:14px;opacity:.9">Memuatkan data…</p></div></div>`;
+  else {
+    const t = cur();
+    let v;
+    if (!t) v = S.tab === "home" ? vHome() : S.tab === "reseller" ? vReseller()
+            : S.tab === "stok" ? vStok() : S.tab === "gps" ? vGps() : vRanking();
+    else if (t.name === "sales")     v = vSales();
+    else if (t.name === "dolist")    v = vDoList();
+    else if (t.name === "hutang")    v = vHutang();
+    else if (t.name === "kesimpulan")v = vKesimpulan();
+    else if (t.name === "order")     v = vOrder(t.id);
+    else if (t.name === "dodet")     v = vDoDet(t.id);
+    else if (t.name === "cust")      v = vCust(t.id, t.sub);
+    else if (t.name === "stockreq")  v = vStockReq();
+    else if (t.name === "reqhist")   v = vReqHist();
+    else if (t.name === "nearest")   v = vNearest();
+    else if (t.name === "settings")  v = vSettings();
+    else v = `<div class="body pad"><div class="empty"><b>Tiada skrin</b></div></div>`;
+    h = v + tabBar();
+  }
   $("#app").innerHTML = h;
+  document.body.dataset.rk = (!cur() && S.tab === "ranking" && S.me && S.loaded) ? "1" : "";
   chrome();
+  const q = $("#q"); if (q) { q.oninput = e => { S.q = e.target.value; redrawBody(); }; }
   if (!S.me && !S.busy) { const e = $("#em"); if (e) (e.value ? $("#pw") : e).focus(); }
+}
+/* Typing in a search box must not steal focus by re-rendering the input, so
+   the list is redrawn without touching the field. */
+function redrawBody() {
+  const q = $("#q"), pos = q ? q.selectionStart : 0, val = q ? q.value : "";
+  draw();
+  const n = $("#q");
+  if (n) { n.value = val; n.focus(); try { n.setSelectionRange(pos, pos); } catch (_) {} }
 }
 
 /* ===========================================================================
    Actions
    =========================================================================== */
 const A = {
-  tab(el) { S.tab = el.dataset.v; S.view = null; render(); scrollTo(0, 0); },
-  /* Re-reads identity as well as the figures: a phone that opened from the
-     cached profile has never seen the live one. */
-  async refresh() { await loadMe(); render(); },
-  settings() { S.view = "settings"; render(); scrollTo(0, 0); },
-  /* Back out of a full-screen view to whichever tab it was opened from. */
-  closeview() { S.view = null; render(); scrollTo(0, 0); },
-  soon(el) {
-    const n = el.dataset.t || "Skrin ini";
-    alertBox(n, "Bahagian ini belum dibina. Rangka app sudah siap dan skrin akan diisi mengikut reka bentuk asal.");
+  tab(el) { S.tab = el.dataset.v; S.stack = []; S.q = ""; draw(); scrollTo(0, 0);
+            if (S.tab === "ranking" && !S.rkRows) loadRanking(); },
+  go(el)  { push(el.dataset.v); },
+  pop, root,
+  settings() { push("settings"); },
+  order(el)  { push("order", { id: el.dataset.id }); },
+  dodet(el)  { push("dodet", { id: el.dataset.id }); },
+  cust(el)   { push("cust", { id: el.dataset.id, sub: "general" }); },
+  csub(el)   { const t = cur(); if (!t) return; t.sub = el.dataset.v; draw(); scrollTo(0, 0);
+               if (el.dataset.v === "galeri") loadGaleri(t.id); },
+  latest()   { const c = DB.customers.slice().sort((a, b) =>
+                 new Date(b.registered_at || 0) - new Date(a.registered_at || 0))[0];
+               if (c) push("cust", { id: c.id, sub: "general" }); },
+  rkp(el)    { S.rkPeriod = el.dataset.v;
+               if (el.dataset.v === "custom") return openCal(r => { S.range = r; loadRanking(); });
+               S.rkRows = null; draw(); loadRanking(); },
+  soon(el)   { sheetInfo(el.dataset.t || "Skrin ini",
+                 "Bahagian ini belum dibina. Ia dalam laporan sebagai kerja fasa kedua."); },
+  cal()      { openCal(r => { S.range = r; draw(); }); },
+  doc(el)    { sheetInfo("Dokumen",
+                 "PDF, WhatsApp dan cetak 58mm/80mm sudah siap di portal web dan akan " +
+                 "dipindahkan ke app ini. Belum disambung pada skrin ini."); },
+  call(el)   { const c = custOf(el.dataset.id); if (!c) return;
+               const n = (c.whatsapp || c.phone || "").replace(/[^0-9]/g, "");
+               if (!n) return toast("Tiada nombor telefon direkod.", "bad");
+               sheet([["Dialer", I.phone, "tel:" + n],
+                      ["Whatsapp", I.wa, "https://wa.me/" + (n.startsWith("60") ? n : "6" + n)]]); },
+  loc(el)    { const c = custOf(el.dataset.id); if (!c) return;
+               if (!c.lat || !c.lng) return toast("Tiada koordinat direkod.", "bad");
+               sheet([["Google Maps", I.map, `https://www.google.com/maps/search/?api=1&query=${c.lat},${c.lng}`],
+                      ["Waze", I.pin, `https://waze.com/ul?ll=${c.lat},${c.lng}&navigate=yes`]]); },
+  here()     { if (!navigator.geolocation) return toast("Peranti tidak menyokong GPS.", "bad");
+               navigator.geolocation.getCurrentPosition(
+                 p => { S.here = { lat: p.coords.latitude, lng: p.coords.longitude }; draw(); },
+                 () => toast("Tidak dapat lokasi. Semak kebenaran.", "bad"),
+                 { timeout: 8000 }); },
+  pay(el)    { openPay(el.dataset.id); },
+  async dorequest() {
+    const lines = Array.prototype.slice.call(document.querySelectorAll(".qin"))
+      .map(i => ({ product_id: i.dataset.p, qty: parseInt(i.value, 10) || 0 }))
+      .filter(l => l.qty > 0);
+    if (!lines.length) return toast("Masukkan sekurang-kurangnya satu kuantiti.", "bad");
+    const note = [($("#sr_who")||{}).value, ($("#sr_doc")||{}).value,
+                  ($("#sr_ref")||{}).value, ($("#sr_rm")||{}).value]
+      .map(x => (x || "").trim()).filter(Boolean).join(" · ");
+    const { error } = await sb.rpc("request_stock", { p_lines: lines, p_note: note || null });
+    if (error) return toast(friendly(error.message), "bad");
+    toast(`${lines.length} permintaan stok dihantar.`, "good");
+    await loadAll(); pop();
   },
-  install() {
-    if (!deferredInstall) return;
-    deferredInstall.prompt();
-    deferredInstall.userChoice.finally(() => { deferredInstall = null; chrome(); });
-  },
-  noinstall() {
-    installDismissed = true;
-    try { localStorage.setItem("sa.install", "no"); } catch (_) {}
-    chrome();
-  },
+  install()  { if (!deferredInstall) return; deferredInstall.prompt();
+               deferredInstall.userChoice.finally(() => { deferredInstall = null; chrome(); }); },
+  noinstall(){ installDismissed = true;
+               try { localStorage.setItem("sa.install", "no"); } catch (_) {} chrome(); },
+  async refresh() { await loadMe(); draw(); },
+  async reload()  { S.loaded = false; draw(); await loadAll(); draw(); toast("Data dimuat semula.", "good"); },
   async signout() {
-    S.me = null; S.data = null; S.view = null; S.tab = "home"; S.err = "";
+    S.me = null; S.data = null; S.stack = []; S.tab = "home"; S.err = ""; S.loaded = false;
     try { localStorage.removeItem(WHO); } catch (_) {}
     try { if (sb) await sb.auth.signOut(); } catch (_) {}
-    render();
+    draw();
   },
+  closeover() { $("#over").innerHTML = ""; },
 };
 
-/* A plain in-page notice. The viewer never shows alert(), and a salesman needs
-   to be told things while standing in a shop. */
-function alertBox(title, body) {
-  const w = document.createElement("div");
-  w.style.cssText = "position:fixed;inset:0;z-index:90;background:rgba(20,22,28,.45);display:grid;place-items:end center";
-  w.innerHTML = `<div style="background:#fff;width:100%;max-width:460px;border-radius:20px 20px 0 0;
-      padding:22px 20px calc(env(safe-area-inset-bottom,0px) + 22px)">
-    <b style="display:block;font-size:17px;letter-spacing:-.01em">${esc(title)}</b>
-    <p style="margin:8px 0 16px;color:var(--mut);font-size:14px">${esc(body)}</p>
-    <button class="rowbtn" style="margin:0">OK</button></div>`;
-  w.addEventListener("click", () => w.remove());
-  document.body.appendChild(w);
+/* ===========================================================================
+   Overlays — bottom sheet, calendar, payment
+   =========================================================================== */
+function sheet(opts) {
+  $("#over").innerHTML = `<div class="scrim" data-a="closeover"><div class="sheet">
+    ${opts.map(([l, g, href]) => `<a class="opt" href="${esc(href)}" target="_blank"
+      rel="noopener">${ic(g)}<span>${esc(l)}</span></a>`).join("")}
+  </div></div>`;
+}
+function sheetInfo(t, b) {
+  $("#over").innerHTML = `<div class="scrim" data-a="closeover"><div class="sheet"
+    style="padding:22px 22px calc(var(--bot) + 22px)">
+    <b style="display:block;font-size:17px">${esc(t)}</b>
+    <p style="margin:8px 0 16px;color:var(--mut);font-size:14px">${esc(b)}</p>
+    <button class="rowbtn" style="margin:0">OK</button></div></div>`;
 }
 
+let calFrom = null, calTo = null, calMon = null, calDone = null;
+function openCal(done) {
+  calFrom = S.range ? S.range.from : null; calTo = S.range ? S.range.to : null;
+  calMon = new Date((calFrom || new Date()).getFullYear(), (calFrom || new Date()).getMonth(), 1);
+  calDone = done; drawCal();
+}
+function drawCal() {
+  const y = calMon.getFullYear(), m = calMon.getMonth();
+  const first = new Date(y, m, 1).getDay(), days = new Date(y, m + 1, 0).getDate();
+  let cells = "";
+  for (let i = 0; i < first; i++) cells += `<button disabled></button>`;
+  for (let d = 1; d <= days; d++) {
+    const t = new Date(y, m, d).getTime();
+    const a = calFrom && calFrom.getTime(), b = calTo && calTo.getTime();
+    const pick = t === a || t === b;
+    const mid = a && b && t > a && t < b;
+    cells += `<button data-cd="${d}" class="${pick ? "pick" : mid ? "in" : ""}">${d}</button>`;
+  }
+  $("#over").innerHTML = `<div class="modal"><div class="mbox"><div class="mi">
+    <div class="cal-h"><button data-cm="-1">&lsaquo;</button>
+      <span>${MONS[m]} ${y}</span><button data-cm="1">&rsaquo;</button></div>
+    <div class="cal-g">${["S","M","T","W","T","F","S"].map(d => `<span class="dow">${d}</span>`).join("")}
+      ${cells}</div>
+    <div class="cal-a"><button class="no" data-a="closeover">Cancel</button>
+      <button class="yes" data-ok="1">Pengesahan</button></div>
+  </div></div></div>`;
+}
+
+let payInv = null, payKind = "", payMethod = "";
+function openPay(id) {
+  payInv = DB.invoices.find(v => v.id === id);
+  payKind = ""; payMethod = "";
+  drawPay(1);
+}
+function drawPay(step) {
+  if (!payInv) return;
+  const bal = Number(payInv.total) - Number(payInv.paid);
+  let inner;
+  if (step === 1) {
+    const kinds = [["partial", "Partial Payment"], ["paid", "Paid"], ["over", "Over Payment"]];
+    inner = `<div class="pay-tot">Total Pay : <b>${RM(bal)}</b></div>
+      ${kinds.map(([k, l]) => `<button class="ck ${payKind===k?"on":""}" data-pk="${k}">
+        <i></i><span>${l}</span></button>`).join("")}
+      ${payKind === "over" ? `<div class="err" style="margin:14px 0 0">
+        Lebihan bayaran masih ditolak oleh pangkalan data. Keputusan diperlukan: lebihan
+        dibawa ke bil berikutnya, atau dipulangkan? Ada dalam laporan.</div>` : ""}
+      <button class="rowbtn b" data-pn="1" ${payKind && payKind !== "over" ? "" : "disabled"}>Next</button>`;
+  } else {
+    const ms = [["tunai","Tunai"],["cek","Cek"],["pindahan","Pindahan Bank"],
+                ["gaji","Gaji"],["qr","QR Code"]];
+    inner = `<div class="pay-tot">Total Pay : <b>${RM(bal)}</b></div>
+      <h5>Cara Bayaran</h5>
+      ${ms.map(([k, l]) => `<button class="ck ${payMethod===k?"on":""}" data-pm="${k}">
+        <i></i><span>${l}</span></button>`).join("")}
+      <h5>Jumlah Bayaran</h5>
+      <div class="f" style="margin-bottom:6px"><input id="pamt" type="number" step="0.01" min="0.01"
+        inputmode="decimal" value="${payKind === "paid" ? bal.toFixed(2) : ""}"
+        placeholder="${bal.toFixed(2)}" ${payKind === "paid" ? "readonly" : ""}></div>
+      <h5>Komen</h5>
+      <div class="f"><textarea id="pcom" placeholder="Komen"></textarea></div>
+      <button class="rowbtn g" data-pc="1">Pengesahan</button>
+      <p class="hint" style="margin-top:10px">Komen belum disimpan — tiada ruangan untuk
+        catatan pada jadual bayaran. Ada dalam laporan.</p>`;
+  }
+  $("#over").innerHTML = `<div class="modal"><div class="mbox">
+    <div class="mh"><b>Pesanan Terkini</b><button data-a="closeover">&times;</button></div>
+    <div class="mi">${inner}</div></div></div>`;
+}
+async function confirmPay() {
+  const amt = parseFloat(($("#pamt") || {}).value || "0");
+  const bal = Number(payInv.total) - Number(payInv.paid);
+  if (!payMethod) return toast("Pilih cara bayaran.", "bad");
+  if (!(amt > 0))  return toast("Masukkan jumlah bayaran.", "bad");
+  if (amt > bal + 0.001) return toast("Jumlah melebihi baki. Pilih Partial atau Paid.", "bad");
+  const btn = document.querySelector("[data-pc]");
+  if (btn) { btn.textContent = "Menghantar…"; btn.disabled = true; }
+  const { error } = await sb.rpc("post_payment",
+    { p_invoice: payInv.id, p_amount: amt, p_method: payMethod });
+  if (error) { drawPay(2); return toast(friendly(error.message), "bad"); }
+  $("#over").innerHTML = "";
+  toast("Bayaran direkod. Resit dijana.", "good");
+  await loadAll();
+  draw();
+}
+function friendly(m) {
+  const s = (m || "").toLowerCase();
+  if (s.includes("already settled")) return "Invois ini sudah dijelaskan.";
+  if (s.includes("exceeds")) return "Jumlah melebihi baki tertunggak.";
+  if (s.includes("another salesman")) return "Outlet ini dipegang salesman lain.";
+  if (s.includes("failed to fetch")) return "Tiada sambungan. Semak internet anda.";
+  return m;
+}
+
+/* ===========================================================================
+   Events
+   =========================================================================== */
 document.addEventListener("click", e => {
+  /* calendar */
+  const cd = e.target.closest("[data-cd]");
+  if (cd) {
+    const d = new Date(calMon.getFullYear(), calMon.getMonth(), +cd.dataset.cd);
+    if (!calFrom || (calFrom && calTo)) { calFrom = d; calTo = null; }
+    else if (d < calFrom) { calTo = calFrom; calFrom = d; }
+    else calTo = d;
+    return drawCal();
+  }
+  const cm = e.target.closest("[data-cm]");
+  if (cm) { calMon = new Date(calMon.getFullYear(), calMon.getMonth() + (+cm.dataset.cm), 1);
+            return drawCal(); }
+  if (e.target.closest("[data-ok]")) {
+    if (!calFrom) return;
+    S.range = { from: calFrom, to: calTo || calFrom };
+    $("#over").innerHTML = "";
+    return calDone ? calDone(S.range) : draw();
+  }
+  /* payment */
+  const pk = e.target.closest("[data-pk]");
+  if (pk) { payKind = pk.dataset.pk; return drawPay(1); }
+  if (e.target.closest("[data-pn]")) return drawPay(2);
+  const pm = e.target.closest("[data-pm]");
+  if (pm) { payMethod = pm.dataset.pm; const amt = ($("#pamt")||{}).value;
+            drawPay(2); const n = $("#pamt"); if (n && amt) n.value = amt; return; }
+  if (e.target.closest("[data-pc]")) { confirmPay(); return; }
+
   const el = e.target.closest("[data-a]");
   if (!el || el.tagName === "FORM") return;
+  if (el.tagName === "A") return;                  /* real links open normally */
   e.preventDefault();
+  /* a tap on the scrim closes it, a tap inside must not */
+  if (el.dataset.a === "closeover" && e.target !== el &&
+      !e.target.closest(".cal-a") && !e.target.closest(".mh")) {
+    if (e.target.closest(".sheet") && !e.target.closest(".rowbtn")) return;
+    if (e.target.closest(".mbox") && !e.target.closest(".mh")) return;
+  }
   const fn = A[el.dataset.a];
-  if (fn) { const r = fn(el); if (r && r.catch) r.catch(err => alertBox("Ralat", err.message || String(err))); }
+  if (fn) { const r = fn(el); if (r && r.catch) r.catch(err => toast(friendly(err.message), "bad")); }
 });
 
 document.addEventListener("submit", async e => {
@@ -472,16 +1565,16 @@ document.addEventListener("submit", async e => {
   e.preventDefault();
   const em = ($("#em") || {}).value || "", pw = ($("#pw") || {}).value || "";
   S.lastEmail = em;
-  if (!em.trim() || !pw) { S.err = "Sila isi e-mel dan kata laluan."; return render(); }
-  S.busy = true; S.err = ""; render();
+  if (!em.trim() || !pw) { S.err = "Sila isi e-mel dan kata laluan."; return draw(); }
+  S.busy = true; S.err = ""; draw();
   const { data, error } = await sb.auth.signInWithPassword({ email: em.trim(), password: pw });
   S.busy = false;
-  if (error) { S.err = authMsg(error.message); return render(); }
+  if (error) { S.err = authMsg(error.message); return draw(); }
   S.email = data.user.email;
   await loadMe();
-  render();
+  draw();
+  if (S.me) loadAll().then(draw);
 });
-
 function authMsg(m) {
   const s = (m || "").toLowerCase();
   if (s.includes("invalid login")) return "E-mel atau kata laluan salah. Cuba lagi.";
@@ -493,104 +1586,145 @@ function authMsg(m) {
 /* ===========================================================================
    Data
    =========================================================================== */
-/* The salesman's own name, code and zone, kept in the phone's own storage.
-   This is identity, not money: it does not go stale in a way that can mislead
-   anybody, and without it a salesman who opens the app with no signal is
-   thrown back to a login screen he cannot possibly get past. */
 const WHO = "sa.who";
 const cacheWho = p => { try { localStorage.setItem(WHO, JSON.stringify(p)); } catch (_) {} };
 const cachedWho = id => {
-  try {
-    const p = JSON.parse(localStorage.getItem(WHO) || "null");
-    return p && p.id === id ? p : null;
-  } catch (_) { return null; }
+  try { const p = JSON.parse(localStorage.getItem(WHO) || "null");
+        return p && p.id === id ? p : null; } catch (_) { return null; }
 };
 
-async function loadMe({ session } = {}) {
-  let user = session && session.user;
+async function loadMe(opts) {
+  opts = opts || {};
+  let user = opts.session && opts.session.user;
   if (!user) {
     const { data } = await sb.auth.getUser().catch(() => ({ data: {} }));
     user = data && data.user;
   }
   if (!user) { S.me = null; return; }
   S.email = user.email;
-
   const { data: p, error } = await sb.from("profiles")
     .select("id,name,code,zone,role,active").eq("id", user.id).maybeSingle();
-
   if (error) {
-    /* Could not reach the server. A token we already hold is evidence enough
-       to open the app; the figures inside it stay as dashes until the signal
-       returns, so nothing unverified is ever shown as fact. */
+    /* A token we already hold is evidence enough to open the app. The figures
+       inside stay as dashes until the signal returns, so nothing unverified is
+       ever shown as fact. */
     const c = cachedWho(user.id);
     if (c) { S.me = c; S.data = null; return; }
-    S.me = null; S.err = "Tiada sambungan. Semak internet anda.";
-    return;
+    S.me = null; S.err = "Tiada sambungan. Semak internet anda."; return;
   }
   if (!p) { S.me = null; S.err = "Tiada profil untuk akaun ini."; return; }
   if (p.active === false) {
     S.me = null; S.err = "Akses akaun ini sudah ditarik balik.";
     try { localStorage.removeItem(WHO); } catch (_) {}
-    await sb.auth.signOut();
-    return;
+    await sb.auth.signOut(); return;
   }
-  S.me = p;
-  cacheWho(p);
-  await loadSummary();
+  S.me = p; cacheWho(p);
 }
 
-/* The three figures on the home screen, read live and only for today. They are
-   left null rather than zeroed when the read fails: a salesman who is shown
-   "RM 0.00" believes he has collected nothing, which is a different and worse
-   statement than "we could not reach the server". */
-async function loadSummary() {
-  const p = S.me;
-  if (!p) return;
-  S.data = null;
-  const day = new Date(); day.setHours(0, 0, 0, 0);
-  const from = day.toISOString();
+async function loadAll() {
+  if (!S.me) return;
   try {
-    const [pay, sos, van] = await Promise.all([
-      sb.from("payments").select("amount").eq("salesman_id", p.id).gte("paid_at", from),
-      sb.from("sales_orders").select("id").eq("salesman_id", p.id).gte("issued_at", from),
-      sb.from("van_stock").select("qty").eq("salesman_id", p.id),
+    const [prod, cust, inv, so, d_o, lines, pay, cg, req, van, ret] = await Promise.all([
+      sb.from("products").select("*").eq("active", true).order("sku"),
+      sb.from("customers").select("*").order("code"),
+      sb.from("invoices").select("*").order("issued_at", { ascending: false }),
+      sb.from("sales_orders").select("*").order("issued_at", { ascending: false }),
+      sb.from("delivery_orders").select("*").order("issued_at", { ascending: false }),
+      sb.from("doc_lines").select("kind,doc_id,product_id,qty,unit_price"),
+      sb.from("payments").select("*").order("paid_at", { ascending: false }),
+      sb.from("consignments").select("*").order("sent_at", { ascending: false }),
+      sb.from("stock_requests").select("*").order("requested_at", { ascending: false }),
+      sb.from("van_stock").select("product_id,qty").eq("salesman_id", S.me.id),
+      sb.from("returns").select("*").order("issued_at", { ascending: false }),
     ]);
-    if (pay.error || sos.error || van.error) return;
+    const bad = [prod, cust, inv, so, d_o, lines, pay, cg, req, van, ret].find(r => r.error);
+    if (bad) { S.loaded = true; S.data = null; return toast(friendly(bad.error.message), "bad"); }
 
-    /* Qty Jualan is units sold, not orders raised, so the lines behind today's
-       orders are what gets summed. */
-    let qty = 0;
-    const ids = (sos.data || []).map(r => r.id);
-    if (ids.length) {
-      const { data: lines, error } = await sb.from("doc_lines").select("qty").in("doc_id", ids);
-      if (error) return;
-      qty = (lines || []).reduce((a, x) => a + Number(x.qty || 0), 0);
-    }
+    DB.products = prod.data || [];
+    DB.customers = cust.data || [];
+    DB.invoices = inv.data || [];
+    DB.sos = so.data || [];
+    DB.dos = d_o.data || [];
+    DB.payments = pay.data || [];
+    DB.consign = cg.data || [];
+    DB.reqs = req.data || [];
+    DB.returns = ret.data || [];
+    DB.lines = {};
+    (lines.data || []).forEach(l => { (DB.lines[l.doc_id] = DB.lines[l.doc_id] || []).push(l); });
+    DB.van = {};
+    (van.data || []).forEach(v => { DB.van[v.product_id] = v.qty; });
+
+    const day = dOnly(new Date());
+    const todayPay = DB.payments.filter(p => new Date(p.paid_at) >= day);
+    const todaySo  = DB.sos.filter(s => new Date(s.issued_at) >= day);
     S.data = {
-      received: (pay.data || []).reduce((a, x) => a + Number(x.amount || 0), 0),
-      qty,
-      stock: (van.data || []).reduce((a, x) => a + Number(x.qty || 0), 0),
-      orders: ids.length,
+      received: todayPay.reduce((a, p) => a + Number(p.amount), 0),
+      qty: todaySo.reduce((a, s) => a + linesOf(s.id).reduce((b, l) => b + l.qty, 0), 0),
+      stock: Object.values(DB.van).reduce((a, n) => a + n, 0),
     };
-  } catch (_) { /* leaves S.data null, and the screen shows a dash */ }
+    S.loaded = true;
+    if (S.tab === "ranking") loadRanking();
+  } catch (e) {
+    S.loaded = true; S.data = null;
+    toast(friendly(e.message), "bad");
+  }
+}
+
+async function loadRanking() {
+  const now = new Date();
+  let from, to;
+  if (S.rkPeriod === "last") {
+    from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    to   = new Date(now.getFullYear(), now.getMonth(), 1);
+  } else if (S.rkPeriod === "custom" && S.range) {
+    from = S.range.from; to = new Date(S.range.to.getTime() + 864e5);
+  } else {
+    from = new Date(now.getFullYear(), now.getMonth(), 1);
+    to   = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  }
+  const { data, error } = await sb.rpc("ranking_board",
+    { p_from: from.toISOString(), p_to: to.toISOString() });
+  S.rkRows = error ? [] : (data || []);
+  if (error) toast(friendly(error.message), "bad");
+  draw();
+}
+
+/* Registration photographs, fetched through the edge function that signs a
+   one-hour read URL. The phone never holds a key that reaches the bucket. */
+async function loadGaleri(custId) {
+  S.gal = S.gal || {};
+  if (S.gal[custId]) return;
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const r = await fetch(`${SB_URL}/functions/v1/reseller-upload`, {
+      method: "POST",
+      headers: { "content-type": "application/json",
+                 authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ action: "list", customer_id: custId }),
+    });
+    const j = await r.json();
+    S.gal[custId] = (j && j.files) || [];
+  } catch (_) { S.gal[custId] = []; }
+  draw();
 }
 
 async function boot() {
-  if (!sb) { S.err = "Tidak dapat menghubungi pelayan."; S.ready = true; return render(); }
+  if (!sb) { S.err = "Tidak dapat menghubungi pelayan."; S.ready = true; return draw(); }
   const { data } = await sb.auth.getSession().catch(() => ({ data: {} }));
   if (data && data.session) {
     try { await loadMe({ session: data.session }); }
     catch (e) { S.err = authMsg(e.message || String(e)); }
   }
   S.ready = true;
-  render();
-  sb.auth.onAuthStateChange((evt) => { if (evt === "SIGNED_OUT") { S.me = null; render(); } });
+  draw();
+  if (S.me) { await loadAll(); draw(); }
+  sb.auth.onAuthStateChange(evt => { if (evt === "SIGNED_OUT") { S.me = null; S.loaded = false; draw(); } });
 }
 
 if ("serviceWorker" in navigator)
   addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
 
-render();
+draw();
 boot();
 </script>
 </body>

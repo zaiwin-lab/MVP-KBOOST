@@ -9,7 +9,7 @@
  * makes the app open instantly from the home screen and show something useful
  * when there is no signal, rather than the browser's dinosaur.
  */
-const VERSION = 'v1';
+const VERSION = 'v2';
 const SHELL = 'shell-' + VERSION;
 
 const SHELL_FILES = [
