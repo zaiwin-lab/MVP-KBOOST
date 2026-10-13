@@ -1086,9 +1086,22 @@ function vKesimpulan() {
   const r = S.range || { from: dOnly(new Date(Date.now() - 29 * 864e5)), to: dOnly(new Date()) };
   const inR = d => { const t = new Date(d); return t >= r.from && t < new Date(r.to.getTime() + 864e5); };
   const pays = DB.payments.filter(p => inR(p.paid_at));
-  const sum = m => pays.filter(p => (p.method || "").toLowerCase() === m)
-    .reduce((a, p) => a + Number(p.amount), 0);
   const total = pays.reduce((a, p) => a + Number(p.amount), 0);
+  /* Grouped by whatever method is actually on the payments, not by a fixed
+     list. An earlier version totalled four hardcoded names, so money taken by
+     Gaji — or by the web portal, which writes "Cash" rather than "tunai" —
+     counted towards the total and appeared under nothing. The parts did not
+     add up to the whole, and a salesman reconciling his cash at the end of
+     the day would have come up short with no way to see why. */
+  const byMethod = {};
+  pays.forEach(p => {
+    const k = (p.method || "").toLowerCase().trim() || "lain";
+    byMethod[k] = (byMethod[k] || 0) + Number(p.amount);
+  });
+  const methodRows = Object.keys(byMethod)
+    .sort((a, b) => byMethod[b] - byMethod[a])
+    .map(k => [METH[k] || (k === "cash" ? "Cash" : k === "lain" ? "Lain-lain"
+                : k.charAt(0).toUpperCase() + k.slice(1)), byMethod[k]]);
   const hutang = DB.invoices.filter(v => v.status !== "paid")
     .reduce((a, v) => a + Number(v.total) - Number(v.paid), 0);
   const sos = DB.sos.filter(s => inR(s.issued_at));
@@ -1114,9 +1127,10 @@ function vKesimpulan() {
         <div style="flex:1;min-width:0">
           <b style="font-size:15px">Wang Terima</b>
           <dl style="margin-top:8px;font-size:13.5px">
-            ${li("Total", RM(total))}${li("Cash", RM(sum("tunai")))}
-            ${li("Qr_code", RM(sum("qr")))}${li("Pindahan Bank", RM(sum("pindahan")))}
-            ${li("Cek", RM(sum("cek")))}${li("Hutang", RM(hutang))}
+            ${li("Total", RM(total))}
+            ${methodRows.map(([l, v]) => li(l, RM(v))).join("")}
+            ${methodRows.length ? "" : li("Tiada bayaran", "—")}
+            ${li("Hutang", RM(hutang))}
             ${li("S/O Issued", N(sos.length))}${li("New Reseller", N(newR))}
             ${li("Reseller Removed", N(gone))}
           </dl></div></div></div>
@@ -2036,6 +2050,7 @@ function regGambar() {
 
 function regOrder() {
   const consign = S.reg.f.term === "consign";
+  const cash = S.reg.f.term === "cash";
   return `<div class="block">
     <table class="t"><thead><tr>
       <th>Produk</th><th class="r">Harga Kedai</th><th class="r">Harga Jualan</th>
@@ -2050,6 +2065,15 @@ function regOrder() {
         <td class="c"><input class="qin" type="number" min="0" max="${van}" inputmode="numeric"
           data-rq="${p.id}" value="${S.reg.lines[p.id] || ""}" placeholder="0"></td></tr>`;
     }).join("")}</tbody></table></div>
+    ${cash ? `<div class="f"><label>Cara Bayaran <span class="req">*</span></label>
+      <div class="chips">${[["tunai","Tunai"],["cek","Cek"],["pindahan","Pindahan Bank"],
+        ["gaji","Gaji"],["qr","QR Code"]].map(([k, l]) =>
+        `<button data-a="regpick" data-k="method" data-v="${k}"
+          class="${(S.reg.f.method || "tunai") === k ? "on" : ""}">${l}</button>`).join("")}
+      </div>
+      <p class="hint" style="margin-top:8px">Order tunai dibayar penuh sekarang, jadi cara
+        bayaran mesti direkod — tanpa ia, wang masuk tanpa diketahui datangnya dari mana.</p>
+    </div>` : ""}
     <p class="hint">${consign
       ? "Konsainan: stok ini dihantar ke kedai dan belum dibilkan. Bil hanya dikira pada lawatan berikutnya, selepas baki stok dimasukkan."
       : "Order ini terus menjadi SO dan Invois apabila anda tekan Daftar."}
@@ -2478,6 +2502,10 @@ const A = {
       service_days: months > 0 ? months * 30 : null,
       commission_grp: f.commission_grp, excel_grp: f.excel_grp,
       lines: lines,
+      /* A cash opening order is paid on the spot, so how it was paid has to be
+         recorded with it. Leaving this out made the database fall back to its
+         own default and the money arrived under a method nobody chose. */
+      method: f.term === "cash" ? (f.method || "tunai") : null,
     };
     const { data, error } = await sb.rpc("register_customer", { p: payload });
     if (error) { S.reg.busy = false; S.reg.err = friendly(error.message); return draw(); }

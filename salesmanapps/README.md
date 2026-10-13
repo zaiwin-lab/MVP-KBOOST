@@ -209,6 +209,29 @@ Verified end to end: all three guards fire, van stock went 31 → 34 on a
 three-unit return, the photograph landed under kind `return`, and `RET000006`
 prints with its reason on the roll.
 
+## End-to-end pass
+
+Every feature had been tested alone; none had been tested against the others.
+A single run now walks a salesman's whole day — order, return, consignment
+drop, balance check, payment — and asserts the numbers at each seam: van stock
+down by exactly the units sold and up by the units returned, the shelf rising
+by what was dropped and carrying forward what was counted, hutang moving by the
+invoice total and back by the payment, and the stock never moving when an
+invoice is merely billed.
+
+It found one real fault, and it was a money one. **The Kesimpulan totalled four
+hardcoded payment methods**, so anything taken by Gaji — or written by the web
+portal, which records `Cash` rather than `tunai` — counted towards the total and
+appeared under nothing. The parts did not sum to the whole, and a salesman
+reconciling his cash at the end of the day would have been short with no way to
+see why. The breakdown is now derived from the methods actually present, so it
+always reconciles, and anything unrecognised lands in `Lain-lain` rather than
+vanishing.
+
+Chasing it turned up the cause of the stray `Cash`: **the registration form
+never asked how a cash opening order was paid**, so the database fell back to
+its own default. Cash registrations now ask, as the order screen already did.
+
 Still to come from his design: the daily planner, and whatever screen Jadual
 Harian turns out to be.
 
