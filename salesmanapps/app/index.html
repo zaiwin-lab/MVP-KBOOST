@@ -373,6 +373,16 @@ body[data-rk="1"]{background:var(--rank)}
 .cal-a .no{background:#D8D4DC;color:var(--mut)}
 .cal-a .yes{background:var(--red);color:#fff}
 
+/* ---------- approvals ---------- */
+.decide{display:flex;gap:9px;margin-top:11px}
+.decide button{flex:1;padding:10px;border-radius:9px;font-size:13.5px;font-weight:700}
+.decide .yes{background:var(--grn);color:#fff}
+.decide .yes:active{background:var(--grn-d)}
+.decide .no{background:#fff;color:var(--red);border:1.5px solid var(--red)}
+.decide .no:active{background:var(--red-lo)}
+.note2{margin-top:8px;padding:8px 10px;background:var(--inset);border-radius:7px;
+  font-size:12.5px;color:var(--mut);line-height:1.45}
+
 /* ---------- jadual harian ---------- */
 .dstrip{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
 .dstrip::-webkit-scrollbar{display:none}
@@ -609,7 +619,7 @@ const BUILD = "2026-10-12";
    book of business would want paging instead. */
 const DB = { products: [], customers: [], invoices: [], sos: [], dos: [], lines: {},
              payments: [], consign: [], reqs: [], van: {}, returns: [], receipts: [],
-             sched: [] };
+             sched: [], priceReqs: [], creditNotes: [], custPrices: [], profiles: [] };
 
 /* Printed on the head of every document. The real values are still outstanding
    from the client, so until the company row is filled this prints visible
@@ -637,6 +647,15 @@ const TERM = { consign: "Konsainan", biltobil: "Bill To Bil", cash: "Tunai" };
    "Pending Acc Approval", which is an approval step we have no workflow for —
    it is in the report as an open question, not faked here. */
 const STAT = { paid: ["Paid", "paid"], partial: ["Separa Bayar", "part"], pending: ["Unpaid", "unpaid"] };
+/* Money a salesman has taken but the office has not yet confirmed. The amount
+   already counts against the balance — the shop has paid, after all — so this
+   is a state on the paperwork rather than on the money. */
+const waiting = v => DB.payments.filter(p => p.invoice_id === v.id && !p.approved_at && !p.rejected_at);
+const pendingAmt = v => waiting(v).reduce((a, p) => a + Number(p.amount), 0);
+function invStat(v) {
+  if (waiting(v).length) return ["Pending Acc Approval", "part"];
+  return STAT[v.status] || STAT.pending;
+}
 
 /* ===========================================================================
    Chrome — offline notice, install prompt, toasts
@@ -722,9 +741,14 @@ function band(opts) {
   </div>`;
 }
 
-const TABS = [["home","Home",I.home],["reseller","Reseller",I.shop],["stok","Stok",I.box],
-              ["gps","GPS",I.pin],["ranking","Ranking",I.star]];
-const tabBar = () => `<nav class="tabs">${TABS.map(([k,l,i]) =>
+const TABS_SM = [["home","Home",I.home],["reseller","Reseller",I.shop],["stok","Stok",I.box],
+                 ["gps","GPS",I.pin],["ranking","Ranking",I.star]];
+/* The office never carries a van, so no Stok or GPS tab. Its home is the
+   queue of things waiting on a decision. */
+const TABS_MG = [["home","Kelulusan",I.list],["reseller","Reseller",I.shop],
+                 ["ranking","Ranking",I.star]];
+const tabBar = () => `<nav class="tabs" style="grid-template-columns:repeat(${
+  (isMgmt() ? TABS_MG : TABS_SM).length},1fr)">${(isMgmt() ? TABS_MG : TABS_SM).map(([k,l,i]) =>
   `<button data-a="tab" data-v="${k}" class="${S.tab===k && !S.stack.length ? "on" : ""}">${ic(i)}<span>${l}</span></button>`
 ).join("")}</nav>`;
 
@@ -919,7 +943,7 @@ function vSales() {
   return backBar() + title("Sales History") + band({ ph: "Search by Invoice No./SSM Name/App Name/Rese..." }) +
   `<div class="body pad">${rows.length ? `<div class="list">${rows.map(v => {
       const c = custOf(v.customer_id), so = soOf(v.so_id);
-      const [lbl, cls] = STAT[v.status] || STAT.pending;
+      const [lbl, cls] = invStat(v);
       /* The sales list shows what the invoice was worth; the debt list shows
          what is still owed. In his screenshots this column is ambiguous —
          some settled rows read RM 0.00 and others a real figure — so the two
@@ -977,7 +1001,7 @@ function vHutang() {
       <b style="font-size:17px;color:var(--red)">${RM(owed)}</b></div>
     ${rows.length ? `<div class="list">${rows.map(v => {
       const c = custOf(v.customer_id), so = soOf(v.so_id);
-      const [lbl, cls] = STAT[v.status] || STAT.pending;
+      const [lbl, cls] = invStat(v);
       return `<button class="row" data-a="order" data-id="${v.id}">
         <div class="when">${esc(fDay(new Date(v.issued_at)))}</div>
         <div class="main">
@@ -1001,7 +1025,7 @@ function vOrder(id) {
     `<div class="body pad"><div class="empty"><b>Tiada rekod</b></div></div>`;
   const c = custOf(v.customer_id), so = soOf(v.so_id);
   const lines = linesOf(v.so_id);
-  const [lbl, cls] = STAT[v.status] || STAT.pending;
+  const [lbl, cls] = invStat(v);
   const bal = Number(v.total) - Number(v.paid);
   const qty = lines.reduce((a, l) => a + l.qty, 0);
   const img = S.photos && S.photos[c.id];
@@ -1025,7 +1049,7 @@ function vOrder(id) {
       ${kv("No Tel", esc(c.phone || "—"))}
       ${kv("Alamat", esc([c.address, c.postcode, c.district, c.state].filter(Boolean).join(", ") || "—"))}
       ${kv("Total Paid", `<b>${RM(v.paid)}</b>`)}
-      ${kv("Total Pending", `<b>${RM(0)}</b>`)}
+      ${kv("Total Pending", `<b>${RM(pendingAmt(v))}</b>`)}
       ${kv("Total Amount", `<b>${RM(v.total)}</b>`)}
       ${kv("Balance", `<b class="${bal > 0 ? "unpaid" : "paid"}">${RM(bal)}</b>`)}
     </dl></div></div>
@@ -1034,8 +1058,15 @@ function vOrder(id) {
       <button class="rowbtn o" style="margin-top:0" data-a="doc" data-t="SO"
         data-id="${esc(v.so_id || "")}">Sales Order</button>
       <button class="rowbtn o" data-a="doc" data-t="INV" data-id="${v.id}">Invois</button>
-      <button class="rowbtn o" data-a="soon" data-t="Keluar Invois Muktamad">Keluar Invois Muktamad</button>
-      <button class="rowbtn o" data-a="soon" data-t="Request Credit Note">Request Credit Note</button>
+      ${v.final_at
+        ? `<div class="ok" style="margin-top:12px;text-align:center">Invois muktamad dikeluarkan
+            ${esc(fLong(new Date(v.final_at)))}</div>`
+        : isMgmt()
+          ? `<button class="rowbtn o" data-a="final" data-id="${v.id}">Keluar Invois Muktamad</button>`
+          : `<button class="rowbtn o" data-a="soon"
+               data-t="Keluar Invois Muktamad">Keluar Invois Muktamad</button>`}
+      ${isMgmt() ? "" :
+        `<button class="rowbtn o" data-a="creditnote" data-id="${v.id}">Request Credit Note</button>`}
     </div></div>
 
     <div class="sec" style="font-size:15px">Pesanan Produk</div>
@@ -1054,7 +1085,7 @@ function vOrder(id) {
       </div>
     </div>
 
-    ${bal > 0
+    ${bal > 0 && !isMgmt()
       ? `<button class="rowbtn g" data-a="pay" data-id="${v.id}">Buat Bayaran</button>`
       : `<div class="ok" style="text-align:center;margin-top:12px">Invois ini sudah dijelaskan sepenuhnya.</div>`}
 
@@ -1265,11 +1296,12 @@ function custGeneral(c) {
 
     <div class="prow"><span class="ic">${ic(I.dollar)}</span><span class="lb">Tukar Harga</span>
       <span class="vl"></span>
-      <span class="ac"><button class="sbtn" data-a="soon" data-t="Mohon Tukar Harga">Mohon</button></span></div>
+      <span class="ac"><button class="sbtn" data-a="mohon" data-id="${c.id}">Mohon</button></span></div>
 
+    ${isMgmt() ? "" : `
     <button class="rowbtn" data-a="takeorder" data-id="${c.id}">
       ${c.term === "consign" ? "Hantar Stok" : "Ambil Order"}</button>
-    <button class="rowbtn o" data-a="retstart" data-id="${c.id}">Pulangan</button>
+    <button class="rowbtn o" data-a="retstart" data-id="${c.id}">Pulangan</button>`}
     <button class="rowbtn o" data-a="soon" data-t="Blacklist Reseller">Blacklist Reseller</button>
     <button class="rowbtn o" data-a="soon" data-t="Set VIP">Set VIP</button>
     <button class="rowbtn g" data-a="soon" data-t="Enable TIN QR">Enable TIN QR</button>
@@ -1283,7 +1315,7 @@ function custInvois(c) {
     .sort((a, b) => new Date(b.issued_at) - new Date(a.issued_at));
   return `<div class="pcard">
     ${rows.length ? `<div class="list" style="box-shadow:none">${rows.map(v => {
-      const so = soOf(v.so_id); const [lbl, cls] = STAT[v.status] || STAT.pending;
+      const so = soOf(v.so_id); const [lbl, cls] = invStat(v);
       return `<button class="row" data-a="order" data-id="${v.id}">
         <div class="when">${esc(fDay(new Date(v.issued_at)))}</div>
         <div class="main">
@@ -1450,6 +1482,149 @@ async function loadSched() {
     .select("*").eq("salesman_id", S.me.id).order("position");
   if (!error) DB.sched = data || [];
 }
+
+/* ===========================================================================
+   Kelulusan — the office side
+   Four of the client's screens put a request in front of somebody who is not
+   the salesman: a payment waits for accounts, a price change is submitted as
+   Mohon, a credit note is requested, and a stock request is approved. None of
+   his forty screenshots showed the person doing the approving. This is that
+   half, and it is the open question in the report answered with a proposal
+   rather than left blank.
+   =========================================================================== */
+const isMgmt = () => !!(S.me && S.me.role === "management");
+const stockQty = id => { const r = DB.reqs.find(x => x.id === id); return r ? r.qty : 0; };
+
+/* One path for every decision, so the four workflows cannot drift apart in how
+   they report success or failure. */
+async function doDecide(kind, id, yes, note, qty) {
+  const btn = document.querySelector("[data-a='dogo']");
+  if (btn) { btn.textContent = "Menghantar…"; btn.disabled = true; }
+  let res;
+  if (kind === "pay")
+    res = yes ? await sb.rpc("approve_payment", { p_payment: id })
+              : await sb.rpc("reject_payment", { p_payment: id, p_note: note });
+  else if (kind === "price")
+    res = await sb.rpc("decide_price_request",
+            { p_request: id, p_approve: yes, p_note: note || null });
+  else if (kind === "cn")
+    res = await sb.rpc("decide_credit_note",
+            { p_note_id: id, p_approve: yes, p_note: note || null });
+  else if (kind === "stock") {
+    const r = DB.reqs.find(x => x.id === id);
+    res = yes ? await sb.rpc("issue_stock", { p_salesman: r.salesman_id, p_product: r.product_id,
+                   p_qty: parseInt(qty, 10) || r.qty, p_request: id })
+              : await sb.rpc("reject_stock_request", { p_request: id, p_note: note });
+  } else return;
+
+  $("#over").innerHTML = "";
+  if (res.error) return toast(friendly(res.error.message), "bad");
+  await loadAll();
+  draw();
+  const d = res.data || {};
+  toast(yes ? (d.doc_no ? `Diluluskan · ${d.doc_no}` : "Diluluskan.") : "Ditolak.",
+        yes ? "good" : "bad");
+}
+
+function pendingWork() {
+  return {
+    pay: DB.payments.filter(p => !p.approved_at && !p.rejected_at)
+           .sort((a, b) => new Date(b.paid_at) - new Date(a.paid_at)),
+    price: DB.priceReqs.filter(r => r.status === "pending"),
+    cn: DB.creditNotes.filter(r => r.status === "pending"),
+    stock: DB.reqs.filter(r => r.status === "pending"),
+  };
+}
+const smOf = id => DB.profiles.find(p => p.id === id) || { name: "—", code: "" };
+
+function vApprovals() {
+  const w = pendingWork();
+  const n = w.pay.length + w.price.length + w.cn.length + w.stock.length;
+  const me = S.me || {};
+  const card = (title, rows, body) => rows.length ? `
+    <div class="sec" style="margin-top:20px;font-size:15px">${title}
+      <span style="margin-left:auto;font-size:13px;color:var(--mut);font-weight:600">
+        ${rows.length}</span></div>
+    <div class="list">${rows.map(body).join("")}</div>` : "";
+
+  return `
+  <div class="hd">
+    <div class="salam">Pejabat,</div>
+    <h1>${esc([me.code, me.name].filter(Boolean).join(" ").toUpperCase() || "PENGURUSAN")}</h1>
+    ${hdActs()}
+  </div>
+  <div class="body pad">
+    <div class="card" style="display:flex;align-items:center;gap:14px;margin-bottom:4px">
+      <div style="width:46px;flex:none;color:var(--red)">${ic(I.list)}</div>
+      <div style="flex:1;min-width:0">
+        <b style="font-size:15px">Menunggu Kelulusan</b>
+        <div style="font-size:13px;color:var(--mut)">${n
+          ? `${n} perkara perlu diputuskan` : "Tiada apa-apa menunggu"}</div>
+      </div>
+      <b style="font-size:26px;letter-spacing:-.02em;color:${n ? "var(--red)" : "var(--grn)"}">${n}</b>
+    </div>
+
+    ${card("Bayaran", w.pay, p => {
+      const c = custOf(p.customer_id), inv = DB.invoices.find(v => v.id === p.invoice_id);
+      return `<div class="row">
+        <div class="when">${esc(fDay(new Date(p.paid_at)))} · ${esc(smOf(p.salesman_id).code)}</div>
+        <div class="main">
+          <span class="who"><span class="code">#${esc(rcode(c))}</span>
+            <span class="nm">${esc(c ? c.name : "—")}</span></span>
+          <span class="mid">${esc(inv ? inv.doc_no : "")}<br>${esc(METH[p.method] || p.method || "")}</span>
+          <span class="amt">${RM(p.amount)}</span>
+        </div>
+        ${decideRow("pay", p.id)}
+      </div>`; })}
+
+    ${card("Tukar Harga", w.price, r => {
+      const c = custOf(r.customer_id);
+      return `<div class="row">
+        <div class="when">${esc(fDay(new Date(r.requested_at)))} · ${esc(smOf(r.salesman_id).code)}</div>
+        <div class="main">
+          <span class="who"><span class="code">#${esc(rcode(c))}</span>
+            <span class="nm">${esc(c ? c.name : "—")}</span></span>
+          <span class="mid">${esc(prodOf(r.product_id).name)}</span>
+          <span class="amt"><s style="color:var(--dim);font-weight:400">${RM(r.old_price)}</s><br>
+            ${RM(r.new_price)}</span>
+        </div>
+        ${r.note ? `<div class="note2">${esc(r.note)}</div>` : ""}
+        ${decideRow("price", r.id)}
+      </div>`; })}
+
+    ${card("Credit Note", w.cn, r => {
+      const c = custOf(r.customer_id), inv = DB.invoices.find(v => v.id === r.invoice_id);
+      return `<div class="row">
+        <div class="when">${esc(fDay(new Date(r.requested_at)))} · ${esc(smOf(r.salesman_id).code)}</div>
+        <div class="main">
+          <span class="who"><span class="code">#${esc(rcode(c))}</span>
+            <span class="nm">${esc(c ? c.name : "—")}</span></span>
+          <span class="mid">${esc(inv ? inv.doc_no : "")}<br>${esc(r.reason)}</span>
+          <span class="amt">${RM(r.amount)}</span>
+        </div>
+        ${r.note ? `<div class="note2">${esc(r.note)}</div>` : ""}
+        ${decideRow("cn", r.id)}
+      </div>`; })}
+
+    ${card("Stok Request", w.stock, r => `<div class="row">
+        <div class="when">${esc(fDay(new Date(r.requested_at)))} · ${esc(smOf(r.salesman_id).code)}</div>
+        <div class="main">
+          <span class="who"><span class="nm">${esc(prodOf(r.product_id).name)}</span>
+            <span class="code" style="font-weight:600">${esc(prodOf(r.product_id).sku)}</span></span>
+          <span class="qty">${N(r.qty)}</span>
+        </div>
+        ${r.note ? `<div class="note2">${esc(r.note)}</div>` : ""}
+        ${decideRow("stock", r.id)}
+      </div>`)}
+
+    ${n ? "" : `<div class="empty" style="margin-top:20px"><b>Semuanya selesai</b>
+      <span>Tiada bayaran, permohonan harga, credit note atau permintaan stok menunggu.</span></div>`}
+  </div>`;
+}
+const decideRow = (kind, id) => `<div class="decide">
+  <button class="no"  data-a="decide" data-k="${kind}" data-id="${id}" data-v="0">Tolak</button>
+  <button class="yes" data-a="decide" data-k="${kind}" data-id="${id}" data-v="1">Lulus</button>
+</div>`;
 
 /* ===========================================================================
    Jadual Harian
@@ -1885,11 +2060,15 @@ function vTakeOrder(id) {
         <th>Produk</th><th class="r">Harga/Unit</th><th class="c">Kuantiti</th><th class="r">Jumlah</th>
       </tr></thead><tbody>${avail.map(p => {
         const van = DB.van[p.id] || 0;
-        const pr = d.price[p.id] != null ? d.price[p.id] : (+p.price).toFixed(2);
+        /* An approved Tukar Harga is a standing price for this outlet, so it
+           is what the order opens at rather than the list price. */
+        const own = DB.custPrices.find(x => x.customer_id === id && x.product_id === p.id);
+        const base = own ? +own.price : +p.price;
+        const pr = d.price[p.id] != null ? d.price[p.id] : base.toFixed(2);
         return `<tr data-ol="${p.id}">
           <td class="pname">${esc(p.name)}
             <div style="font-size:11px;color:var(--dim);font-weight:400">
-              Van: ${N(van)} · Lantai ${RM(p.floor_price)}</div></td>
+              Van: ${N(van)} · Lantai ${RM(p.floor_price)}${own ? " · harga diluluskan" : ""}</div></td>
           <td class="r"><input class="qin" style="width:72px" type="number" step="0.01"
             min="${p.floor_price}" inputmode="decimal" data-op="${p.id}" value="${esc(pr)}"></td>
           <td class="c"><input class="qin" type="number" min="0" max="${van}"
@@ -2364,7 +2543,8 @@ function draw() {
   else {
     const t = cur();
     let v;
-    if (!t) v = S.tab === "home" ? vHome() : S.tab === "reseller" ? vReseller()
+    if (!t) v = S.tab === "home" ? (isMgmt() ? vApprovals() : vHome())
+            : S.tab === "reseller" ? vReseller()
             : S.tab === "stok" ? vStok() : S.tab === "gps" ? vGps() : vRanking();
     else if (t.name === "sales")     v = vSales();
     else if (t.name === "dolist")    v = vDoList();
@@ -2522,6 +2702,121 @@ const A = {
     toast(`${lines.length} permintaan stok dihantar.`, "good");
     await loadAll(); pop();
   },
+  /* ---- approvals, the office side ---- */
+  decide(el) {
+    const kind = el.dataset.k, id = el.dataset.id, yes = el.dataset.v === "1";
+    /* Approving is one tap. Rejecting asks why, because the salesman who
+       raised it has to be told something, and "no" on its own is useless to
+       him at a counter tomorrow. */
+    if (yes && kind !== "stock") return doDecide(kind, id, true, "");
+    $("#over").innerHTML = `<div class="modal"><div class="mbox">
+      <div class="mh"><b>${yes ? "Luluskan" : "Tolak"}</b>
+        <button data-a="closeover">&times;</button></div>
+      <div class="mi">
+        ${kind === "stock" && yes ? `<div class="f"><label for="dq">Kuantiti Dikeluarkan</label>
+          <input id="dq" type="number" min="1" inputmode="numeric"
+            value="${esc(stockQty(id))}"></div>` : ""}
+        <div class="f"><label for="dn">${yes ? "Catatan (pilihan)" : "Sebab ditolak"}</label>
+          <textarea id="dn" placeholder="${yes ? "Catatan" : "Beritahu salesman kenapa"}"></textarea></div>
+        <button class="rowbtn ${yes ? "g" : ""}" style="margin:0" data-a="dogo"
+          data-k="${kind}" data-id="${id}" data-v="${yes ? 1 : 0}">
+          ${yes ? "Luluskan" : "Tolak"}</button>
+      </div></div></div>`;
+  },
+  dogo(el) {
+    const note = (($("#dn") || {}).value || "").trim();
+    const yes = el.dataset.v === "1";
+    if (!yes && !note) return toast("Beri sebab ringkas kenapa ditolak.", "bad");
+    return doDecide(el.dataset.k, el.dataset.id, yes, note, ($("#dq") || {}).value);
+  },
+
+  async final(el) {
+    const { data, error } = await sb.rpc("issue_final_invoice", { p_invoice: el.dataset.id });
+    if (error) return toast(friendly(error.message), "bad");
+    await loadAll(); draw();
+    toast(`Invois muktamad ${data.doc_no} dikeluarkan.`, "good");
+  },
+
+  /* ---- salesman requests ---- */
+  mohon(el) {
+    const c = custOf(el.dataset.id);
+    const price = p => { const o = DB.custPrices.find(x =>
+      x.customer_id === c.id && x.product_id === p.id); return o ? +o.price : +p.price; };
+    $("#over").innerHTML = `<div class="modal"><div class="mbox">
+      <div class="mh"><b>Mohon Tukar Harga</b><button data-a="closeover">&times;</button></div>
+      <div class="mi">
+        <p style="margin:0 0 14px;font-size:13.5px;color:var(--mut)">${esc(c.name)}</p>
+        <div class="f"><label for="mp">Produk</label>
+          <select id="mp">${DB.products.map(p => `<option value="${p.id}"
+            data-cur="${price(p)}">${esc(p.name)} — ${RM(price(p))}</option>`).join("")}</select></div>
+        <div class="f"><label for="mn">Harga Dipohon (RM)</label>
+          <input id="mn" type="number" step="0.01" min="0.01" inputmode="decimal"
+            placeholder="0.00"></div>
+        <div class="f"><label for="mr">Sebab</label>
+          <textarea id="mr" placeholder="Kenapa harga perlu diubah"></textarea></div>
+        <p class="hint" style="margin:0 0 14px">Permohonan pergi ke pejabat. Harga sekarang
+          kekal sehingga diluluskan.</p>
+        <button class="rowbtn" style="margin:0" data-a="mohongo" data-id="${c.id}">Hantar Permohonan</button>
+      </div></div></div>`;
+  },
+  async mohongo(el) {
+    const prod = ($("#mp") || {}).value, price = parseFloat(($("#mn") || {}).value);
+    const note = (($("#mr") || {}).value || "").trim();
+    if (!prod) return toast("Pilih produk.", "bad");
+    if (!(price > 0)) return toast("Masukkan harga yang dipohon.", "bad");
+    el.textContent = "Menghantar…"; el.disabled = true;
+    const { error } = await sb.rpc("request_price",
+      { p_customer: el.dataset.id, p_product: prod, p_price: price, p_note: note || null });
+    $("#over").innerHTML = "";
+    if (error) return toast(friendly(error.message), "bad");
+    await loadAll(); draw();
+    toast("Permohonan harga dihantar ke pejabat.", "good");
+  },
+  creditnote(el) {
+    const v = DB.invoices.find(x => x.id === el.dataset.id);
+    if (!v) return;
+    const out = Number(v.total) - Number(v.paid);
+    if (out <= 0.004) return toast("Invois ini sudah dijelaskan — tiada baki untuk dikreditkan.", "bad");
+    $("#over").innerHTML = `<div class="modal"><div class="mbox">
+      <div class="mh"><b>Request Credit Note</b><button data-a="closeover">&times;</button></div>
+      <div class="mi">
+        <p style="margin:0 0 14px;font-size:13.5px;color:var(--mut)">
+          ${esc(v.doc_no)} · baki ${RM(out)}</p>
+        <div class="f"><label for="ca">Jumlah (RM)</label>
+          <input id="ca" type="number" step="0.01" min="0.01" max="${out}"
+            inputmode="decimal" placeholder="${out.toFixed(2)}"></div>
+        <div class="f"><label>Sebab</label><div class="chips">
+          ${["Barang rosak","Barang luput","Harga salah","Kuantiti salah","Lain-lain"]
+            .map((r, i) => `<button data-a="cnreason" data-v="${esc(r)}"
+              class="${i === 0 ? "on" : ""}">${r}</button>`).join("")}
+        </div></div>
+        <div class="f"><label for="cn">Catatan</label>
+          <textarea id="cn" placeholder="Catatan"></textarea></div>
+        <p class="hint" style="margin:0 0 14px">Credit note mengurangkan hutang tanpa barang
+          bergerak. Pulangan barang guna skrin Pulangan.</p>
+        <button class="rowbtn" style="margin:0" data-a="cngo" data-id="${v.id}">Hantar Permohonan</button>
+      </div></div></div>`;
+    S.cnReason = "Barang rosak";
+  },
+  cnreason(el) {
+    S.cnReason = el.dataset.v;
+    document.querySelectorAll('[data-a="cnreason"]').forEach(b =>
+      b.classList.toggle("on", b.dataset.v === el.dataset.v));
+  },
+  async cngo(el) {
+    const amt = parseFloat(($("#ca") || {}).value);
+    const note = (($("#cn") || {}).value || "").trim();
+    if (!(amt > 0)) return toast("Masukkan jumlah.", "bad");
+    el.textContent = "Menghantar…"; el.disabled = true;
+    const { error } = await sb.rpc("request_credit_note", {
+      p_invoice: el.dataset.id, p_amount: amt,
+      p_reason: S.cnReason || "Lain-lain", p_note: note || null });
+    $("#over").innerHTML = "";
+    if (error) return toast(friendly(error.message), "bad");
+    await loadAll(); draw();
+    toast("Permohonan credit note dihantar ke pejabat.", "good");
+  },
+
   /* ---- jadual harian ---- */
   jadual()    { push("jadual"); },
   jadday(el)  { S.day = el.dataset.v; draw(); },
@@ -3023,7 +3318,8 @@ async function loadMe(opts) {
 async function loadAll() {
   if (!S.me) return;
   try {
-    const [prod, cust, inv, so, d_o, lines, pay, cg, req, van, ret, rec, co, sch] = await Promise.all([
+    const [prod, cust, inv, so, d_o, lines, pay, cg, req, van, ret, rec, co, sch,
+           prq, cnq, cpq, prof] = await Promise.all([
       sb.from("products").select("*").eq("active", true).order("sku"),
       sb.from("customers").select("*").order("code"),
       sb.from("invoices").select("*").order("issued_at", { ascending: false }),
@@ -3038,6 +3334,10 @@ async function loadAll() {
       sb.from("receipts").select("*").order("issued_at", { ascending: false }),
       sb.from("company").select("*").maybeSingle(),
       sb.from("visit_schedule").select("*").eq("salesman_id", S.me.id).order("position"),
+      sb.from("price_requests").select("*").order("requested_at", { ascending: false }),
+      sb.from("credit_notes").select("*").order("requested_at", { ascending: false }),
+      sb.from("customer_prices").select("*"),
+      sb.from("profiles").select("id,name,code,zone,role").eq("role", "salesman").order("code"),
     ]);
     /* The company row and receipts are not worth failing the whole load over —
        documents degrade to placeholders, everything else still works. */
@@ -3045,6 +3345,10 @@ async function loadAll() {
     if (bad) { S.loaded = true; S.data = null; return toast(friendly(bad.error.message), "bad"); }
     DB.receipts = (rec && rec.data) || [];
     DB.sched = (sch && sch.data) || [];
+    DB.priceReqs   = (prq && prq.data) || [];
+    DB.creditNotes = (cnq && cnq.data) || [];
+    DB.custPrices  = (cpq && cpq.data) || [];
+    DB.profiles    = (prof && prof.data) || [];
     if (co && co.data) CO = {
       name: co.data.name || CO.name, address: co.data.address || CO.address,
       phone: co.data.phone || CO.phone, ssm: co.data.ssm || CO.ssm };

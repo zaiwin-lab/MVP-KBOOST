@@ -67,6 +67,9 @@ signal is thrown back to a login screen he cannot possibly get past.
 | Reseller | Searchable list, and a profile with his four tabs — General, Sejarah Invois, Galeri, Kerja Harian |
 | Customer Profile | Payment-term badge, Call (Dialer / WhatsApp), Location (Google Maps / Waze), consignment stock on the shelf, Service Month |
 | Galeri | The five registration photograph types, read through the signed-URL edge function |
+| Kelulusan (office) | The management side: payments, price requests, credit notes and stock requests waiting on a decision, each with Lulus / Tolak. Signing in as management swaps the tab bar — no van, so no Stok or GPS |
+| Mohon Tukar Harga | A salesman asks for a price change on the reseller profile; approval writes a standing price the order screen then opens at |
+| Request Credit Note | Raised from an invoice, capped at what is still owed, and numbered `CN000001` once the office approves |
 | Jadual Harian | The day's round — pick a date, add shops, order them, note against each, and Navigate / Hubungi / Profil per stop. Suggests outlets with money owed or consignment stock due a count |
 | Pulangan | Record a return from the reseller profile — product, quantity, one of seven reasons, a note and a photograph. Stock goes back on the van and the RET document prints |
 | Dokumen | Every Cetak and Lihat button now opens the document on a 58mm or 80mm roll, with **PDF**, **WhatsApp** and **Cetak**. D/O, Sales Order, Invois, Resit and Pulangan |
@@ -256,8 +259,36 @@ Reordering rewrites positions from 1 upward each time rather than nudging them,
 so a list that has been reordered and had stops removed for weeks cannot drift
 into ties or gaps.
 
-Still to come: the four approval workflows, which each need an office-side
-screen to approve into.
+## The approval workflows, and the office
+
+Four of his screens hand a request to somebody who is not the salesman, and
+none of the forty screenshots showed the person doing the approving. The app
+now has that half: sign in as management and the tab bar becomes **Kelulusan ·
+Reseller · Ranking** — no van, so no Stok or GPS — and the home screen is the
+queue of what is waiting.
+
+The decision that mattered most: **a payment reduces the balance the moment it
+is taken**, and approval is a confirmation afterwards rather than a gate
+before. Otherwise a shop that has just handed over cash still reads as owing
+it, and the salesman argues with them at the counter. Rejecting is what moves
+money — it reverses the amount and keeps the payment on the record, because a
+deleted payment leaves a receipt with nothing behind it. Rejection always asks
+why, since "no" on its own is useless to the salesman at a counter tomorrow.
+
+An invoice with money awaiting confirmation reads **Pending Acc Approval** in
+his orange, and `Total Pending` on the order screen — a field that was showing
+`RM 0.00` since the first build — now carries that amount.
+
+Verified both halves: a salesman raised a price request and a credit note, a
+second request for the same product was refused, a credit note larger than the
+balance was refused, the office approved the price and the order screen opened
+at it, rejecting a payment put RM 10.00 back on the invoice, approving a credit
+note issued `CN000001` and credited RM 472.50, and a salesman calling an
+approval directly got `only the office can decide this`.
+
+Still open and genuinely blocked on the client: whether his app has an office
+side at all (question 29), and what Pending Acc Approval means in his own
+operation (question 6). This is a proposal, not a reading of his design.
 
 ## Three access panels
 

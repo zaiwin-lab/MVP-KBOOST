@@ -27,6 +27,7 @@ why, so the repository is not silent about where the data lives.
 | 14 | `consignment_visit_check` | `post_consign_check()` — one bill per visit, FIFO across price layers, unsold stock carried forward |
 | 15 | `grant_consign_drop_to_salesmen` | `post_consign_drop()` granted to `authenticated`, so taking an order at a consignment outlet reaches it |
 | 16 | `return_photo` | `returns.photo_path`, `set_return_photo()`, and `return` added to the file kinds |
+| 17 | `approval_workflows` | `price_requests`, `customer_prices`, `credit_notes`, payment approval columns, and the six decision functions |
 
 ## The leaderboard, without a hole in row level security
 
@@ -37,6 +38,51 @@ sales, collected, order count — and nothing else. No document, no customer, no
 line ever leaves through it. It is the only thing one salesman sees of
 another's figures, and it is aggregate by construction rather than by a filter
 someone could forget.
+
+## The four approval workflows
+
+Four of the client's screens put a request in front of somebody who is not the
+salesman: a payment waits for accounts, a price change is submitted as **Mohon**,
+a credit note is requested, and a stock request is approved. None of his forty
+screenshots showed the person doing the approving, so this is a proposal for
+that half rather than a copy of one.
+
+**A payment is recorded and reduces the balance the moment it is taken.**
+Approval is a confirmation afterwards, not a gate before. The alternative — an
+unapproved payment leaving the balance untouched — means a shop that has just
+handed over cash still reads as owing it, and the salesman argues with them at
+the counter. It also makes the change additive: if accounts never approves
+anything, the system behaves exactly as it did before. **Rejection** is what
+moves money, and it reverses the amount off the invoice rather than deleting
+the payment, because a deleted payment leaves a receipt with nothing behind it.
+
+**Tukar Harga writes a standing price.** `price_requests` holds the ask;
+approving it writes `customer_prices`, which the order screen then opens at and
+marks as approved. Per-customer pricing is visible in the client's own data —
+one product at two prices in two shops — and the system had no room for it. One
+pending request per product per outlet, so a salesman cannot queue five.
+
+**A credit note is a financial document, not a stock movement**, which is why
+it is separate from a return: a return puts goods back on the van, a credit
+note reduces what the shop owes without anything moving. Approving one issues a
+`CN` running number and credits the invoice. The requested amount cannot exceed
+what is still outstanding, less anything already pending against the same
+invoice.
+
+Every decision goes through `require_management()`, and a salesman calling one
+directly gets `only the office can decide this`.
+
+### Two things worth remembering
+
+A `CASE` expression assigned to an enum column does **not** cast implicitly the
+way a bare string literal does. `reject_payment` and `decide_credit_note` both
+failed with *"column status is of type invoice_status but expression is of type
+text"* until the CASE was cast explicitly. The failure was silent in the UI
+because the error only surfaced in a toast.
+
+And introducing an approval gate must **backfill existing rows as approved**.
+Without it the office signs in to a queue of forty-four historical payments it
+was never asked to review.
 
 ## A photograph on a return
 
