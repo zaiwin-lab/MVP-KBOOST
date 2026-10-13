@@ -26,6 +26,7 @@ why, so the repository is not silent about where the data lives.
 | 13 | `registration_with_opening_order` | `post_consign_drop()`, and `register_customer()` extended to every field his form collects |
 | 14 | `consignment_visit_check` | `post_consign_check()` — one bill per visit, FIFO across price layers, unsold stock carried forward |
 | 15 | `grant_consign_drop_to_salesmen` | `post_consign_drop()` granted to `authenticated`, so taking an order at a consignment outlet reaches it |
+| 16 | `return_photo` | `returns.photo_path`, `set_return_photo()`, and `return` added to the file kinds |
 
 ## The leaderboard, without a hole in row level security
 
@@ -36,6 +37,26 @@ sales, collected, order count — and nothing else. No document, no customer, no
 line ever leaves through it. It is the only thing one salesman sees of
 another's figures, and it is aggregate by construction rather than by a filter
 someone could forget.
+
+## A photograph on a return
+
+MASTER FINAL asks for "Gambar Produk" on a return and the table had nowhere to
+put one. It is not decoration: a return is a claim that goods were damaged,
+expired or wrong, and the photograph taken at the counter is the only evidence
+anyone will ever have. Without it the office settles credits on a salesman's
+word weeks after the fact.
+
+`returns.photo_path` holds it, and `set_return_photo()` attaches it after the
+return exists. Recording it separately rather than as a sixth argument to
+`post_return()` is deliberate: a photograph that fails to upload must not undo
+a return whose stock has already gone back on the van.
+
+Adding a new file kind turned out to touch **three** places, not one. The edge
+function keeps its own `KINDS` list, and `reseller_files.kind` has a CHECK
+constraint of its own. Updating only the function produced a clean `sign-upload`
+followed by a 400 on `record` — *"violates check constraint
+reseller_files_kind_check"*. Worth remembering: the allowed kinds live in the
+edge function **and** in the table.
 
 ## Taking an order
 

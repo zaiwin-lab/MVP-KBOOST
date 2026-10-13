@@ -1219,6 +1219,7 @@ function custGeneral(c) {
 
     <button class="rowbtn" data-a="takeorder" data-id="${c.id}">
       ${c.term === "consign" ? "Hantar Stok" : "Ambil Order"}</button>
+    <button class="rowbtn o" data-a="retstart" data-id="${c.id}">Pulangan</button>
     <button class="rowbtn o" data-a="soon" data-t="Blacklist Reseller">Blacklist Reseller</button>
     <button class="rowbtn o" data-a="soon" data-t="Set VIP">Set VIP</button>
     <button class="rowbtn g" data-a="soon" data-t="Enable TIN QR">Enable TIN QR</button>
@@ -1371,6 +1372,77 @@ function vNearest() {
         <button class="sbtn" data-a="loc" data-id="${c.id}">${ic(I.pin)}</button>
       </div>`).join("")}</div>`
       : `<div class="empty"><b>Tiada koordinat</b></div>`}
+  </div>`;
+}
+
+/* ===========================================================================
+   Pulangan — a return
+   One product, one reason, one numbered document. Stock comes back onto the
+   van, because that is where it physically goes.
+   =========================================================================== */
+const REASONS = [["damaged","Rosak"],["expired","Luput"],["wrong_product","Produk Salah"],
+                 ["wrong_qty","Kuantiti Salah"],["defective","Cacat"],
+                 ["customer_request","Permintaan Pelanggan"],["other","Lain-lain"]];
+
+function retHarvest() {
+  const r = S.ret; if (!r) return;
+  document.querySelectorAll("[data-rt]").forEach(el => { r[el.dataset.rt] = el.value; });
+}
+
+function vReturn(id) {
+  const c = custOf(id);
+  if (!c) return backBar(true) + `<div class="body pad"><div class="empty"><b>Tiada rekod</b></div></div>`;
+  const r = S.ret || (S.ret = { product: "", qty: "", reason: "", remark: "", photo: null });
+  const past = DB.returns.filter(x => x.customer_id === id)
+    .sort((a, b) => new Date(b.issued_at) - new Date(a.issued_at)).slice(0, 5);
+  return backBar(true) + title("Pulangan") + `
+  <div class="body pad">
+    <div class="cust">
+      <div class="t"><span class="code">${esc(rcode(c))}</span>
+        <div class="nm">${esc(c.name)}</div>
+        <div class="ad">${esc([c.address, c.district].filter(Boolean).join(", "))}</div></div>
+    </div>
+
+    <div class="f"><label for="rt_p">Produk <span class="req">*</span></label>
+      <select id="rt_p" data-rt="product">
+        <option value="">— Pilih produk —</option>
+        ${DB.products.map(p => `<option value="${p.id}"
+          ${r.product === p.id ? "selected" : ""}>${esc(p.name)}</option>`).join("")}
+      </select></div>
+
+    <div class="f"><label for="rt_q">Kuantiti <span class="req">*</span></label>
+      <input id="rt_q" data-rt="qty" type="number" min="1" inputmode="numeric"
+        value="${esc(r.qty)}" placeholder="0"></div>
+
+    <div class="f"><label>Sebab <span class="req">*</span></label><div class="chips">
+      ${REASONS.map(([k, l]) => `<button data-a="retreason" data-v="${k}"
+        class="${r.reason === k ? "on" : ""}">${l}</button>`).join("")}
+    </div></div>
+
+    <div class="f"><label for="rt_r">Catatan</label>
+      <textarea id="rt_r" data-rt="remark" placeholder="Catatan">${esc(r.remark)}</textarea></div>
+
+    <div class="f"><label>Gambar Produk</label>
+      <label class="pcell ${r.photo ? "has" : ""}" style="aspect-ratio:16/9">
+        ${r.photo ? `<img src="${esc(r.photo.url)}" alt=""><span class="tick">&#10003;</span>` : ""}
+        <span class="lb">${r.photo ? "" : ic(I.img)}Ambil gambar barang yang dipulangkan</span>
+        <input type="file" accept="image/*" capture="environment" data-rp="return">
+      </label></div>
+
+    <p class="hint">Stok yang dipulangkan masuk semula ke dalam van anda. Gambar adalah
+      satu-satunya bukti keadaan barang, jadi ambil sebelum barang dibawa balik.</p>
+    <button class="rowbtn" data-a="retsubmit" data-id="${id}">Rekod Pulangan</button>
+
+    ${past.length ? `<div class="sec" style="margin-top:22px;font-size:15px">Pulangan Lepas</div>
+      <div class="list">${past.map(x => `
+        <button class="row" data-a="doc" data-t="RET" data-id="${x.id}">
+          <div class="when">${esc(fDay(new Date(x.issued_at)))}</div>
+          <div class="main">
+            <span class="who"><span class="code">${esc(x.doc_no)}</span>
+              <span class="nm">${esc(prodOf(x.product_id).name)}</span></span>
+            <span class="mid">${esc(RETR[x.reason] || x.reason || "")}</span>
+            <span class="qty">${N(x.qty)}</span>
+          </div></button>`).join("")}</div>` : ""}
   </div>`;
 }
 
@@ -2112,6 +2184,7 @@ function draw() {
     else if (t.name === "cgcheck")   v = vCgCheck(t.id);
     else if (t.name === "takeorder") v = vTakeOrder(t.id);
     else if (t.name === "doc")       v = vDoc(t.t, t.id);
+    else if (t.name === "return")    v = vReturn(t.id);
     else if (t.name === "settings")  v = vSettings();
     else v = `<div class="body pad"><div class="empty"><b>Tiada skrin</b></div></div>`;
     h = v + tabBar();
@@ -2135,9 +2208,16 @@ function draw() {
   document.querySelectorAll("[data-rp]").forEach(inp => {
     inp.onchange = e => {
       const file = e.target.files && e.target.files[0];
-      if (!file || !S.reg) return;
+      if (!file) return;
       if (file.size > 12 * 1024 * 1024) return toast("Gambar terlalu besar (maksimum 12MB).", "bad");
       const kind = e.target.dataset.rp;
+      if (kind === "return" && S.ret) {
+        if (S.ret.photo && S.ret.photo.url) URL.revokeObjectURL(S.ret.photo.url);
+        retHarvest();
+        S.ret.photo = { file: file, url: URL.createObjectURL(file) };
+        return draw();
+      }
+      if (!S.reg) return;
       const old = S.reg.photos[kind];
       if (old && old.url) URL.revokeObjectURL(old.url);
       regHarvest();
@@ -2233,6 +2313,39 @@ const A = {
     toast(`${lines.length} permintaan stok dihantar.`, "good");
     await loadAll(); pop();
   },
+  /* ---- pulangan ---- */
+  retstart(el) { S.ret = { product: "", qty: "", reason: "", remark: "", photo: null };
+                 push("return", { id: el.dataset.id }); },
+  retreason(el) { retHarvest(); S.ret.reason = el.dataset.v; draw(); },
+  async retsubmit(el) {
+    retHarvest();
+    const r = S.ret, id = el.dataset.id;
+    if (!r.product)              return toast("Pilih produk.", "bad");
+    if (!(parseInt(r.qty, 10) > 0)) return toast("Masukkan kuantiti.", "bad");
+    if (!r.reason)               return toast("Pilih sebab pulangan.", "bad");
+    el.textContent = "Merekod…"; el.disabled = true;
+
+    const { data, error } = await sb.rpc("post_return", {
+      p_customer: id, p_product: r.product, p_qty: parseInt(r.qty, 10),
+      p_reason: r.reason, p_remark: r.remark || null });
+    if (error) { el.disabled = false; el.textContent = "Rekod Pulangan";
+                 return toast(friendly(error.message), "bad"); }
+
+    /* The return is written. A photograph that fails to upload must not undo
+       it, so it is attached afterwards and only reported if it fails. */
+    let warn = "";
+    if (r.photo) {
+      try {
+        const path = await uploadPhoto(id, "return", r.photo.file);
+        await sb.rpc("set_return_photo", { p_return: data.return_id, p_path: path });
+      } catch (e) { warn = " Gambar gagal dimuat naik."; }
+    }
+    S.ret = null;
+    await loadAll();
+    pop();
+    toast(`${data.return_no} direkod. Stok masuk semula ke van.${warn}`, warn ? "bad" : "good");
+  },
+
   /* ---- ambil order ---- */
   takeorder(el) { S.ord = { lines: {}, price: {}, method: "tunai" };
                   push("takeorder", { id: el.dataset.id }); },
@@ -2755,6 +2868,7 @@ async function uploadPhoto(customerId, kind, file) {
   if (!put.ok) throw new Error(`storage refused the file (${put.status})`);
   await call({ action: "record", customer_id: customerId, kind: kind, path: signed.path });
   if (S.gal) delete S.gal[customerId];
+  return signed.path;
 }
 
 /* Registration photographs, fetched through the edge function that signs a

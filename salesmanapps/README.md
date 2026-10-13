@@ -67,6 +67,7 @@ signal is thrown back to a login screen he cannot possibly get past.
 | Reseller | Searchable list, and a profile with his four tabs — General, Sejarah Invois, Galeri, Kerja Harian |
 | Customer Profile | Payment-term badge, Call (Dialer / WhatsApp), Location (Google Maps / Waze), consignment stock on the shelf, Service Month |
 | Galeri | The five registration photograph types, read through the signed-URL edge function |
+| Pulangan | Record a return from the reseller profile — product, quantity, one of seven reasons, a note and a photograph. Stock goes back on the van and the RET document prints |
 | Dokumen | Every Cetak and Lihat button now opens the document on a 58mm or 80mm roll, with **PDF**, **WhatsApp** and **Cetak**. D/O, Sales Order, Invois, Resit and Pulangan |
 | Ambil Order | Take an order from an existing reseller. One screen, three outcomes, decided by the outlet's payment term — a stock drop at a consignment shop, an invoice at Bill To Bil, an invoice paid on the spot at Cash. Prices adjustable down to the floor; quantities capped at the van |
 | Semak Baki Stok | The consignment balance check, from the customer profile. Count what is left on the shelf; the system works out what sold and raises **one** bill for the visit |
@@ -191,6 +192,22 @@ of opening a blank document.
 SET]`.** The company row has never been filled, and the screen says so under
 the receipt rather than hiding it. Name, registered address, SSM number and
 phone are still outstanding from the client — question 45 in the report.
+
+**Returns carry a photograph now.** MASTER FINAL asks for one and the table had
+nowhere to put it. A return is a claim that goods were damaged, expired or
+wrong, and the picture taken at the counter is the only evidence anyone will
+ever have — without it the office is settling credits on a salesman's word
+weeks later. It is attached after the return is written, so a failed upload
+cannot undo a return whose stock has already gone back on the van.
+
+That change needed three edits, not one: the edge function's own list of file
+kinds, a CHECK constraint on `reseller_files.kind`, and the column itself.
+Updating only the function gave a clean `sign-upload` and then a 400 on
+`record`.
+
+Verified end to end: all three guards fire, van stock went 31 → 34 on a
+three-unit return, the photograph landed under kind `return`, and `RET000006`
+prints with its reason on the roll.
 
 Still to come from his design: the daily planner, and whatever screen Jadual
 Harian turns out to be.
