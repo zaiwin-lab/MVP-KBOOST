@@ -373,6 +373,35 @@ body[data-rk="1"]{background:var(--rank)}
 .cal-a .no{background:#D8D4DC;color:var(--mut)}
 .cal-a .yes{background:var(--red);color:#fff}
 
+/* ---------- document on a thermal roll ---------- */
+.roll{background:#fff;color:#000;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  font-size:11.5px;line-height:1.5;padding:16px 12px;margin:0 auto;
+  box-shadow:0 1px 3px rgba(20,22,28,.12)}
+.roll.r58{max-width:230px;font-size:10.5px}
+.roll.r80{max-width:310px}
+.roll .co{text-align:center;margin-bottom:2px}
+.roll .co b{display:block;font-size:1.15em;font-weight:700}
+.roll .co span{display:block;font-size:.85em;line-height:1.45}
+.roll .hr{border-top:1px dashed #000;margin:7px 0;opacity:.6}
+.roll .dt{text-align:center;font-weight:700;letter-spacing:.06em}
+.roll .pr{display:flex;justify-content:space-between;gap:8px}
+.roll .pr span{flex:1;min-width:0}
+.roll .pr b{font-weight:700;text-align:right;white-space:nowrap}
+.roll .pr.tot{font-size:1.15em;font-weight:700;margin-top:2px}
+.roll .ln{margin-top:4px;word-break:break-word}
+.roll .stamp{text-align:center;font-weight:700;font-size:1.15em;letter-spacing:.1em;margin-top:8px}
+
+/* Printing: only the receipt goes on the roll, at the roll's real width. The
+   @page rule carrying that width is swapped from script, because @page cannot
+   read a CSS variable — without it the browser prints onto A4 and a 58mm
+   layout arrives a third of the way across the sheet. */
+@media print{
+  body{background:#fff}
+  #app > *:not(.body), .tabs, .bar, .ttl, .hint, .g2, .rowbtn, #chrome, #over{display:none!important}
+  .body{padding:0!important}
+  .roll{box-shadow:none;max-width:none;width:auto;margin:0;padding:0}
+}
+
 /* ---------- registration wizard ---------- */
 .steps{display:flex;gap:5px;padding:0 16px 14px;background:var(--bg);flex:none}
 .steps i{flex:1;height:4px;border-radius:2px;background:var(--line)}
@@ -534,8 +563,9 @@ const I = {
 const S = {
   tab: "home", stack: [], ready: false, me: null, email: "", err: "", busy: false,
   online: navigator.onLine, data: null, loaded: false, lastEmail: "",
-  q: "", range: null, rkPeriod: "month", rkRows: null,
+  q: "", range: null, rkPeriod: "month", rkRows: null, roll: "80",
 };
+try { S.roll = localStorage.getItem("sa.roll") === "58" ? "58" : "80"; } catch (_) {}
 const BUILD = "2026-10-12";
 
 /* Everything the salesman may see, read once at sign-in. At this scale — a
@@ -543,7 +573,23 @@ const BUILD = "2026-10-12";
    than a query per screen, and every screen then opens instantly. A larger
    book of business would want paging instead. */
 const DB = { products: [], customers: [], invoices: [], sos: [], dos: [], lines: {},
-             payments: [], consign: [], reqs: [], van: {}, returns: [] };
+             payments: [], consign: [], reqs: [], van: {}, returns: [], receipts: [] };
+
+/* Printed on the head of every document. The real values are still outstanding
+   from the client, so until the company row is filled this prints visible
+   placeholders rather than a plausible-looking invented company. */
+let CO = { name: "[Company Name] Sdn Bhd", address: "[Registered address not set]",
+           phone: "[Phone not set]", ssm: "[SSM NO. — NOT SET]" };
+
+/* @page cannot read a CSS variable, so the rule carrying the roll width is
+   swapped out whenever the width changes. Without it the browser prints the
+   receipt onto A4 and a 58mm layout arrives a third of the way across. */
+let PAPER = null;
+function setPaper() {
+  if (!PAPER) { PAPER = document.createElement("style"); document.head.appendChild(PAPER); }
+  const w = S.roll === "58" ? "58mm" : "80mm";
+  PAPER.textContent = "@media print{@page{size:" + w + " auto;margin:3mm 2mm}}";
+}
 
 const prodOf = id => DB.products.find(p => p.id === id) || { name: "—", sku: "" };
 const custOf = id => DB.customers.find(c => c.id === id) || null;
@@ -923,6 +969,8 @@ function vOrder(id) {
   const bal = Number(v.total) - Number(v.paid);
   const qty = lines.reduce((a, l) => a + l.qty, 0);
   const img = S.photos && S.photos[c.id];
+  const rcp = DB.receipts.filter(r => r.invoice_id === v.id)
+    .sort((a, b) => new Date(b.issued_at) - new Date(a.issued_at))[0];
   return backBar(true) + title("Maklumat Pesanan") + `
   <div class="body pad">
     <div class="cust">
@@ -947,7 +995,9 @@ function vOrder(id) {
     </dl></div></div>
 
     <div class="block"><h3>Sales Order &amp; Invois</h3><div class="in">
-      <button class="rowbtn o" style="margin-top:0" data-a="doc" data-id="${v.id}" data-k="so">Sales Order</button>
+      <button class="rowbtn o" style="margin-top:0" data-a="doc" data-t="SO"
+        data-id="${esc(v.so_id || "")}">Sales Order</button>
+      <button class="rowbtn o" data-a="doc" data-t="INV" data-id="${v.id}">Invois</button>
       <button class="rowbtn o" data-a="soon" data-t="Keluar Invois Muktamad">Keluar Invois Muktamad</button>
       <button class="rowbtn o" data-a="soon" data-t="Request Credit Note">Request Credit Note</button>
     </div></div>
@@ -972,10 +1022,13 @@ function vOrder(id) {
       ? `<button class="rowbtn g" data-a="pay" data-id="${v.id}">Buat Bayaran</button>`
       : `<div class="ok" style="text-align:center;margin-top:12px">Invois ini sudah dijelaskan sepenuhnya.</div>`}
 
-    <button class="rowbtn o" data-a="doc" data-id="${v.id}" data-k="do">Cetak DO Lama</button>
-    <button class="rowbtn o" data-a="doc" data-id="${v.id}" data-k="so">Cetak Sales Order</button>
-    <button class="rowbtn o" data-a="doc" data-id="${v.id}" data-k="do">Lihat DO Lama</button>
-    <button class="rowbtn o" data-a="doc" data-id="${v.id}" data-k="so">Lihat Sales Order</button>
+    ${rcp ? `<button class="rowbtn o" data-a="doc" data-t="REC" data-id="${rcp.id}">Lihat Resit</button>` : ""}
+    <button class="rowbtn o" data-a="doc" data-t="DO" data-id="${esc(v.do_id || "")}"
+      data-print="1">Cetak DO Lama</button>
+    <button class="rowbtn o" data-a="doc" data-t="SO" data-id="${esc(v.so_id || "")}"
+      data-print="1">Cetak Sales Order</button>
+    <button class="rowbtn o" data-a="doc" data-t="DO" data-id="${esc(v.do_id || "")}">Lihat DO Lama</button>
+    <button class="rowbtn o" data-a="doc" data-t="SO" data-id="${esc(v.so_id || "")}">Lihat Sales Order</button>
     <button class="rowbtn o" data-a="soon" data-t="Jadual Harian">Jadual Harian</button>
   </div>`;
 }
@@ -1019,8 +1072,9 @@ function vDoDet(id) {
         <td class="c"><b>${g.checked_at ? N(g.qty_sold) : "Belum dikira"}</b></td></tr>`).join("")}
       </tbody></table></div>` : ""}
     <div class="g2" style="margin-top:12px">
-      <button class="rowbtn o" style="margin:0" data-a="doc" data-id="${d.id}" data-k="dodoc">Cetak DO Terbaru</button>
-      <button class="rowbtn o" style="margin:0" data-a="doc" data-id="${d.id}" data-k="dodoc">Lihat DO Terbaru</button>
+      <button class="rowbtn o" style="margin:0" data-a="doc" data-t="DO" data-id="${d.id}"
+        data-print="1">Cetak DO Terbaru</button>
+      <button class="rowbtn o" style="margin:0" data-a="doc" data-t="DO" data-id="${d.id}">Lihat DO Terbaru</button>
     </div>
   </div>`;
 }
@@ -1317,6 +1371,228 @@ function vNearest() {
         <button class="sbtn" data-a="loc" data-id="${c.id}">${ic(I.pin)}</button>
       </div>`).join("")}</div>`
       : `<div class="empty"><b>Tiada koordinat</b></div>`}
+  </div>`;
+}
+
+/* ===========================================================================
+   Dokumen — Lihat, PDF, WhatsApp, Cetak
+   One description of a document, read by the screen, the PDF and the WhatsApp
+   message. Three renderings of the same paperwork must not be allowed to
+   disagree about what is on it, so none of them builds its own.
+   =========================================================================== */
+const DOC_TITLE = { DO: "Delivery Order", SO: "Sales Order", INV: "Invois",
+                    REC: "Resit Bayaran", RET: "Pulangan" };
+
+function docFind(type, id) {
+  if (type === "DO")  return DB.dos.find(x => x.id === id);
+  if (type === "SO")  return DB.sos.find(x => x.id === id);
+  if (type === "INV") return DB.invoices.find(x => x.id === id);
+  if (type === "REC") return DB.receipts.find(x => x.id === id);
+  if (type === "RET") return DB.returns.find(x => x.id === id);
+  return null;
+}
+
+function docModel(type, d) {
+  const c = custOf(d.customer_id);
+  /* An invoice holds a total, not a line list — the goods are described once,
+     on the SO it was raised from. The customer being charged has to see what
+     for, so the lines are read back through that link rather than left off the
+     one document they actually receive. A receipt reaches them the same way. */
+  let lines = linesOf(d.id);
+  if (!lines.length && type === "INV" && d.so_id) lines = linesOf(d.so_id);
+  if (!lines.length && type === "REC" && d.invoice_id) {
+    const inv = DB.invoices.find(x => x.id === d.invoice_id);
+    if (inv && inv.so_id) lines = linesOf(inv.so_id);
+  }
+  if (!lines.length && type === "RET" && d.product_id)
+    lines = [{ product_id: d.product_id, qty: d.qty, unit_price: 0 }];
+
+  const rows = [["No", d.doc_no], ["Tarikh", fLong(new Date(d.issued_at))],
+                ["Reseller", c ? c.name : "—"], ["Kod", c ? rcode(c) : "—"]];
+  if (type === "DO")  rows.push(["Terma", "Konsainan"]);
+  if (type === "SO") {
+    if (d.do_id) { const o = DB.dos.find(x => x.id === d.do_id); if (o) rows.push(["Dari D/O", o.doc_no]); }
+    const inv = DB.invoices.find(x => x.so_id === d.id);
+    rows.push(["Invois", inv ? inv.doc_no : "Menunggu invois"]);
+  }
+  if (type === "INV") {
+    rows.push(["Tempoh", TERM[d.term] || d.term], ["Perlu Jelas", fLong(new Date(d.due_at))]);
+    const so = soOf(d.so_id); if (so) rows.push(["Dari SO", so.doc_no]);
+    if (d.do_id) { const o = DB.dos.find(x => x.id === d.do_id); if (o) rows.push(["Dari D/O", o.doc_no]); }
+  }
+  if (type === "REC") {
+    rows.push(["Cara Bayaran", METH[d.method] || d.method || "—"]);
+    const inv = DB.invoices.find(x => x.id === d.invoice_id);
+    if (inv) rows.push(["Invois", inv.doc_no]);
+  }
+  if (type === "RET") rows.push(["Sebab", RETR[d.reason] || d.reason || "—"]);
+
+  const amt = d.total != null ? +d.total : (d.amount != null ? +d.amount : 0);
+  const extra = [];
+  if (type === "INV" && +d.paid > 0) {
+    extra.push(["Dibayar", RM(d.paid)], ["Baki", RM(+d.total - +d.paid)]);
+  }
+  const stamp = type === "REC" ? "SAH / PAID"
+              : (type === "INV" && d.status === "paid") ? "SETTLED" : "";
+  return { type: type, id: d.doc_no, d: d, c: c, rows: rows, lines: lines, amt: amt,
+           extra: extra, stamp: stamp,
+           totalLabel: type === "REC" ? "DITERIMA" : type === "DO" ? "NILAI STOK" : "JUMLAH",
+           noBill: type === "DO" };
+}
+const METH = { tunai: "Tunai", cek: "Cek", pindahan: "Pindahan Bank", gaji: "Gaji", qr: "QR Code" };
+const RETR = { damaged: "Rosak", expired: "Luput", wrong_product: "Produk salah",
+               wrong_qty: "Kuantiti salah", defective: "Cacat", customer_request: "Permintaan pelanggan" };
+
+/* The same paperwork as plain text. A web page cannot attach a file to a
+   WhatsApp message — only the operating system can — so the document travels
+   as text, which is what a shop owner reads off their phone anyway. */
+function docText(m) {
+  const L = [];
+  L.push("*" + CO.name + "*");
+  L.push(CO.address);
+  L.push(CO.phone + "  SSM " + CO.ssm, "");
+  L.push("*" + (DOC_TITLE[m.type] || m.type).toUpperCase() + "*", "");
+  m.rows.forEach(([k, v]) => L.push(k + ": " + v));
+  if (m.lines.length) {
+    L.push("", "----------------------------");
+    m.lines.forEach(l => {
+      const p = prodOf(l.product_id);
+      L.push(p.name);
+      L.push("  " + l.qty + (l.unit_price ? " x " + RM(l.unit_price) + " = " + RM(l.qty * l.unit_price)
+                                          : " unit"));
+    });
+    L.push("----------------------------");
+  }
+  if (m.amt) L.push("*" + m.totalLabel + ": " + RM(m.amt) + "*");
+  m.extra.forEach(([k, v]) => L.push(k + ": " + v));
+  if (m.stamp) L.push("", "*" + m.stamp + "*");
+  L.push("", "Terima kasih atas sokongan anda.");
+  return L.join("\n");
+}
+
+/* A real PDF file, drawn at the selected roll width so it prints at its true
+   size. The text is drawn rather than screenshotted: the file stays a few KB
+   and the figures stay selectable. */
+let PDFLIB = null;
+function loadPDF() {
+  if (PDFLIB) return Promise.resolve(PDFLIB);
+  if (self.jspdf && self.jspdf.jsPDF) return Promise.resolve(PDFLIB = self.jspdf.jsPDF);
+  return new Promise((res, rej) => {
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+    s.onload = () => { if (self.jspdf && self.jspdf.jsPDF) res(PDFLIB = self.jspdf.jsPDF);
+                       else rej(new Error("Pustaka PDF tidak dapat dimuatkan.")); };
+    s.onerror = () => rej(new Error("Tiada sambungan untuk memuatkan pustaka PDF."));
+    document.head.appendChild(s);
+  });
+}
+async function docPDF(m) {
+  const jsPDF = await loadPDF();
+  const W = S.roll === "58" ? 58 : 80;
+  const PAD = 4, CW = W - PAD * 2, LH = 4;
+
+  /* A receipt's height depends on its own content — how many lines, how far a
+     long outlet name wraps. A page cannot be resized once drawn, so the whole
+     receipt is laid out twice: once on a scratch page to find where it ends,
+     then on a page cut to exactly that length. On a thermal roll the
+     difference is paper. */
+  function layout(doc) {
+    let y = 8;
+    const line = (t, o) => { o = o || {};
+      doc.setFontSize(o.size || 7.5);
+      doc.setFont("courier", o.bold ? "bold" : "normal");
+      doc.splitTextToSize(String(t), CW).forEach(p => {
+        doc.text(p, o.center ? W / 2 : PAD, y, o.center ? { align: "center" } : undefined);
+        y += LH; });
+    };
+    const pair = (l, v) => { doc.setFontSize(7.5);
+      doc.setFont("courier", "normal"); doc.text(String(l), PAD, y);
+      doc.setFont("courier", "bold");   doc.text(String(v), W - PAD, y, { align: "right" });
+      y += LH; };
+    const rule = () => { doc.setLineDashPattern([0.6, 0.6], 0); doc.setLineWidth(0.15);
+      doc.line(PAD, y - 2.4, W - PAD, y - 2.4); doc.setLineDashPattern([], 0); y += 1.4; };
+
+    line(CO.name, { bold: true, size: 9, center: true });
+    line(CO.address, { size: 6, center: true });
+    line(CO.phone + "  SSM " + CO.ssm, { size: 6, center: true });
+    y += 1.6; rule();
+    line((DOC_TITLE[m.type] || m.type).toUpperCase(), { bold: true, center: true });
+    y += 1.6; rule();
+    m.rows.forEach(([l, v]) => pair(l, v));
+    if (m.lines.length) {
+      y += 1.6; rule();
+      m.lines.forEach(l => { const p = prodOf(l.product_id);
+        line(p.name);
+        pair(l.qty + (l.unit_price ? " x " + RM(l.unit_price) : " unit"),
+             l.unit_price ? RM(l.qty * l.unit_price) : ""); });
+    }
+    if (m.amt) { y += 1.6; rule();
+      doc.setFontSize(9); doc.setFont("courier", "bold");
+      doc.text(m.totalLabel, PAD, y); doc.text(RM(m.amt), W - PAD, y, { align: "right" });
+      y += LH + 1; }
+    m.extra.forEach(([l, v]) => pair(l, v));
+    if (m.stamp) { y += 1.4; line(m.stamp, { bold: true, center: true, size: 9 }); }
+    y += 2.4; rule();
+    line("Terima kasih atas sokongan anda.", { size: 6, center: true });
+    line("Dokumen dijana oleh " + CO.name, { size: 6, center: true });
+    return y;
+  }
+
+  const H = Math.max(50, layout(new jsPDF({ unit: "mm", format: [W, 600] })) + 6);
+  const doc = new jsPDF({ unit: "mm", format: [W, H], compress: true });
+  layout(doc);
+  doc.setProperties({ title: m.type + " " + m.id, author: CO.name,
+                      subject: m.c ? m.c.name : "" });
+  doc.save(m.type + "-" + m.id + ".pdf");
+}
+
+function vDoc(type, id) {
+  const d = docFind(type, id);
+  if (!d) return backBar(true) + title("Dokumen") +
+    `<div class="body pad"><div class="empty"><b>Tiada dokumen</b>
+      <span>Dokumen ini tiada, atau belum dijana.</span></div></div>`;
+  const m = docModel(type, d);
+  return backBar(true) + title(DOC_TITLE[type] || type) + `
+  <div class="body pad">
+    <div class="g2" style="margin-bottom:14px">
+      ${[["58","58mm"],["80","80mm"]].map(([v, l]) =>
+        `<button class="rowbtn ${S.roll === v ? "" : "o"}" style="margin:0"
+          data-a="roll" data-v="${v}">${l}</button>`).join("")}
+    </div>
+    <div class="roll r${S.roll}" id="rollDoc">
+      <div class="co">
+        <b>${esc(CO.name)}</b>
+        <span>${esc(CO.address)}</span>
+        <span>${esc(CO.phone)} · SSM ${esc(CO.ssm)}</span>
+      </div>
+      <div class="hr"></div>
+      <div class="dt">${esc((DOC_TITLE[type] || type).toUpperCase())}</div>
+      <div class="hr"></div>
+      ${m.rows.map(([k, v]) => `<div class="pr"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join("")}
+      ${m.lines.length ? `<div class="hr"></div>${m.lines.map(l => {
+        const p = prodOf(l.product_id);
+        return `<div class="ln">${esc(p.name)}</div>
+          <div class="pr"><span>${N(l.qty)}${l.unit_price ? " x " + RM(l.unit_price) : " unit"}</span>
+          <b>${l.unit_price ? RM(l.qty * l.unit_price) : ""}</b></div>`; }).join("")}` : ""}
+      ${m.amt ? `<div class="hr"></div>
+        <div class="pr tot"><span>${esc(m.totalLabel)}</span><b>${RM(m.amt)}</b></div>` : ""}
+      ${m.extra.map(([k, v]) => `<div class="pr"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join("")}
+      ${m.stamp ? `<div class="stamp">${esc(m.stamp)}</div>` : ""}
+      <div class="hr"></div>
+      <div class="co"><span>Terima kasih atas sokongan anda.</span>
+        <span>Dokumen dijana oleh ${esc(CO.name)}</span></div>
+    </div>
+    ${CO.ssm.indexOf("[") === 0 ? `<p class="hint">Butiran syarikat belum diisi, jadi
+      dokumen ini mencetak teks sementara. Nama, alamat, No. SSM dan telefon syarikat
+      masih ditunggu daripada klien.</p>` : ""}
+    <div class="g2" style="margin-top:14px">
+      <button class="rowbtn" style="margin:0" data-a="docpdf" data-t="${type}" data-id="${id}">PDF</button>
+      <button class="rowbtn g" style="margin:0" data-a="docwa" data-t="${type}" data-id="${id}">WhatsApp</button>
+    </div>
+    <button class="rowbtn o" data-a="docprint">Cetak (${esc(S.roll)}mm)</button>
+    <p class="hint">PDF dan cetakan dipotong kepada lebar roll yang dipilih, bukan A4.
+      WhatsApp menghantar dokumen sebagai teks — satu halaman web tidak boleh melampirkan
+      fail pada WhatsApp, hanya sistem telefon boleh.</p>
   </div>`;
 }
 
@@ -1835,6 +2111,7 @@ function draw() {
     else if (t.name === "register")  v = vRegister();
     else if (t.name === "cgcheck")   v = vCgCheck(t.id);
     else if (t.name === "takeorder") v = vTakeOrder(t.id);
+    else if (t.name === "doc")       v = vDoc(t.t, t.id);
     else if (t.name === "settings")  v = vSettings();
     else v = `<div class="body pad"><div class="empty"><b>Tiada skrin</b></div></div>`;
     h = v + tabBar();
@@ -1843,6 +2120,11 @@ function draw() {
   document.body.dataset.rk = (!cur() && S.tab === "ranking" && S.me && S.loaded) ? "1" : "";
   chrome();
   const q = $("#q"); if (q) { q.oninput = e => { S.q = e.target.value; redrawBody(); }; }
+  /* A "Cetak" button promises the print dialog, so opening the document view
+     from one goes straight there once the page has settled. */
+  const t = cur();
+  if (t && t.name === "doc" && t.auto) { t.auto = false; setPaper();
+    setTimeout(() => window.print(), 400); }
   /* Order totals update as the salesman types, without re-rendering. */
   if (document.querySelector("[data-ol]")) {
     document.querySelectorAll("[data-oq],[data-op]").forEach(i => { i.oninput = ordRecalc; });
@@ -1898,9 +2180,31 @@ const A = {
   soon(el)   { sheetInfo(el.dataset.t || "Skrin ini",
                  "Bahagian ini belum dibina. Ia dalam laporan sebagai kerja fasa kedua."); },
   cal()      { openCal(r => { S.range = r; draw(); }); },
-  doc(el)    { sheetInfo("Dokumen",
-                 "PDF, WhatsApp dan cetak 58mm/80mm sudah siap di portal web dan akan " +
-                 "dipindahkan ke app ini. Belum disambung pada skrin ini."); },
+  /* ---- documents ---- */
+  doc(el) {
+    const id = el.dataset.id;
+    if (!id || id === "null") return toast("Dokumen ini tiada untuk invois ini.", "bad");
+    push("doc", { t: el.dataset.t, id: id, auto: el.dataset.print === "1" });
+  },
+  roll(el) { S.roll = el.dataset.v; try { localStorage.setItem("sa.roll", S.roll); } catch (_) {}
+             draw(); },
+  async docpdf(el) {
+    const d = docFind(el.dataset.t, el.dataset.id);
+    if (!d) return toast("Dokumen tidak dijumpai.", "bad");
+    toast("Menjana PDF…");
+    try { await docPDF(docModel(el.dataset.t, d)); toast("PDF dimuat turun.", "good"); }
+    catch (e) { toast(e.message || "PDF gagal dijana.", "bad"); }
+  },
+  docwa(el) {
+    const d = docFind(el.dataset.t, el.dataset.id);
+    if (!d) return toast("Dokumen tidak dijumpai.", "bad");
+    const m = docModel(el.dataset.t, d);
+    const c = m.c, n = ((c && (c.whatsapp || c.phone)) || "").replace(/[^0-9]/g, "");
+    if (!n) return toast("Reseller ini tiada nombor telefon direkod.", "bad");
+    const to = n.startsWith("60") ? n : (n.startsWith("0") ? "6" + n : "60" + n);
+    window.open(`https://wa.me/${to}?text=${encodeURIComponent(docText(m))}`, "_blank", "noopener");
+  },
+  docprint() { setPaper(); window.print(); },
   call(el)   { const c = custOf(el.dataset.id); if (!c) return;
                const n = (c.whatsapp || c.phone || "").replace(/[^0-9]/g, "");
                if (!n) return toast("Tiada nombor telefon direkod.", "bad");
@@ -2351,7 +2655,7 @@ async function loadMe(opts) {
 async function loadAll() {
   if (!S.me) return;
   try {
-    const [prod, cust, inv, so, d_o, lines, pay, cg, req, van, ret] = await Promise.all([
+    const [prod, cust, inv, so, d_o, lines, pay, cg, req, van, ret, rec, co] = await Promise.all([
       sb.from("products").select("*").eq("active", true).order("sku"),
       sb.from("customers").select("*").order("code"),
       sb.from("invoices").select("*").order("issued_at", { ascending: false }),
@@ -2363,9 +2667,17 @@ async function loadAll() {
       sb.from("stock_requests").select("*").order("requested_at", { ascending: false }),
       sb.from("van_stock").select("product_id,qty").eq("salesman_id", S.me.id),
       sb.from("returns").select("*").order("issued_at", { ascending: false }),
+      sb.from("receipts").select("*").order("issued_at", { ascending: false }),
+      sb.from("company").select("*").maybeSingle(),
     ]);
+    /* The company row and receipts are not worth failing the whole load over —
+       documents degrade to placeholders, everything else still works. */
     const bad = [prod, cust, inv, so, d_o, lines, pay, cg, req, van, ret].find(r => r.error);
     if (bad) { S.loaded = true; S.data = null; return toast(friendly(bad.error.message), "bad"); }
+    DB.receipts = (rec && rec.data) || [];
+    if (co && co.data) CO = {
+      name: co.data.name || CO.name, address: co.data.address || CO.address,
+      phone: co.data.phone || CO.phone, ssm: co.data.ssm || CO.ssm };
 
     DB.products = prod.data || [];
     DB.customers = cust.data || [];

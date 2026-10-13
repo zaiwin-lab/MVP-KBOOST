@@ -67,6 +67,7 @@ signal is thrown back to a login screen he cannot possibly get past.
 | Reseller | Searchable list, and a profile with his four tabs — General, Sejarah Invois, Galeri, Kerja Harian |
 | Customer Profile | Payment-term badge, Call (Dialer / WhatsApp), Location (Google Maps / Waze), consignment stock on the shelf, Service Month |
 | Galeri | The five registration photograph types, read through the signed-URL edge function |
+| Dokumen | Every Cetak and Lihat button now opens the document on a 58mm or 80mm roll, with **PDF**, **WhatsApp** and **Cetak**. D/O, Sales Order, Invois, Resit and Pulangan |
 | Ambil Order | Take an order from an existing reseller. One screen, three outcomes, decided by the outlet's payment term — a stock drop at a consignment shop, an invoice at Bill To Bil, an invoice paid on the spot at Cash. Prices adjustable down to the floor; quantities capped at the van |
 | Semak Baki Stok | The consignment balance check, from the customer profile. Count what is left on the shelf; the system works out what sold and raises **one** bill for the visit |
 | Pendaftaran Reseller | His seven-step sequence — shop details, location with GPS capture, the person who runs it, payment term, four photographs, the opening order, and the consignment form signed and photographed back in. **Registers for real**, with the opening order posted in the same transaction |
@@ -160,6 +161,36 @@ phone keyboard stay put.
 One difference worth flagging: his design handles price changes through a
 **Mohon** request on the reseller profile rather than on the order screen. The
 app says so under the table, and it is an open question in the report.
+
+**The Cetak and Lihat buttons do something now.** They were present on his
+screens from the first batch of screenshots and had been dead since. Each opens
+the document on a thermal roll at the selected width, with three real actions
+behind it.
+
+- **PDF** draws the receipt as text rather than screenshotting it, so a file is
+  about 4KB and the figures stay selectable. The height is worked out by laying
+  the whole receipt out twice — once on a scratch page to find where it ends,
+  then on a page cut to exactly that length. On a roll, the difference is paper.
+- **WhatsApp** sends it as text to the reseller's own number, normalised to
+  international form. A web page cannot attach a file to a WhatsApp message —
+  only the operating system can — and text is what a shop owner reads off their
+  phone anyway.
+- **Cetak** prints at 58mm or 80mm. The `@page` rule carrying the width is
+  swapped from script, because `@page` cannot read a CSS variable; without that
+  the browser prints onto A4 and a 58mm layout arrives a third of the way
+  across the sheet.
+
+One description of each document feeds the screen, the PDF and the WhatsApp
+text, so the three cannot disagree about what is on the paperwork. An invoice
+carries a total rather than a line list, so its goods are read back through the
+Sales Order it was raised from; a receipt reaches them the same way. A Bill To
+Bil invoice has no delivery order behind it, and asking for one says so instead
+of opening a blank document.
+
+**Every document still prints `[Company Name] Sdn Bhd` and `[SSM NO. — NOT
+SET]`.** The company row has never been filled, and the screen says so under
+the receipt rather than hiding it. Name, registered address, SSM number and
+phone are still outstanding from the client — question 45 in the report.
 
 Still to come from his design: the daily planner, and whatever screen Jadual
 Harian turns out to be.
