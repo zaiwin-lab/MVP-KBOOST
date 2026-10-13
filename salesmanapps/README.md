@@ -67,6 +67,7 @@ signal is thrown back to a login screen he cannot possibly get past.
 | Reseller | Searchable list, and a profile with his four tabs — General, Sejarah Invois, Galeri, Kerja Harian |
 | Customer Profile | Payment-term badge, Call (Dialer / WhatsApp), Location (Google Maps / Waze), consignment stock on the shelf, Service Month |
 | Galeri | The five registration photograph types, read through the signed-URL edge function |
+| Semak Baki Stok | The consignment balance check, from the customer profile. Count what is left on the shelf; the system works out what sold and raises **one** bill for the visit |
 | Pendaftaran Reseller | His seven-step sequence — shop details, location with GPS capture, the person who runs it, payment term, four photographs, the opening order, and the consignment form signed and photographed back in. **Registers for real**, with the opening order posted in the same transaction |
 | Stok | Van stock per product, with Stok Request and Sejarah Stok Request |
 | Stock Request | **Posts a real request** through `request_stock()` |
@@ -120,8 +121,29 @@ filters; the call and location sheets open; the service worker caches the shell
 and the app still renders with the origin gone; with the database refused it
 stays signed in and shows dashes, not zeroes. No console errors.
 
-Still to come from his design: the Reseller registration sequence, order
-creation, and the daily planner.
+**The balance check needed a third function, and found two faults in the old
+one.** `post_consign_bill()` bills a single consignment row, so a salesman
+counting three products on a shelf raised three sales orders and three invoices
+for one visit — the shopkeeper gets one bill. And it closed the row without
+carrying the unsold units forward, so an outlet's stock read zero the moment it
+was checked, even though the goods were still physically on the shelf.
+
+`post_consign_check()` does both properly, and allocates **FIFO across price
+layers**. A shop can hold two open drops of the same product at different
+prices; the salesman counts the shelf, not which delivery each unit came from.
+The oldest units are the ones that sold, so the balance is assigned to the
+newest rows first and each row bills at its own price. Billing the lot at one
+price would quietly misprice every outlet that ever had a price change.
+
+Proved against a shelf holding 58 units at RM1.60 and 30 at RM1.75, plus 58 of
+a second product. Counting 20 and 50 left billed 58 × RM1.60, 10 × RM1.75 and
+8 × RM3.20 — one SO, one invoice, three lines, RM135.90 — and the shelf carried
+forward to exactly 20 and 50. The screen's preview runs the same allocation as
+the database, so what the salesman reads out at the counter is what gets
+billed.
+
+Still to come from his design: order creation for existing resellers, and the
+daily planner.
 
 ## Three access panels
 

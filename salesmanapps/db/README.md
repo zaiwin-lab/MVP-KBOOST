@@ -24,6 +24,7 @@ why, so the repository is not silent about where the data lives.
 | 11 | `van_restocking` | `stock_requests`, `stock_issues`, `request_stock()`, `issue_stock()`, `reject_stock_request()` |
 | 12 | `ranking_board` | `ranking_board(from, to)` — the leaderboard, without breaking row level security |
 | 13 | `registration_with_opening_order` | `post_consign_drop()`, and `register_customer()` extended to every field his form collects |
+| 14 | `consignment_visit_check` | `post_consign_check()` — one bill per visit, FIFO across price layers, unsold stock carried forward |
 
 ## The leaderboard, without a hole in row level security
 
@@ -34,6 +35,36 @@ sales, collected, order count — and nothing else. No document, no customer, no
 line ever leaves through it. It is the only thing one salesman sees of
 another's figures, and it is aggregate by construction rather than by a filter
 someone could forget.
+
+## The balance check, as one visit
+
+`post_consign_bill()` bills one consignment row. A salesman counting three
+products on a shelf therefore raised three sales orders and three invoices for
+a single visit, and the shopkeeper is handed one bill. It also closed the row
+without doing anything with the unsold units, so an outlet's stock read zero
+the moment it was checked even though the goods were still on the shelf.
+
+`post_consign_check(customer, counts)` takes what was counted per product and
+writes one SO and one invoice for the visit. Two things it has to get right:
+
+**FIFO across price layers.** A shop can hold two open drops of the same
+product at different prices — 40 at RM1.30 in March, 30 at RM1.35 in April. The
+salesman counts the shelf, not which delivery each unit came from. The oldest
+units are the ones that sold, so the counted balance is assigned to the newest
+rows first and whatever each row has left over is what sold, at that row's own
+price. Billing the lot at one price would quietly misprice every consignment
+outlet that ever had a price change.
+
+**Carry-forward.** Each row with a balance left is reopened as a new row at the
+same price and the same originating DO, so the next visit counts against what
+is actually there.
+
+Verified against a shelf of 58 at RM1.60 plus 30 at RM1.75, and 58 of a second
+product at RM3.20. Counting 20 and 50 remaining produced one invoice with three
+lines — 58 × RM1.60, 10 × RM1.75, 8 × RM3.20, RM135.90 — and left exactly 20
+and 50 open. The function refuses a balance above what is on the shelf, a count
+for a product with nothing open, a non-consignment outlet, and a visit where
+nothing has sold.
 
 ## Registration, as one transaction
 

@@ -574,11 +574,16 @@ function chrome() {
   $("#chrome").innerHTML = h;
 }
 function toast(msg, kind) {
+  /* The old one goes first. Without this, clearing the previous removal timer
+     cancelled the only thing that would ever have removed it, so every message
+     stayed on screen and stacked — a salesman would end up reading a refusal
+     from ten minutes ago. */
+  clearTimeout(toastT);
+  document.querySelectorAll(".toast").forEach(t => t.remove());
   const el = document.createElement("div");
   el.className = "toast " + (kind || "");
   el.textContent = msg;
   document.body.appendChild(el);
-  clearTimeout(toastT);
   toastT = setTimeout(() => el.remove(), 3600);
 }
 addEventListener("online",  () => { S.online = true;  chrome(); });
@@ -1144,6 +1149,10 @@ function custGeneral(c) {
         ? stockRows.map(k => `${esc(prodOf(k).name)}: ${N(stock[k])}`).join("<br>") +
           `<br><b>Total: ${N(Object.values(stock).reduce((a,n)=>a+n,0))}</b>`
         : (c.term === "consign" ? "Tiada stok konsainan terbuka" : "Bukan konsainan")}</span></div>
+    ${c.term === "consign" && stockRows.length ? `<div class="prow" style="padding-top:0">
+      <span class="ic"></span><span class="lb"></span><span class="vl"></span>
+      <span class="ac"><button class="sbtn" data-a="cgcheck" data-id="${c.id}">
+        ${ic(I.list)} Semak Baki</button></span></div>` : ""}
 
     <div class="prow"><span class="ic">${ic(I.list)}</span><span class="lb">Service Month</span>
       <span class="vl">${months}</span>
@@ -1305,6 +1314,90 @@ function vNearest() {
         <button class="sbtn" data-a="loc" data-id="${c.id}">${ic(I.pin)}</button>
       </div>`).join("")}</div>`
       : `<div class="empty"><b>Tiada koordinat</b></div>`}
+  </div>`;
+}
+
+/* ===========================================================================
+   Semak Baki Stok — the consignment balance check
+   The salesman counts what is left on the shelf; the system works out what
+   sold and raises one bill for the visit.
+   =========================================================================== */
+
+/* Open consignment stock for one outlet, grouped by product, newest drop
+   first. The order matters: the balance is assigned to the newest rows, so
+   the oldest units are the ones treated as sold. */
+function cgOpen(custId) {
+  const rows = DB.consign.filter(g => g.customer_id === custId && !g.checked_at)
+    .sort((a, b) => new Date(b.sent_at) - new Date(a.sent_at));
+  const by = {};
+  rows.forEach(r => { (by[r.product_id] = by[r.product_id] || []).push(r); });
+  return Object.keys(by).map(pid => ({
+    product_id: pid,
+    name: prodOf(pid).name,
+    rows: by[pid],
+    sent: by[pid].reduce((a, r) => a + r.qty_sent, 0),
+  })).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/* The same allocation the database performs, so the figure on screen is the
+   figure that gets billed. If these two ever disagree the salesman is the one
+   who finds out, standing at a counter. */
+function cgPlan(custId, counts) {
+  const out = { lines: [], total: 0, sold: 0 };
+  cgOpen(custId).forEach(g => {
+    const bal = counts[g.product_id];
+    if (bal == null) return;
+    let left = bal;
+    g.rows.forEach(r => {
+      const rowBal = Math.min(r.qty_sent, left);
+      left -= rowBal;
+      const sold = r.qty_sent - rowBal;
+      if (sold > 0) {
+        out.lines.push({ name: g.name, qty: sold, price: +r.unit_price,
+                         amount: Math.round(sold * r.unit_price * 100) / 100 });
+        out.total += Math.round(sold * r.unit_price * 100) / 100;
+        out.sold += sold;
+      }
+    });
+  });
+  out.total = Math.round(out.total * 100) / 100;
+  return out;
+}
+
+function vCgCheck(id) {
+  const c = custOf(id);
+  if (!c) return backBar(true) + `<div class="body pad"><div class="empty"><b>Tiada rekod</b></div></div>`;
+  const groups = cgOpen(id);
+  const counts = S.cg || (S.cg = {});
+  return backBar(true) + title("Semak Baki Stok") + `
+  <div class="body pad">
+    <div class="cust">
+      <div class="t"><span class="code">${esc(rcode(c))}</span>
+        <div class="nm">${esc(c.name)}</div>
+        <div class="ad">${esc([c.address, c.district].filter(Boolean).join(", "))}</div></div>
+    </div>
+    ${groups.length ? `
+      <div class="block">
+        <table class="t"><thead><tr>
+          <th>Produk</th><th class="c">Di Kedai</th><th class="c">Baki</th></tr></thead>
+        <tbody>${groups.map(g => `<tr>
+          <td class="pname">${esc(g.name)}
+            ${g.rows.length > 1 ? `<div style="font-size:11px;color:var(--dim);font-weight:400">
+              ${g.rows.length} hantaran, harga berbeza</div>` : ""}</td>
+          <td class="c"><b>${N(g.sent)}</b></td>
+          <td class="c"><input class="qin" type="number" min="0" max="${g.sent}"
+            inputmode="numeric" data-cg="${g.product_id}"
+            value="${counts[g.product_id] == null ? "" : counts[g.product_id]}"
+            placeholder="0"></td></tr>`).join("")}
+        </tbody></table>
+      </div>
+      <p class="hint">Kira berapa unit <b>masih ada</b> di kedai. Sistem tolak daripada
+        jumlah yang dihantar untuk dapat kuantiti terjual, dan hanya yang terjual
+        dibilkan. Baki kekal di kedai untuk kitaran berikutnya.</p>
+      <button class="rowbtn" data-a="cgcalc">Kira Bil</button>`
+    : `<div class="empty"><b>Tiada stok konsainan</b>
+        <span>Tiada hantaran terbuka di kedai ini. Hantar stok dahulu sebelum menyemak baki.</span>
+      </div>`}
   </div>`;
 }
 
@@ -1603,6 +1696,7 @@ function draw() {
     else if (t.name === "reqhist")   v = vReqHist();
     else if (t.name === "nearest")   v = vNearest();
     else if (t.name === "register")  v = vRegister();
+    else if (t.name === "cgcheck")   v = vCgCheck(t.id);
     else if (t.name === "settings")  v = vSettings();
     else v = `<div class="body pad"><div class="empty"><b>Tiada skrin</b></div></div>`;
     h = v + tabBar();
@@ -1692,6 +1786,40 @@ const A = {
     toast(`${lines.length} permintaan stok dihantar.`, "good");
     await loadAll(); pop();
   },
+  /* ---- consignment balance check ---- */
+  cgcheck(el) { S.cg = {}; push("cgcheck", { id: el.dataset.id }); },
+  cgcalc() {
+    const t = cur(); if (!t) return;
+    S.cg = {};
+    let any = false, bad = null;
+    document.querySelectorAll("[data-cg]").forEach(i => {
+      const v = i.value.trim();
+      if (v === "") return;
+      const n = parseInt(v, 10), max = +i.getAttribute("max");
+      if (!(n >= 0) || n > max) { bad = bad || `Baki mesti antara 0 dan ${max}.`; return; }
+      S.cg[i.dataset.cg] = n; any = true;
+    });
+    if (bad)  return toast(bad, "bad");
+    if (!any) return toast("Masukkan baki bagi sekurang-kurangnya satu produk.", "bad");
+    const plan = cgPlan(t.id, S.cg);
+    if (!plan.lines.length)
+      return toast("Tiada unit terjual, jadi tiada apa untuk dibilkan.", "bad");
+    cgConfirm(t.id, plan);
+  },
+  async cgpost(el) {
+    const id = el.dataset.id;
+    const counts = Object.keys(S.cg).map(p => ({ product_id: p, balance: S.cg[p] }));
+    el.textContent = "Menghantar…"; el.disabled = true;
+    const { data, error } = await sb.rpc("post_consign_check",
+      { p_customer: id, p_counts: counts });
+    if (error) { $("#over").innerHTML = ""; return toast(friendly(error.message), "bad"); }
+    $("#over").innerHTML = "";
+    S.cg = {};
+    await loadAll();
+    pop();
+    toast(`${data.invoice_no} · ${RM(data.total)} — ${data.sold} unit terjual.`, "good");
+  },
+
   /* ---- registration ---- */
   regstart() { regInit(); push("register"); },
   regagain() { regInit(); draw(); scrollTo(0, 0); },
@@ -1837,6 +1965,32 @@ function drawCal() {
     <div class="cal-a"><button class="no" data-a="closeover">Cancel</button>
       <button class="yes" data-ok="1">Pengesahan</button></div>
   </div></div></div>`;
+}
+
+/* What the shop is about to be billed, line by line, before anything is
+   written. A salesman reads this out at the counter. */
+function cgConfirm(custId, plan) {
+  const c = custOf(custId);
+  $("#over").innerHTML = `<div class="modal"><div class="mbox">
+    <div class="mh"><b>Bil Konsainan</b><button data-a="closeover">&times;</button></div>
+    <div class="mi">
+      <p style="margin:0 0 14px;font-size:13.5px;color:var(--mut)">${esc(c.name)}</p>
+      <div class="block" style="margin-bottom:14px">
+        <table class="t"><thead><tr><th>Produk</th><th class="c">Terjual</th>
+          <th class="r">Harga</th><th class="r">Jumlah</th></tr></thead>
+        <tbody>${plan.lines.map(l => `<tr>
+          <td class="pname">${esc(l.name)}</td><td class="c">${N(l.qty)}</td>
+          <td class="r price">${RM(l.price)}</td><td class="r">${RM(l.amount)}</td></tr>`).join("")}
+        </tbody></table>
+        <div class="tfoot">
+          <div><span>Total Kuantiti :</span><b>${N(plan.sold)}</b></div>
+          <div><span>Total :</span><b>${RM(plan.total)}</b></div>
+        </div>
+      </div>
+      <p class="hint" style="margin:0 0 14px">Satu Sales Order dan satu Invois akan dijana
+        untuk lawatan ini. Baki yang tinggal kekal di kedai.</p>
+      <button class="rowbtn g" style="margin:0" data-a="cgpost" data-id="${custId}">Pengesahan</button>
+    </div></div></div>`;
 }
 
 let payInv = null, payKind = "", payMethod = "";
