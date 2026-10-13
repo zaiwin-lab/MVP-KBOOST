@@ -25,6 +25,7 @@ why, so the repository is not silent about where the data lives.
 | 12 | `ranking_board` | `ranking_board(from, to)` — the leaderboard, without breaking row level security |
 | 13 | `registration_with_opening_order` | `post_consign_drop()`, and `register_customer()` extended to every field his form collects |
 | 14 | `consignment_visit_check` | `post_consign_check()` — one bill per visit, FIFO across price layers, unsold stock carried forward |
+| 15 | `grant_consign_drop_to_salesmen` | `post_consign_drop()` granted to `authenticated`, so taking an order at a consignment outlet reaches it |
 
 ## The leaderboard, without a hole in row level security
 
@@ -35,6 +36,28 @@ sales, collected, order count — and nothing else. No document, no customer, no
 line ever leaves through it. It is the only thing one salesman sees of
 another's figures, and it is aggregate by construction rather than by a filter
 someone could forget.
+
+## Taking an order
+
+`post_consign_drop()` was revoked from `authenticated` when it only served
+registration. Taking an order at an existing consignment outlet is the same
+business event, so the app calls it directly and the grant is restored.
+
+That is the same posture as `post_sale()` and `post_delivery()`: it carries its
+own authorisation. `acting_salesman()` refuses unless the caller holds the
+outlet and locks the customer row so ownership cannot change mid-transaction,
+`van_take()` refuses a quantity the van cannot cover, and the term check refuses
+anything that is not a consignment outlet.
+
+Which function the order screen calls is decided entirely by the outlet's
+payment term, which is where the three transaction models stop being a
+description and start being behaviour:
+
+| Term | Function | What is written |
+|---|---|---|
+| Konsainan | `post_consign_drop()` | One DO, consignment rows, nothing billed |
+| Bill To Bil | `post_sale(pay_now = false)` | SO and invoice, due by the agreed term |
+| Tunai | `post_sale(pay_now = true)` | SO, invoice, payment and receipt |
 
 ## The balance check, as one visit
 

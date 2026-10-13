@@ -67,6 +67,7 @@ signal is thrown back to a login screen he cannot possibly get past.
 | Reseller | Searchable list, and a profile with his four tabs — General, Sejarah Invois, Galeri, Kerja Harian |
 | Customer Profile | Payment-term badge, Call (Dialer / WhatsApp), Location (Google Maps / Waze), consignment stock on the shelf, Service Month |
 | Galeri | The five registration photograph types, read through the signed-URL edge function |
+| Ambil Order | Take an order from an existing reseller. One screen, three outcomes, decided by the outlet's payment term — a stock drop at a consignment shop, an invoice at Bill To Bil, an invoice paid on the spot at Cash. Prices adjustable down to the floor; quantities capped at the van |
 | Semak Baki Stok | The consignment balance check, from the customer profile. Count what is left on the shelf; the system works out what sold and raises **one** bill for the visit |
 | Pendaftaran Reseller | His seven-step sequence — shop details, location with GPS capture, the person who runs it, payment term, four photographs, the opening order, and the consignment form signed and photographed back in. **Registers for real**, with the opening order posted in the same transaction |
 | Stok | Van stock per product, with Stok Request and Sejarah Stok Request |
@@ -142,8 +143,26 @@ forward to exactly 20 and 50. The screen's preview runs the same allocation as
 the database, so what the salesman reads out at the counter is what gets
 billed.
 
-Still to come from his design: order creation for existing resellers, and the
-daily planner.
+**Ambil Order is where the three transaction models become visible.** The same
+screen produces a delivery order and no bill at a consignment outlet, a Sales
+Order and an invoice due in two months at Bill To Bil, and a Sales Order,
+invoice, payment and receipt at Cash. That is the requirement's *"payment term
+is not a due date"* made literal, and all three were posted and checked against
+the database: `DO000020` with no invoice, `INV000069` left pending with no
+receipt, and `INV000070` paid by QR with `REC000065` behind it.
+
+Prices are adjustable **down to the product's floor** and no further, which is
+what module 04 asks for — a line went through at RM1.36 against a RM1.60 list
+price, and a penny lower is refused. Quantities are capped at van stock. Totals
+recalculate as the salesman types, without re-rendering, so the caret and the
+phone keyboard stay put.
+
+One difference worth flagging: his design handles price changes through a
+**Mohon** request on the reseller profile rather than on the order screen. The
+app says so under the table, and it is an open question in the report.
+
+Still to come from his design: the daily planner, and whatever screen Jadual
+Harian turns out to be.
 
 ## Three access panels
 

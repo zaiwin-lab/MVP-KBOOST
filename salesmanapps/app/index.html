@@ -197,6 +197,7 @@ table.t thead th{background:var(--red);color:#fff;font-size:12.5px;font-weight:7
 table.t thead th.r{text-align:right}
 table.t td{padding:11px 8px;border-bottom:1px solid var(--line-s);vertical-align:top}
 table.t td.r{text-align:right}
+table.t td[data-ot]{white-space:nowrap}   /* "RM 22.50" must not wrap to two lines */
 table.t td.c{text-align:center}
 table.t tbody tr:last-child td{border-bottom:0}
 table.t .pname{font-weight:700}
@@ -1162,6 +1163,8 @@ function custGeneral(c) {
       <span class="vl"></span>
       <span class="ac"><button class="sbtn" data-a="soon" data-t="Mohon Tukar Harga">Mohon</button></span></div>
 
+    <button class="rowbtn" data-a="takeorder" data-id="${c.id}">
+      ${c.term === "consign" ? "Hantar Stok" : "Ambil Order"}</button>
     <button class="rowbtn o" data-a="soon" data-t="Blacklist Reseller">Blacklist Reseller</button>
     <button class="rowbtn o" data-a="soon" data-t="Set VIP">Set VIP</button>
     <button class="rowbtn g" data-a="soon" data-t="Enable TIN QR">Enable TIN QR</button>
@@ -1315,6 +1318,140 @@ function vNearest() {
       </div>`).join("")}</div>`
       : `<div class="empty"><b>Tiada koordinat</b></div>`}
   </div>`;
+}
+
+/* ===========================================================================
+   Ambil Order
+   One screen, three outcomes, decided by the outlet's payment term — which is
+   the whole point of the requirement's "payment term is not a due date".
+     Konsainan   → stock is dropped. A delivery order, nothing billed.
+     Bill To Bil → a sale. SO and invoice, due by the agreed term.
+     Tunai       → a sale paid on the spot. SO, invoice, payment, receipt.
+   =========================================================================== */
+function vTakeOrder(id) {
+  const c = custOf(id);
+  if (!c) return backBar(true) + `<div class="body pad"><div class="empty"><b>Tiada rekod</b></div></div>`;
+  const consign = c.term === "consign";
+  const cash = c.term === "cash";
+  const d = S.ord || (S.ord = { lines: {}, price: {}, method: "tunai" });
+  const avail = DB.products.filter(p => (DB.van[p.id] || 0) > 0);
+
+  return backBar(true) + title(consign ? "Hantar Stok" : "Ambil Order") + `
+  <div class="body pad">
+    <div class="cust">
+      <div class="t"><span class="code">${esc(rcode(c))}</span>
+        <div class="nm">${esc(c.name)}</div>
+        <div class="ad">${esc([c.address, c.district].filter(Boolean).join(", "))}</div></div>
+      <span class="term">${esc(TERM[c.term] || c.term)}</span>
+    </div>
+
+    ${avail.length ? `
+    <div class="block">
+      <table class="t"><thead><tr>
+        <th>Produk</th><th class="r">Harga/Unit</th><th class="c">Kuantiti</th><th class="r">Jumlah</th>
+      </tr></thead><tbody>${avail.map(p => {
+        const van = DB.van[p.id] || 0;
+        const pr = d.price[p.id] != null ? d.price[p.id] : (+p.price).toFixed(2);
+        return `<tr data-ol="${p.id}">
+          <td class="pname">${esc(p.name)}
+            <div style="font-size:11px;color:var(--dim);font-weight:400">
+              Van: ${N(van)} · Lantai ${RM(p.floor_price)}</div></td>
+          <td class="r"><input class="qin" style="width:72px" type="number" step="0.01"
+            min="${p.floor_price}" inputmode="decimal" data-op="${p.id}" value="${esc(pr)}"></td>
+          <td class="c"><input class="qin" type="number" min="0" max="${van}"
+            inputmode="numeric" data-oq="${p.id}" value="${d.lines[p.id] || ""}" placeholder="0"></td>
+          <td class="r" data-ot="${p.id}">—</td></tr>`;
+      }).join("")}</tbody></table>
+      <div class="tfoot">
+        <div><span>Total Kuantiti :</span><b id="ordQty">0</b></div>
+        <div><span>Total :</span><b id="ordTotal">${RM(0)}</b></div>
+      </div>
+    </div>
+
+    ${cash ? `<div class="f"><label>Cara Bayaran</label><div class="chips">
+      ${[["tunai","Tunai"],["cek","Cek"],["pindahan","Pindahan Bank"],["gaji","Gaji"],["qr","QR Code"]]
+        .map(([k,l]) => `<button data-a="ordmeth" data-v="${k}"
+          class="${d.method === k ? "on" : ""}">${l}</button>`).join("")}
+    </div></div>` : ""}
+
+    <p class="hint">${consign
+      ? "Konsainan: stok ini dihantar dan belum dibilkan. Bil dikira pada lawatan berikutnya melalui Semak Baki Stok."
+      : cash ? "Tunai: Invois dan resit dijana serentak, dibayar penuh sekarang."
+             : `Bill To Bil: Invois dijana dan perlu dijelaskan dalam ${c.term_months || 2} bulan.`}
+      Harga boleh diturunkan sehingga harga lantai sahaja. Kuantiti dihadkan kepada stok dalam van.</p>
+    <p class="hint">Reka bentuk asal menguruskan perubahan harga melalui permohonan
+      (<b>Mohon</b>) pada profil reseller, bukan pada skrin order. Soalan terbuka dalam laporan.</p>
+
+    <button class="rowbtn ${consign ? "" : "g"}" data-a="ordcalc" data-id="${id}">
+      ${consign ? "Hantar Stok" : "Hantar Order"}</button>`
+    : `<div class="empty"><b>Van kosong</b>
+        <span>Tiada stok dalam van anda. Buat Stok Request dahulu.</span></div>`}
+  </div>`;
+}
+
+/* Totals are rewritten in place rather than by re-rendering, because a form
+   that re-renders on every keystroke loses the caret and the phone keyboard
+   with it. */
+function ordRecalc() {
+  let qty = 0, total = 0;
+  document.querySelectorAll("[data-ol]").forEach(row => {
+    const id = row.dataset.ol;
+    const q = parseInt((row.querySelector("[data-oq]") || {}).value, 10) || 0;
+    const p = parseFloat((row.querySelector("[data-op]") || {}).value) || 0;
+    const cell = row.querySelector("[data-ot]");
+    const amt = Math.round(q * p * 100) / 100;
+    if (cell) cell.textContent = q > 0 ? RM(amt) : "—";
+    qty += q; total += amt;
+  });
+  const a = $("#ordQty"), b = $("#ordTotal");
+  if (a) a.textContent = N(qty);
+  if (b) b.textContent = RM(Math.round(total * 100) / 100);
+}
+
+function ordHarvest() {
+  const d = S.ord; if (!d) return;
+  d.lines = {}; d.price = {};
+  document.querySelectorAll("[data-ol]").forEach(row => {
+    const id = row.dataset.ol;
+    const q = parseInt((row.querySelector("[data-oq]") || {}).value, 10) || 0;
+    const p = (row.querySelector("[data-op]") || {}).value;
+    if (p !== "" && p != null) d.price[id] = p;
+    if (q > 0) d.lines[id] = q;
+  });
+}
+
+function ordConfirm(custId) {
+  const c = custOf(custId), d = S.ord;
+  const consign = c.term === "consign", cash = c.term === "cash";
+  const lines = Object.keys(d.lines).map(id => {
+    const p = prodOf(id), price = parseFloat(d.price[id]);
+    return { name: p.name, qty: d.lines[id], price: price,
+             amount: Math.round(d.lines[id] * price * 100) / 100 };
+  });
+  const total = Math.round(lines.reduce((a, l) => a + l.amount, 0) * 100) / 100;
+  const willBe = consign ? "Satu Delivery Order (D/O). Tiada bil sekarang."
+    : cash ? "Satu Sales Order, satu Invois, satu resit — dibayar penuh."
+           : `Satu Sales Order dan satu Invois, tempoh ${c.term_months || 2} bulan.`;
+  $("#over").innerHTML = `<div class="modal"><div class="mbox">
+    <div class="mh"><b>${consign ? "Hantar Stok" : "Sahkan Order"}</b>
+      <button data-a="closeover">&times;</button></div>
+    <div class="mi">
+      <p style="margin:0 0 14px;font-size:13.5px;color:var(--mut)">${esc(c.name)}</p>
+      <div class="block" style="margin-bottom:14px">
+        <table class="t"><thead><tr><th>Produk</th><th class="c">Kuantiti</th>
+          <th class="r">Harga</th><th class="r">Jumlah</th></tr></thead>
+        <tbody>${lines.map(l => `<tr><td class="pname">${esc(l.name)}</td>
+          <td class="c">${N(l.qty)}</td><td class="r price">${RM(l.price)}</td>
+          <td class="r">${RM(l.amount)}</td></tr>`).join("")}</tbody></table>
+        <div class="tfoot">
+          <div><span>Total Kuantiti :</span><b>${N(lines.reduce((a,l)=>a+l.qty,0))}</b></div>
+          <div><span>Total :</span><b>${RM(total)}</b></div>
+        </div>
+      </div>
+      <p class="hint" style="margin:0 0 14px">${willBe}
+        Stok van ditolak sebaik order dihantar.</p>
+      <button class="rowbtn g" style="margin:0" data-a="ordpost" data-id="${custId}">Pengesahan</button>
+    </div></div></div>`;
 }
 
 /* ===========================================================================
@@ -1697,6 +1834,7 @@ function draw() {
     else if (t.name === "nearest")   v = vNearest();
     else if (t.name === "register")  v = vRegister();
     else if (t.name === "cgcheck")   v = vCgCheck(t.id);
+    else if (t.name === "takeorder") v = vTakeOrder(t.id);
     else if (t.name === "settings")  v = vSettings();
     else v = `<div class="body pad"><div class="empty"><b>Tiada skrin</b></div></div>`;
     h = v + tabBar();
@@ -1705,6 +1843,11 @@ function draw() {
   document.body.dataset.rk = (!cur() && S.tab === "ranking" && S.me && S.loaded) ? "1" : "";
   chrome();
   const q = $("#q"); if (q) { q.oninput = e => { S.q = e.target.value; redrawBody(); }; }
+  /* Order totals update as the salesman types, without re-rendering. */
+  if (document.querySelector("[data-ol]")) {
+    document.querySelectorAll("[data-oq],[data-op]").forEach(i => { i.oninput = ordRecalc; });
+    ordRecalc();
+  }
   /* Photographs are held as File objects with a preview URL until registration
      succeeds and there is a folder to put them in. */
   document.querySelectorAll("[data-rp]").forEach(inp => {
@@ -1786,6 +1929,46 @@ const A = {
     toast(`${lines.length} permintaan stok dihantar.`, "good");
     await loadAll(); pop();
   },
+  /* ---- ambil order ---- */
+  takeorder(el) { S.ord = { lines: {}, price: {}, method: "tunai" };
+                  push("takeorder", { id: el.dataset.id }); },
+  ordmeth(el)   { ordHarvest(); S.ord.method = el.dataset.v; draw(); ordRecalc(); },
+  ordcalc(el) {
+    ordHarvest();
+    const c = custOf(el.dataset.id), d = S.ord;
+    const ids = Object.keys(d.lines);
+    if (!ids.length) return toast("Masukkan sekurang-kurangnya satu kuantiti.", "bad");
+    for (const id of ids) {
+      const p = prodOf(id), van = DB.van[id] || 0;
+      const price = parseFloat(d.price[id]);
+      if (d.lines[id] > van)
+        return toast(`${p.name}: van ada ${van} sahaja.`, "bad");
+      if (!(price > 0))
+        return toast(`${p.name}: harga tidak sah.`, "bad");
+      if (price < +p.floor_price - 0.0001)
+        return toast(`${p.name}: harga lantai ${RM(p.floor_price)}.`, "bad");
+    }
+    ordConfirm(el.dataset.id);
+  },
+  async ordpost(el) {
+    const id = el.dataset.id, c = custOf(id), d = S.ord;
+    const lines = Object.keys(d.lines).map(pid => ({
+      product_id: pid, qty: d.lines[pid], price: parseFloat(d.price[pid]) }));
+    el.textContent = "Menghantar…"; el.disabled = true;
+    const res = c.term === "consign"
+      ? await sb.rpc("post_consign_drop", { p_customer: id, p_lines: lines })
+      : await sb.rpc("post_sale", { p_customer: id, p_lines: lines,
+          p_pay_now: c.term === "cash", p_method: c.term === "cash" ? d.method : null });
+    if (res.error) { $("#over").innerHTML = ""; return toast(friendly(res.error.message), "bad"); }
+    const r = res.data || {};
+    $("#over").innerHTML = "";
+    S.ord = null;
+    await loadAll();
+    pop();
+    toast(r.do_no ? `${r.do_no} · ${RM(r.total)} dihantar.`
+                  : `${r.invoice_no} · ${RM(r.total)}${r.receipt_no ? " · dibayar" : ""}.`, "good");
+  },
+
   /* ---- consignment balance check ---- */
   cgcheck(el) { S.cg = {}; push("cgcheck", { id: el.dataset.id }); },
   cgcalc() {
