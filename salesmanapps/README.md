@@ -67,6 +67,7 @@ signal is thrown back to a login screen he cannot possibly get past.
 | Reseller | Searchable list, and a profile with his four tabs — General, Sejarah Invois, Galeri, Kerja Harian |
 | Customer Profile | Payment-term badge, Call (Dialer / WhatsApp), Location (Google Maps / Waze), consignment stock on the shelf, Service Month |
 | Galeri | The five registration photograph types, read through the signed-URL edge function |
+| Jadual Harian | The day's round — pick a date, add shops, order them, note against each, and Navigate / Hubungi / Profil per stop. Suggests outlets with money owed or consignment stock due a count |
 | Pulangan | Record a return from the reseller profile — product, quantity, one of seven reasons, a note and a photograph. Stock goes back on the van and the RET document prints |
 | Dokumen | Every Cetak and Lihat button now opens the document on a 58mm or 80mm roll, with **PDF**, **WhatsApp** and **Cetak**. D/O, Sales Order, Invois, Resit and Pulangan |
 | Ambil Order | Take an order from an existing reseller. One screen, three outcomes, decided by the outlet's payment term — a stock drop at a consignment shop, an invoice at Bill To Bil, an invoice paid on the spot at Cash. Prices adjustable down to the floor; quantities capped at the van |
@@ -232,8 +233,31 @@ Chasing it turned up the cause of the stray `Cash`: **the registration form
 never asked how a cash opening order was paid**, so the database fell back to
 its own default. Cash registrations now ask, as the order screen already did.
 
-Still to come from his design: the daily planner, and whatever screen Jadual
-Harian turns out to be.
+**Jadual Harian is built to the written requirement, not to his app.** The
+requirement is unusually explicit about what it is *not*: not attendance, not
+visit tracking, no pending or completed state. It is the list of shops a
+salesman means to call on, in the order he means to call on them, and nothing
+records whether he went. There are no tick boxes on the screen and `done_at` is
+never written.
+
+His own app contradicts that in three places — a Kerja Harian report, GPS route
+recording, a per-shop daily log — and the screen itself was never shared. The
+spec is followed and the contradiction stays open as question 32. If the answer
+is that tracking *is* wanted, the column is already there and it becomes a
+small change rather than a rebuild.
+
+One addition that is ours: **Cadangan**, a short list of outlets with money
+outstanding or consignment stock old enough to be worth counting, one tap to
+add. It is derived at render time and never stored — the salesman still decides
+who he visits. Without it, planning a round means looking every outlet up by
+hand.
+
+Reordering rewrites positions from 1 upward each time rather than nudging them,
+so a list that has been reordered and had stops removed for weeks cannot drift
+into ties or gaps.
+
+Still to come: the four approval workflows, which each need an office-side
+screen to approve into.
 
 ## Three access panels
 

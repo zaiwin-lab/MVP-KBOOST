@@ -373,6 +373,41 @@ body[data-rk="1"]{background:var(--rank)}
 .cal-a .no{background:#D8D4DC;color:var(--mut)}
 .cal-a .yes{background:var(--red);color:#fff}
 
+/* ---------- jadual harian ---------- */
+.dstrip{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.dstrip::-webkit-scrollbar{display:none}
+.dstrip button{flex:none;width:46px;padding:8px 0;border-radius:10px;background:#fff;
+  border:1px solid var(--line);text-align:center;line-height:1.2}
+.dstrip button span{display:block;font-size:10.5px;color:var(--mut);font-weight:600}
+.dstrip button b{display:block;font-size:16px;font-weight:800;margin-top:1px}
+.dstrip button.on{background:var(--red);border-color:var(--red);color:#fff}
+.dstrip button.on span{color:rgba(255,255,255,.85)}
+.dstrip .cal{width:44px;display:grid;place-items:center;color:var(--red)}
+.dstrip .cal svg{width:21px;height:21px}
+.dhead{display:flex;align-items:baseline;gap:8px;margin:14px 0 10px;font-size:15px;
+  font-weight:800;letter-spacing:-.01em}
+.dhead span{margin-left:auto;font-size:12.5px;font-weight:600;color:var(--mut)}
+.stop{display:flex;gap:11px;padding:13px 12px;border-bottom:1px solid var(--line-s)}
+.stop:last-child{border-bottom:0}
+.stop .pos{width:26px;height:26px;border-radius:50%;background:var(--red);color:#fff;flex:none;
+  display:grid;place-items:center;font-size:12.5px;font-weight:800}
+.stop .who{flex:1;min-width:0}
+.stop .code{color:var(--red);font-size:11.5px;font-weight:800}
+.stop .nm{font-size:14px;font-weight:700;line-height:1.3}
+.stop .ad{font-size:11.5px;color:var(--dim);margin-top:2px;line-height:1.4}
+.stop .rem{width:100%;margin-top:7px;padding:7px 9px;border:1px solid var(--line);
+  border-radius:7px;font-size:12.5px;background:var(--inset)}
+.stop .rem:focus{outline:none;border-color:var(--red);background:#fff}
+.stop .qa{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.stop .qa button{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;
+  color:var(--red);border:1px solid var(--line);border-radius:14px;padding:5px 10px;background:#fff}
+.stop .qa svg{width:13px;height:13px}
+.stop .ord{display:flex;flex-direction:column;gap:4px;flex:none}
+.stop .ord button{width:28px;height:26px;border:1px solid var(--line);border-radius:6px;
+  background:#fff;color:var(--mut);font-size:10px;display:grid;place-items:center}
+.stop .ord button[disabled]{opacity:.3}
+.stop .ord .rm{color:var(--red);font-size:16px;line-height:1}
+
 /* ---------- document on a thermal roll ---------- */
 .roll{background:#fff;color:#000;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   font-size:11.5px;line-height:1.5;padding:16px 12px;margin:0 auto;
@@ -573,7 +608,8 @@ const BUILD = "2026-10-12";
    than a query per screen, and every screen then opens instantly. A larger
    book of business would want paging instead. */
 const DB = { products: [], customers: [], invoices: [], sos: [], dos: [], lines: {},
-             payments: [], consign: [], reqs: [], van: {}, returns: [], receipts: [] };
+             payments: [], consign: [], reqs: [], van: {}, returns: [], receipts: [],
+             sched: [] };
 
 /* Printed on the head of every document. The real values are still outstanding
    from the client, so until the company row is filled this prints visible
@@ -708,7 +744,7 @@ function vHome() {
     <div style="padding:18px 0 0">
       <div class="sec">${ic(I.clock)}<span>Harian</span></div>
       <div class="g2">
-        <button class="quick" data-a="soon" data-t="Jadual Harian">
+        <button class="quick" data-a="jadual">
           <b>Jadual Harian</b><div class="art">${ic(I.cal)}</div>
           <span class="go">${ic(I.arrow)}</span></button>
         <button class="quick" data-a="regstart">
@@ -1029,7 +1065,7 @@ function vOrder(id) {
       data-print="1">Cetak Sales Order</button>
     <button class="rowbtn o" data-a="doc" data-t="DO" data-id="${esc(v.do_id || "")}">Lihat DO Lama</button>
     <button class="rowbtn o" data-a="doc" data-t="SO" data-id="${esc(v.so_id || "")}">Lihat Sales Order</button>
-    <button class="rowbtn o" data-a="soon" data-t="Jadual Harian">Jadual Harian</button>
+    <button class="rowbtn o" data-a="jadual">Jadual Harian</button>
   </div>`;
 }
 const kv = (k, v) => `<div class="kv"><dt>${k}</dt><dd>${v}</dd></div>`;
@@ -1059,7 +1095,7 @@ function vDoDet(id) {
         <td class="c">${N(l.qty)}</td></tr>`).join("")}
       </tbody></table>
       <div class="in" style="padding-top:0">
-        <button class="rowbtn" data-a="soon" data-t="Jadual Harian">Jadual Harian</button>
+        <button class="rowbtn" data-a="jadual">Jadual Harian</button>
       </div>
     </div>
     ${cg.length ? `<div class="block"><h3>Baki Stok</h3>
@@ -1386,6 +1422,142 @@ function vNearest() {
         <button class="sbtn" data-a="loc" data-id="${c.id}">${ic(I.pin)}</button>
       </div>`).join("")}</div>`
       : `<div class="empty"><b>Tiada koordinat</b></div>`}
+  </div>`;
+}
+
+/* Swap two stops and persist both. Positions are rewritten from 1 upward each
+   time rather than nudged, so a list that has been reordered and had rows
+   removed for weeks cannot drift into ties or gaps. */
+async function moveStop(id, dir) {
+  const rows = schedFor(S.day);
+  const i = rows.findIndex(r => r.id === id);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= rows.length) return;
+  const order = rows.slice();
+  order[i] = rows[j]; order[j] = rows[i];
+  for (let k = 0; k < order.length; k++) {
+    if (order[k].position === k + 1) continue;
+    const { error } = await sb.from("visit_schedule")
+      .update({ position: k + 1 }).eq("id", order[k].id);
+    if (error) return toast(friendly(error.message), "bad");
+  }
+  await loadSched();
+  draw();
+}
+
+async function loadSched() {
+  const { data, error } = await sb.from("visit_schedule")
+    .select("*").eq("salesman_id", S.me.id).order("position");
+  if (!error) DB.sched = data || [];
+}
+
+/* ===========================================================================
+   Jadual Harian
+   Built to the written requirement, which is unusually explicit about what
+   this is NOT: not attendance, not visit tracking, no pending or completed
+   state. It is a list of the shops a salesman means to call on, in the order
+   he means to call on them. Nothing records whether he went.
+
+   His own app contradicts that in three places (a Kerja Harian report, GPS
+   route recording, a per-shop daily log), and the screen itself was never
+   shared. The spec is followed here and the contradiction stays an open
+   question in the report — question 32.
+   =========================================================================== */
+const ymd = d => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+const dayOf = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+
+function schedFor(day) {
+  return DB.sched.filter(r => r.visit_on === day)
+    .sort((a, b) => a.position - b.position);
+}
+
+/* Outlets worth calling on that are not yet on the list: money outstanding, or
+   consignment stock sitting long enough to be worth counting. Derived, never
+   stored — the salesman decides, this only saves him looking it up. */
+function schedSuggest(day) {
+  const on = schedFor(day).map(r => r.customer_id);
+  const out = [];
+  DB.customers.forEach(c => {
+    if (on.indexOf(c.id) >= 0 || c.active === false) return;
+    const owed = DB.invoices.filter(v => v.customer_id === c.id && v.status !== "paid")
+      .reduce((a, v) => a + (+v.total - +v.paid), 0);
+    const oldest = DB.consign.filter(g => g.customer_id === c.id && !g.checked_at)
+      .map(g => new Date(g.sent_at)).sort((a, b) => a - b)[0];
+    const days = oldest ? Math.floor((Date.now() - oldest) / 864e5) : 0;
+    const due = c.term === "consign" && oldest &&
+                days >= (c.service_days || 30);
+    if (owed > 0.004 || due)
+      out.push({ c: c, why: due ? `Baki ${days} hari — perlu disemak` : `Hutang ${RM(owed)}`,
+                 rank: due ? 1 : 2, owed: owed });
+  });
+  return out.sort((a, b) => a.rank - b.rank || b.owed - a.owed).slice(0, 8);
+}
+
+function vJadual() {
+  const day = S.day || (S.day = ymd(new Date()));
+  const rows = schedFor(day);
+  const sug = schedSuggest(day);
+  const today = ymd(new Date());
+  /* three days either side, which is as far ahead as a van round is ever
+     planned, with the calendar for anything beyond */
+  const strip = [];
+  for (let i = -2; i <= 4; i++) {
+    const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + i);
+    strip.push(d);
+  }
+  return backBar() + title("Jadual Harian") + `
+  <div class="body pad">
+    <div class="dstrip">
+      ${strip.map(d => { const k = ymd(d);
+        return `<button data-a="jadday" data-v="${k}" class="${k === day ? "on" : ""}">
+          <span>${DAYS[d.getDay()].slice(0, 3)}</span><b>${d.getDate()}</b></button>`; }).join("")}
+      <button class="cal" data-a="jadcal" aria-label="Pilih tarikh">${ic(I.cal)}</button>
+    </div>
+    <div class="dhead">${esc(fLong(dayOf(day)))}${day === today ? " · Hari Ini" : ""}
+      <span>${rows.length} kedai</span></div>
+
+    ${rows.length ? `<div class="list">${rows.map((r, i) => {
+      const c = custOf(r.customer_id);
+      if (!c) return "";
+      return `<div class="stop">
+        <div class="pos">${i + 1}</div>
+        <div class="who">
+          <div class="code">#${esc(rcode(c))}</div>
+          <div class="nm">${esc(c.name)}</div>
+          <div class="ad">${esc([c.address, c.district].filter(Boolean).join(", ") || "—")}</div>
+          <input class="rem" data-jr="${r.id}" value="${esc(r.remark || "")}"
+            placeholder="Catatan" maxlength="120">
+          <div class="qa">
+            <button data-a="loc" data-id="${c.id}">${ic(I.pin)} Navigate</button>
+            <button data-a="call" data-id="${c.id}">${ic(I.wa)} Hubungi</button>
+            <button data-a="cust" data-id="${c.id}">${ic(I.user)} Profil</button>
+          </div>
+        </div>
+        <div class="ord">
+          <button data-a="jadup" data-id="${r.id}" ${i === 0 ? "disabled" : ""}>&#9650;</button>
+          <button data-a="jaddn" data-id="${r.id}" ${i === rows.length - 1 ? "disabled" : ""}>&#9660;</button>
+          <button class="rm" data-a="jadrm" data-id="${r.id}">&times;</button>
+        </div>
+      </div>`; }).join("")}</div>`
+      : `<div class="empty"><b>Tiada kedai dalam jadual</b>
+          <span>Tambah kedai yang anda akan pergi pada hari ini.</span></div>`}
+
+    <button class="rowbtn" data-a="jadadd">Tambah Kedai</button>
+
+    ${sug.length ? `<div class="sec" style="margin-top:22px;font-size:15px">Cadangan</div>
+      <div class="list">${sug.map(s => `
+        <button class="rrow" data-a="jadput" data-id="${s.c.id}">
+          <div class="t"><div class="code">#${esc(rcode(s.c))}</div>
+            <div class="nm">${esc(s.c.name)}</div>
+            <div style="font-size:12px;color:${s.rank === 1 ? "var(--amb)" : "var(--red)"};
+              margin-top:2px">${esc(s.why)}</div></div>
+          <span class="chev">+</span>
+        </button>`).join("")}</div>
+      <p class="hint">Cadangan dikira daripada hutang tertunggak dan baki konsainan yang
+        sudah lama. Ia tidak disimpan — anda yang pilih.</p>` : ""}
+
+    <p class="hint">Jadual ini senarai kedai yang hendak dilawati, mengikut turutan.
+      Ia bukan rekod kehadiran dan tiada status siap atau belum siap, mengikut spesifikasi asal.</p>
   </div>`;
 }
 
@@ -2209,6 +2381,7 @@ function draw() {
     else if (t.name === "takeorder") v = vTakeOrder(t.id);
     else if (t.name === "doc")       v = vDoc(t.t, t.id);
     else if (t.name === "return")    v = vReturn(t.id);
+    else if (t.name === "jadual")    v = vJadual();
     else if (t.name === "settings")  v = vSettings();
     else v = `<div class="body pad"><div class="empty"><b>Tiada skrin</b></div></div>`;
     h = v + tabBar();
@@ -2222,6 +2395,18 @@ function draw() {
   const t = cur();
   if (t && t.name === "doc" && t.auto) { t.auto = false; setPaper();
     setTimeout(() => window.print(), 400); }
+  /* A stop's remark saves when the salesman leaves the field. Re-rendering on
+     every keystroke would close the keyboard mid-note. */
+  document.querySelectorAll("[data-jr]").forEach(i => {
+    i.onchange = async () => {
+      const { error } = await sb.from("visit_schedule")
+        .update({ remark: i.value.trim() || null }).eq("id", i.dataset.jr);
+      if (error) return toast(friendly(error.message), "bad");
+      const row = DB.sched.find(r => r.id === i.dataset.jr);
+      if (row) row.remark = i.value.trim() || null;
+      toast("Catatan disimpan.", "good");
+    };
+  });
   /* Order totals update as the salesman types, without re-rendering. */
   if (document.querySelector("[data-ol]")) {
     document.querySelectorAll("[data-oq],[data-op]").forEach(i => { i.oninput = ordRecalc; });
@@ -2337,6 +2522,48 @@ const A = {
     toast(`${lines.length} permintaan stok dihantar.`, "good");
     await loadAll(); pop();
   },
+  /* ---- jadual harian ---- */
+  jadual()    { push("jadual"); },
+  jadday(el)  { S.day = el.dataset.v; draw(); },
+  jadcal()    { openCal(r => { S.day = ymd(r.from); draw(); }); },
+  jadadd() {
+    const day = S.day, on = schedFor(day).map(r => r.customer_id);
+    const left = DB.customers.filter(c => on.indexOf(c.id) < 0 && c.active !== false);
+    if (!left.length) return toast("Semua reseller sudah ada dalam jadual.", "bad");
+    $("#over").innerHTML = `<div class="scrim" data-a="closeover"><div class="sheet">
+      <div style="padding:4px 20px 10px"><b style="font-size:16px">Tambah Kedai</b></div>
+      <div style="padding:0 16px 10px"><div class="srch" style="border:1px solid var(--line)">
+        ${ic(I.search)}<input id="jq" type="search" placeholder="Cari nama atau kod"
+          autocapitalize="off" autocomplete="off"></div></div>
+      <div id="jlist">${left.map(c => `<button class="opt" data-a="jadput" data-id="${c.id}">
+        <span style="min-width:0"><b style="display:block;font-size:14px">${esc(c.name)}</b>
+        <span style="font-size:12px;color:var(--mut)">#${esc(rcode(c))} · ${esc(TERM[c.term] || c.term)}</span>
+        </span></button>`).join("")}</div></div></div>`;
+    const q = $("#jq");
+    if (q) q.oninput = () => {
+      const v = q.value.toLowerCase();
+      document.querySelectorAll("#jlist .opt").forEach(b => {
+        b.hidden = v && b.innerText.toLowerCase().indexOf(v) < 0;
+      });
+    };
+  },
+  async jadput(el) {
+    const day = S.day, rows = schedFor(day);
+    const { error } = await sb.from("visit_schedule").insert({
+      salesman_id: S.me.id, customer_id: el.dataset.id, visit_on: day,
+      position: rows.length ? rows[rows.length - 1].position + 1 : 1 });
+    $("#over").innerHTML = "";
+    if (error) return toast(friendly(error.message), "bad");
+    await loadSched(); draw();
+  },
+  async jadrm(el) {
+    const { error } = await sb.from("visit_schedule").delete().eq("id", el.dataset.id);
+    if (error) return toast(friendly(error.message), "bad");
+    await loadSched(); draw();
+  },
+  jadup(el) { return moveStop(el.dataset.id, -1); },
+  jaddn(el) { return moveStop(el.dataset.id, 1); },
+
   /* ---- pulangan ---- */
   retstart(el) { S.ret = { product: "", qty: "", reason: "", remark: "", photo: null };
                  push("return", { id: el.dataset.id }); },
@@ -2796,7 +3023,7 @@ async function loadMe(opts) {
 async function loadAll() {
   if (!S.me) return;
   try {
-    const [prod, cust, inv, so, d_o, lines, pay, cg, req, van, ret, rec, co] = await Promise.all([
+    const [prod, cust, inv, so, d_o, lines, pay, cg, req, van, ret, rec, co, sch] = await Promise.all([
       sb.from("products").select("*").eq("active", true).order("sku"),
       sb.from("customers").select("*").order("code"),
       sb.from("invoices").select("*").order("issued_at", { ascending: false }),
@@ -2810,12 +3037,14 @@ async function loadAll() {
       sb.from("returns").select("*").order("issued_at", { ascending: false }),
       sb.from("receipts").select("*").order("issued_at", { ascending: false }),
       sb.from("company").select("*").maybeSingle(),
+      sb.from("visit_schedule").select("*").eq("salesman_id", S.me.id).order("position"),
     ]);
     /* The company row and receipts are not worth failing the whole load over —
        documents degrade to placeholders, everything else still works. */
     const bad = [prod, cust, inv, so, d_o, lines, pay, cg, req, van, ret].find(r => r.error);
     if (bad) { S.loaded = true; S.data = null; return toast(friendly(bad.error.message), "bad"); }
     DB.receipts = (rec && rec.data) || [];
+    DB.sched = (sch && sch.data) || [];
     if (co && co.data) CO = {
       name: co.data.name || CO.name, address: co.data.address || CO.address,
       phone: co.data.phone || CO.phone, ssm: co.data.ssm || CO.ssm };
