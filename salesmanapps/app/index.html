@@ -372,6 +372,57 @@ body[data-rk="1"]{background:var(--rank)}
 .cal-a .no{background:#D8D4DC;color:var(--mut)}
 .cal-a .yes{background:var(--red);color:#fff}
 
+/* ---------- registration wizard ---------- */
+.steps{display:flex;gap:5px;padding:0 16px 14px;background:var(--bg);flex:none}
+.steps i{flex:1;height:4px;border-radius:2px;background:var(--line)}
+.steps i.on{background:var(--red)}
+.stepn{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--dim);padding:0 0 10px}
+.ff{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:360px){.ff{grid-template-columns:1fr}}
+.f .req{color:var(--red)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{padding:9px 14px;border-radius:18px;border:1.5px solid var(--line);background:#fff;
+  font-size:13.5px;font-weight:600;color:var(--mut)}
+.chips button.on{border-color:var(--red);background:var(--red-lo);color:var(--red)}
+.termsel{display:grid;gap:10px}
+.termsel button{display:flex;align-items:center;gap:12px;padding:14px;border-radius:11px;
+  border:1.5px solid var(--line);background:#fff;text-align:left}
+.termsel button.on{border-color:var(--red);background:var(--red-lo)}
+.termsel b{display:block;font-size:14.5px}
+.termsel span{display:block;font-size:12.5px;color:var(--mut);margin-top:2px}
+.termsel i{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);flex:none;
+  display:grid;place-items:center}
+.termsel button.on i{border-color:var(--red)}
+.termsel button.on i::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--red)}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pcell{border:1.5px dashed var(--line);border-radius:12px;background:#fff;overflow:hidden;
+  position:relative;aspect-ratio:3/4;display:grid;place-items:center;text-align:center;padding:10px}
+.pcell.has{border-style:solid;border-color:var(--grn)}
+.pcell img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pcell .lb{position:relative;font-size:12.5px;font-weight:700;color:var(--mut);line-height:1.3}
+.pcell .lb svg{width:26px;height:26px;display:block;margin:0 auto 7px;color:var(--dim)}
+/* Once there is a photograph behind it the caption needs its own ground, or it
+   is grey text on whatever the shopfront happens to look like. */
+.pcell.has .lb{position:absolute;left:0;right:0;bottom:0;z-index:2;color:#fff;
+  padding:16px 8px 7px;background:linear-gradient(to top,rgba(0,0,0,.72),transparent)}
+.pcell .tick{position:absolute;right:7px;top:7px;width:22px;height:22px;border-radius:50%;
+  background:var(--grn);color:#fff;display:grid;place-items:center;font-size:13px;z-index:2}
+.pcell input{position:absolute;inset:0;opacity:0;cursor:pointer;z-index:3}
+.navrow{display:flex;gap:12px;margin-top:18px}
+.navrow button{flex:1;margin:0}
+.agree{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;
+  font-size:12.5px;line-height:1.6;color:var(--mut);max-height:230px;overflow:auto}
+.agree h5{margin:0 0 8px;font-size:13.5px;color:var(--ink)}
+.agree dl{margin:10px 0 0}
+.done{text-align:center;padding:26px 10px}
+.done .big{width:66px;height:66px;border-radius:50%;background:var(--grn-lo);color:var(--grn);
+  display:grid;place-items:center;margin:0 auto 14px}
+.done .big svg{width:34px;height:34px}
+.done b{display:block;font-size:19px;letter-spacing:-.01em}
+.done .code{font-family:ui-monospace,monospace;font-size:22px;font-weight:800;color:var(--red);
+  margin:8px 0 4px}
+
 /* ---------- chrome ---------- */
 .offline{position:fixed;left:12px;right:12px;bottom:calc(var(--bot) + 70px);z-index:60;
   background:var(--ink);color:#fff;border-radius:11px;padding:11px 14px;font-size:13px;
@@ -608,7 +659,7 @@ function vHome() {
         <button class="quick" data-a="soon" data-t="Jadual Harian">
           <b>Jadual Harian</b><div class="art">${ic(I.cal)}</div>
           <span class="go">${ic(I.arrow)}</span></button>
-        <button class="quick" data-a="soon" data-t="Pendaftaran Reseller Baru">
+        <button class="quick" data-a="regstart">
           <b>Pendaftaran Reseller Baru</b><div class="art">${ic(I.newshop)}</div>
           <span class="go">${ic(I.arrow)}</span></button>
       </div>
@@ -1129,15 +1180,18 @@ function custInvois(c) {
   </div>`;
 }
 
-const GAL = [["depan","Gambar Depan Kedai"],["produk","Gambar Produk"],["penjaga","Gambar Penjaga"],
-             ["ssm","SSM"],["konsainan","Borang Konsainan"]];
+/* These keys are the kinds the upload function actually stores. An earlier
+   version matched the Malay section names against them, so "produk" never
+   matched "product" and every section read empty however many photos existed. */
+const GAL = [["shopfront","Gambar Depan Kedai"],["product","Gambar Produk"],
+             ["keeper","Gambar Penjaga"],["ssm","SSM"],["consign_form","Borang Konsainan"]];
 function custGaleri(c) {
   const files = (S.gal && S.gal[c.id]) || null;
   if (files === null) return `<div class="pcard"><div style="padding:30px 0">
     <div class="spin dark"></div></div></div>`;
   return `<div class="pcard" style="padding:14px 10px">
     ${GAL.map(([k, lbl]) => {
-      const f = files.filter(x => (x.kind || "").toLowerCase().includes(k));
+      const f = files.filter(x => (x.kind || "") === k);
       return `<div class="gal"><h4>${lbl}</h4><div class="in">
         ${f.length ? f.map(x => `<img src="${esc(x.url)}" alt="${lbl}">`).join(" ")
                    : `<div class="none">Tiada gambar.</div>`}
@@ -1254,6 +1308,238 @@ function vNearest() {
   </div>`;
 }
 
+/* ===========================================================================
+   Pendaftaran Reseller Baru
+   His registration is a sequence, not a form: shop details, where it is, who
+   runs it, the payment term, four photographs, the opening order, and finally
+   the consignment agreement signed and photographed back in.
+
+   Inputs are deliberately uncontrolled. Values are harvested from the DOM when
+   the step changes rather than bound per keystroke, because re-rendering on
+   every character loses the caret and the phone keyboard with it.
+   =========================================================================== */
+const REG_STEPS = ["Maklumat Kedai", "Lokasi", "Orang Yang Jaga", "Terma Bayaran",
+                   "Gambar", "Order Pertama", "Borang Konsainan"];
+const OUTLET_TYPES = ["Kedai Runcit", "Mini Market", "Pasar Mini", "Stesen Minyak",
+                      "Car Wash", "Restoran", "Lain-lain"];
+const OFF_DAYS = ["Ahad","Isnin","Selasa","Rabu","Khamis","Jumaat","Sabtu"];
+const PHOTOS = [["shopfront","Gambar Depan Kedai",true],["product","Gambar Produk",true],
+                ["keeper","Gambar Penjaga",true],["ssm","Sijil SSM",false]];
+
+function regInit() {
+  S.reg = { step: 0, f: { country: "Malaysia", term: "biltobil", term_months: 2,
+            outlet_type: "Kedai Runcit", off: [] }, photos: {}, lines: {}, busy: false, err: "" };
+}
+/* Read whatever the current step put on screen back into the draft. */
+function regHarvest() {
+  const r = S.reg; if (!r) return;
+  document.querySelectorAll("[data-rf]").forEach(el => { r.f[el.dataset.rf] = el.value; });
+  document.querySelectorAll("[data-rq]").forEach(el => {
+    const q = parseInt(el.value, 10);
+    if (q > 0) r.lines[el.dataset.rq] = q; else delete r.lines[el.dataset.rq];
+  });
+}
+
+function vRegister() {
+  const r = S.reg;
+  if (!r) { regInit(); }
+  if (S.reg.done) return regDone();
+  const isConsign = S.reg.f.term === "consign";
+  const last = isConsign ? 6 : 5;
+  /* Changing the term on step 4 from Konsainan to Tunai drops the Borang
+     step, so a step index left beyond the end has to come back. */
+  if (S.reg.step > last) S.reg.step = last;
+  const st = S.reg.step;
+  return backBar() + title("Pendaftaran Reseller") + `
+  <div class="steps">${REG_STEPS.map((_, i) =>
+    (i === 6 && !isConsign) ? "" : `<i class="${i <= st ? "on" : ""}"></i>`).join("")}</div>
+  <div class="body pad">
+    <div class="stepn">Langkah ${st + 1} / ${last + 1} · ${REG_STEPS[st]}</div>
+    ${S.reg.err ? `<div class="err">${esc(S.reg.err)}</div>` : ""}
+    ${[regKedai, regLokasi, regPic, regTerma, regGambar, regOrder, regBorang][st]()}
+    <div class="navrow">
+      ${st > 0 ? `<button class="rowbtn o" data-a="regback">Kembali</button>` : ""}
+      ${st < last
+        ? `<button class="rowbtn" data-a="regnext">Seterusnya</button>`
+        : `<button class="rowbtn g" data-a="regsubmit" ${S.reg.busy ? "disabled" : ""}>
+             ${S.reg.busy ? "Mendaftar…" : "Daftar"}</button>`}
+    </div>
+  </div>`;
+}
+const fld = (k, label, opts) => {
+  opts = opts || {};
+  const v = S.reg.f[k] == null ? "" : S.reg.f[k];
+  return `<div class="f"><label for="rf_${k}">${label}${opts.req ? ` <span class="req">*</span>` : ""}</label>
+    ${opts.area
+      ? `<textarea id="rf_${k}" data-rf="${k}" placeholder="${esc(opts.ph || "")}">${esc(v)}</textarea>`
+      : `<input id="rf_${k}" data-rf="${k}" type="${opts.type || "text"}"
+           ${opts.mode ? `inputmode="${opts.mode}"` : ""} value="${esc(v)}"
+           placeholder="${esc(opts.ph || "")}">`}</div>`;
+};
+
+function regKedai() {
+  return `${fld("name", "Nama Kedai", { req: true, ph: "Contoh: Kedai Runcit Pak Mat" })}
+    ${fld("app_name", "Nama Dalam App", { ph: "Nama pendek yang salesman nampak" })}
+    <div class="ff">${fld("ssm_name", "Nama Syarikat (SSM)")}${fld("ssm", "No. SSM")}</div>
+    ${fld("reseller_code", "Kod Reseller", { ph: "Kod kedai sendiri, jika ada" })}
+    <div class="f"><label>Jenis Outlet</label><div class="chips">
+      ${OUTLET_TYPES.map(t => `<button data-a="regpick" data-k="outlet_type" data-v="${esc(t)}"
+        class="${S.reg.f.outlet_type === t ? "on" : ""}">${t}</button>`).join("")}
+    </div></div>
+    <p class="hint">Kod reseller: dalam reka bentuk asal kod seperti SE1554 atau NTN019 nampak
+      datang dari rangkaian kedai, bukan dijana sistem. Soalan terbuka — buat masa ini sistem
+      tetap memberi kodnya sendiri juga.</p>`;
+}
+
+function regLokasi() {
+  const f = S.reg.f;
+  return `${fld("address", "Alamat Penuh", { req: true, area: true, ph: "No, jalan, taman" })}
+    <div class="ff">${fld("postcode", "Poskod", { mode: "numeric" })}${fld("town", "Bandar")}</div>
+    <div class="ff">${fld("district", "Daerah")}${fld("state", "Negeri")}</div>
+    ${fld("country", "Negara")}
+    <div class="card" style="margin-top:4px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="flex:1;min-width:0;font-size:13px;color:var(--mut)">
+          ${f.lat ? `Lokasi diambil<br><b style="color:var(--ink)">${(+f.lat).toFixed(5)}, ${(+f.lng).toFixed(5)}</b>`
+                  : "Belum ada koordinat. Ambil di hadapan kedai."}</div>
+        <button class="sbtn" data-a="reggps">${ic(I.pin)} Tangkap GPS</button>
+      </div>
+    </div>`;
+}
+
+function regPic() {
+  const off = S.reg.f.off || [];
+  return `<div class="ff">${fld("pic", "Nama Penjaga / PIC", { req: true })}
+    ${fld("pic_ic", "No. Kad Pengenalan")}</div>
+    <div class="ff">${fld("phone", "No. Telefon", { req: true, type: "tel", mode: "tel" })}
+    ${fld("whatsapp", "No. WhatsApp", { type: "tel", mode: "tel" })}</div>
+    <div class="ff">${fld("office_phone", "Telefon Pejabat", { type: "tel", mode: "tel" })}
+    ${fld("email", "E-mel", { type: "email", mode: "email" })}</div>
+    <div class="f"><label>Hari Kedai Tutup</label><div class="chips">
+      ${OFF_DAYS.map((d, i) => `<button data-a="regoff" data-v="${i}"
+        class="${off.indexOf(i) >= 0 ? "on" : ""}">${d}</button>`).join("")}
+    </div></div>
+    <div class="ff">${fld("pic_open_time", "Waktu Buka", { type: "time" })}
+    ${fld("pic_close_time", "Waktu Tutup", { type: "time" })}</div>
+    <p class="hint">Waktu buka dan hari cuti bukan butiran pentadbiran — perancang lawatan
+      tidak boleh menghantar salesman pada hari kedai tutup.</p>`;
+}
+
+function regTerma() {
+  const t = S.reg.f.term;
+  const T = [["consign","Konsainan","Stok dihantar dahulu. Hanya yang terjual dibilkan."],
+             ["biltobil","Bill To Bil","Setiap order jadi satu bil, bayar ikut tempoh."],
+             ["cash","Tunai","Order dan terus bayar."]];
+  return `<div class="f"><label>Jenis Pembayaran <span class="req">*</span></label>
+    <div class="termsel">${T.map(([k, n, d]) => `<button data-a="regpick" data-k="term"
+      data-v="${k}" class="${t === k ? "on" : ""}"><i></i><span><b>${n}</b><span>${d}</span></span>
+      </button>`).join("")}</div></div>
+    ${t === "cash" ? "" : `<div class="f"><label>Tempoh Bayaran</label><div class="chips">
+      ${[1,2,3].map(m => `<button data-a="regpick" data-k="term_months" data-v="${m}"
+        class="${+S.reg.f.term_months === m ? "on" : ""}">${m} bulan</button>`).join("")}
+    </div></div>`}
+    <div class="ff">${fld("credit_limit", "Had Kredit (RM)", { mode: "decimal" })}
+    ${fld("service_month", "Service Month", { mode: "numeric", ph: "1" })}</div>
+    <div class="ff">${fld("commission_grp", "Kumpulan Komisen")}
+    ${fld("excel_grp", "Kumpulan Excel")}</div>`;
+}
+
+function regGambar() {
+  return `<div class="pgrid">${PHOTOS.map(([k, lbl, req]) => {
+    const f = S.reg.photos[k];
+    return `<label class="pcell ${f ? "has" : ""}">
+      ${f ? `<img src="${esc(f.url)}" alt="${esc(lbl)}"><span class="tick">&#10003;</span>` : ""}
+      <span class="lb">${f ? "" : ic(I.img)}${esc(lbl)}${req && !f ? ` <span class="req">*</span>` : ""}</span>
+      <input type="file" accept="image/*" capture="environment" data-rp="${k}">
+    </label>`; }).join("")}</div>
+    <p class="hint">Gambar diambil sekarang dan dimuat naik selepas pendaftaran berjaya,
+      kerana fail disimpan di bawah kod reseller yang baru dijana.</p>`;
+}
+
+function regOrder() {
+  const consign = S.reg.f.term === "consign";
+  return `<div class="block">
+    <table class="t"><thead><tr>
+      <th>Produk</th><th class="r">Harga Kedai</th><th class="r">Harga Jualan</th>
+      <th class="c">Kuantiti</th></tr></thead>
+    <tbody>${DB.products.map(p => {
+      const van = DB.van[p.id] || 0;
+      return `<tr>
+        <td class="pname">${esc(p.name)}
+          <div style="font-size:11px;color:var(--dim);font-weight:400">Van: ${N(van)}</div></td>
+        <td class="r price">${RM(p.price)}</td>
+        <td class="r">${p.retail_price ? RM(p.retail_price) : "—"}</td>
+        <td class="c"><input class="qin" type="number" min="0" max="${van}" inputmode="numeric"
+          data-rq="${p.id}" value="${S.reg.lines[p.id] || ""}" placeholder="0"></td></tr>`;
+    }).join("")}</tbody></table></div>
+    <p class="hint">${consign
+      ? "Konsainan: stok ini dihantar ke kedai dan belum dibilkan. Bil hanya dikira pada lawatan berikutnya, selepas baki stok dimasukkan."
+      : "Order ini terus menjadi SO dan Invois apabila anda tekan Daftar."}
+      Kuantiti dihadkan kepada stok dalam van anda.</p>
+    <p class="hint">Harga Kedai dan Harga Jualan diambil dari senarai produk. Reka bentuk asal
+      juga ada pilihan perisa bagi setiap produk — pangkalan data belum ada dimensi itu, dan
+      ia ada dalam laporan.</p>`;
+}
+
+function regBorang() {
+  const f = S.reg.f, p = S.reg.photos.consign_form;
+  const lines = Object.keys(S.reg.lines);
+  const total = lines.reduce((a, id) => {
+    const pr = DB.products.find(x => x.id === id);
+    return a + (pr ? pr.price * S.reg.lines[id] : 0); }, 0);
+  return `<div class="agree">
+    <h5>Borang Konsainan</h5>
+    <p style="margin:0 0 8px">Stok di bawah dihantar atas dasar konsainan. Kedai hanya dibilkan
+      bagi unit yang terjual, dikira pada lawatan berikutnya daripada baki stok yang direkod.
+      Stok yang belum terjual kekal milik pembekal.</p>
+    <dl>
+      ${kv("Kedai", esc(f.name || "—"))}
+      ${kv("PIC", esc(f.pic || "—"))}
+      ${kv("Alamat", esc(f.address || "—"))}
+      ${kv("Tarikh", fLong(new Date()))}
+    </dl>
+    <table class="t" style="margin-top:10px"><thead><tr><th>Produk</th>
+      <th class="c">Kuantiti</th><th class="r">Nilai</th></tr></thead>
+    <tbody>${lines.map(id => { const pr = DB.products.find(x => x.id === id);
+      return `<tr><td>${esc(pr ? pr.name : "—")}</td><td class="c">${N(S.reg.lines[id])}</td>
+      <td class="r">${RM(pr ? pr.price * S.reg.lines[id] : 0)}</td></tr>`; }).join("")}
+    </tbody></table>
+    <div style="text-align:right;margin-top:8px"><b>Jumlah: ${RM(total)}</b></div>
+  </div>
+  <div class="g2" style="margin-top:12px">
+    <button class="rowbtn o" style="margin:0" data-a="soon" data-t="Cetak Borang">Cetak</button>
+    <button class="rowbtn o" style="margin:0" data-a="soon" data-t="Preview Borang">Preview</button>
+  </div>
+  <div class="f" style="margin-top:16px"><label>Borang Yang Ditandatangani</label>
+    <label class="pcell ${p ? "has" : ""}" style="aspect-ratio:16/9">
+      ${p ? `<img src="${esc(p.url)}" alt=""><span class="tick">&#10003;</span>` : ""}
+      <span class="lb">${p ? "" : ic(I.img)}Ambil gambar borang yang sudah ditandatangani</span>
+      <input type="file" accept="image/*" capture="environment" data-rp="consign_form">
+    </label></div>
+  <p class="hint">Cetak dan Preview belum disambung. Penjanaan PDF 58mm/80mm sudah siap di
+    portal web dan akan dipindahkan ke sini.</p>`;
+}
+
+function regDone() {
+  const d = S.reg.done;
+  return backBar() + title("Pendaftaran Reseller") + `
+  <div class="body pad"><div class="done">
+    <div class="big">${ic('<path d="M4 12.5l5 5L20 7"/>')}</div>
+    <b>Reseller didaftarkan</b>
+    <div class="code">${esc(d.code)}</div>
+    <p style="color:var(--mut);font-size:13.5px;margin:0 0 4px">${esc(d.name)}</p>
+    ${d.opening ? `<p style="color:var(--mut);font-size:13.5px;margin:10px 0 0">
+      Order pertama: <b style="color:var(--ink)">${esc(d.opening)}</b></p>` : ""}
+    ${d.photos ? `<p style="color:var(--mut);font-size:13.5px;margin:6px 0 0">
+      ${esc(d.photos)}</p>` : ""}
+    ${d.warn ? `<div class="err" style="margin-top:16px;text-align:left">${esc(d.warn)}</div>` : ""}
+  </div>
+  <button class="rowbtn" data-a="cust" data-id="${d.id}">Buka Profil Reseller</button>
+  <button class="rowbtn o" data-a="regagain">Daftar Satu Lagi</button>
+  <button class="rowbtn o" data-a="root">Halaman Utama</button>
+  </div>`;
+}
+
 function vSettings() {
   const me = S.me || {};
   return backBar() + title("Tetapan") + `
@@ -1316,6 +1602,7 @@ function draw() {
     else if (t.name === "stockreq")  v = vStockReq();
     else if (t.name === "reqhist")   v = vReqHist();
     else if (t.name === "nearest")   v = vNearest();
+    else if (t.name === "register")  v = vRegister();
     else if (t.name === "settings")  v = vSettings();
     else v = `<div class="body pad"><div class="empty"><b>Tiada skrin</b></div></div>`;
     h = v + tabBar();
@@ -1324,6 +1611,22 @@ function draw() {
   document.body.dataset.rk = (!cur() && S.tab === "ranking" && S.me && S.loaded) ? "1" : "";
   chrome();
   const q = $("#q"); if (q) { q.oninput = e => { S.q = e.target.value; redrawBody(); }; }
+  /* Photographs are held as File objects with a preview URL until registration
+     succeeds and there is a folder to put them in. */
+  document.querySelectorAll("[data-rp]").forEach(inp => {
+    inp.onchange = e => {
+      const file = e.target.files && e.target.files[0];
+      if (!file || !S.reg) return;
+      if (file.size > 12 * 1024 * 1024) return toast("Gambar terlalu besar (maksimum 12MB).", "bad");
+      const kind = e.target.dataset.rp;
+      const old = S.reg.photos[kind];
+      if (old && old.url) URL.revokeObjectURL(old.url);
+      regHarvest();
+      S.reg.photos[kind] = { file: file, url: URL.createObjectURL(file) };
+      S.reg.err = "";          /* the complaint is answered; stop showing it */
+      draw();
+    };
+  });
   if (!S.me && !S.busy) { const e = $("#em"); if (e) (e.value ? $("#pw") : e).focus(); }
 }
 /* Typing in a search box must not steal focus by re-rendering the input, so
@@ -1389,6 +1692,93 @@ const A = {
     toast(`${lines.length} permintaan stok dihantar.`, "good");
     await loadAll(); pop();
   },
+  /* ---- registration ---- */
+  regstart() { regInit(); push("register"); },
+  regagain() { regInit(); draw(); scrollTo(0, 0); },
+  regpick(el) { regHarvest(); S.reg.f[el.dataset.k] = el.dataset.v; draw(); },
+  regoff(el) {
+    regHarvest();
+    const i = +el.dataset.v, a = S.reg.f.off || (S.reg.f.off = []);
+    const at = a.indexOf(i); if (at >= 0) a.splice(at, 1); else a.push(i);
+    draw();
+  },
+  regback() { regHarvest(); S.reg.err = ""; S.reg.step--; draw(); scrollTo(0, 0); },
+  regnext() {
+    regHarvest();
+    const f = S.reg.f, st = S.reg.step;
+    const miss = n => { S.reg.err = n; draw(); scrollTo(0, 0); return true; };
+    if (st === 0 && !(f.name || "").trim())    return miss("Nama kedai diperlukan.");
+    if (st === 1 && !(f.address || "").trim()) return miss("Alamat diperlukan.");
+    if (st === 2 && !(f.pic || "").trim())     return miss("Nama penjaga diperlukan.");
+    if (st === 2 && !(f.phone || "").trim())   return miss("No. telefon diperlukan.");
+    if (st === 4) {
+      const need = PHOTOS.filter(p => p[2] && !S.reg.photos[p[0]]);
+      if (need.length) return miss("Gambar diperlukan: " + need.map(p => p[1]).join(", ") + ".");
+    }
+    S.reg.err = ""; S.reg.step++; draw(); scrollTo(0, 0);
+  },
+  reggps() {
+    if (!navigator.geolocation) return toast("Peranti tidak menyokong GPS.", "bad");
+    regHarvest();
+    toast("Mengambil lokasi…");
+    navigator.geolocation.getCurrentPosition(
+      p => { S.reg.f.lat = p.coords.latitude; S.reg.f.lng = p.coords.longitude; draw(); },
+      () => toast("Tidak dapat lokasi. Semak kebenaran.", "bad"),
+      { enableHighAccuracy: true, timeout: 10000 });
+  },
+  async regsubmit() {
+    regHarvest();
+    const f = S.reg.f;
+    if (S.reg.f.term === "consign" && !S.reg.photos.consign_form)
+      { S.reg.err = "Gambar borang konsainan yang ditandatangani diperlukan."; return draw(); }
+    S.reg.busy = true; S.reg.err = ""; draw();
+
+    const lines = Object.keys(S.reg.lines).map(id => {
+      const p = DB.products.find(x => x.id === id);
+      return { product_id: id, qty: S.reg.lines[id], price: p ? p.price : 0 };
+    });
+    const months = parseInt(f.service_month, 10);
+    const payload = {
+      name: f.name, app_name: f.app_name, ssm_name: f.ssm_name, ssm: f.ssm,
+      reseller_code: f.reseller_code, outlet_type: f.outlet_type,
+      address: f.address, postcode: f.postcode, town: f.town, district: f.district,
+      state: f.state, country: f.country, lat: f.lat, lng: f.lng,
+      pic: f.pic, pic_ic: f.pic_ic, phone: f.phone, whatsapp: f.whatsapp,
+      office_phone: f.office_phone, email: f.email,
+      pic_off_days: f.off || [], pic_open_time: f.pic_open_time, pic_close_time: f.pic_close_time,
+      term: f.term, term_months: f.term_months, credit_limit: f.credit_limit,
+      service_days: months > 0 ? months * 30 : null,
+      commission_grp: f.commission_grp, excel_grp: f.excel_grp,
+      lines: lines,
+    };
+    const { data, error } = await sb.rpc("register_customer", { p: payload });
+    if (error) { S.reg.busy = false; S.reg.err = friendly(error.message); return draw(); }
+
+    /* The customer exists now, so the photographs have a folder to go in.
+       A failed upload must not undo a real registration — it is reported and
+       the photographs can be added again from the profile. */
+    const failed = [];
+    for (const kind of Object.keys(S.reg.photos)) {
+      try { await uploadPhoto(data.customer_id, kind, S.reg.photos[kind].file); }
+      catch (e) { failed.push(kind); }
+    }
+    const op = data.opening;
+    S.reg.busy = false;
+    S.reg.done = {
+      id: data.customer_id, code: data.code, name: f.name,
+      opening: op ? (op.do_no ? `${op.do_no} · ${RM(op.total)}`
+                              : `${op.so_no || ""} ${op.invoice_no || ""} · ${RM(op.total)}`.trim())
+                  : "",
+      photos: failed.length ? "" : `${Object.keys(S.reg.photos).length} gambar dimuat naik.`,
+      warn: failed.length
+        ? `Reseller sudah didaftarkan, tetapi ${failed.length} gambar gagal dimuat naik ` +
+          `(${failed.join(", ")}). Cuba muat naik semula dari Galeri.` : "",
+    };
+    await loadAll();
+    draw(); scrollTo(0, 0);
+    toast(`Reseller ${data.code} didaftarkan.`, "good");
+  },
+
   install()  { if (!deferredInstall) return; deferredInstall.prompt();
                deferredInstall.userChoice.finally(() => { deferredInstall = null; chrome(); }); },
   noinstall(){ installDismissed = true;
@@ -1687,6 +2077,35 @@ async function loadRanking() {
   S.rkRows = error ? [] : (data || []);
   if (error) toast(friendly(error.message), "bad");
   draw();
+}
+
+/* One photograph, in three steps: ask the edge function to sign a path it has
+   judged this salesman entitled to, PUT the file straight at storage, then
+   record it. The file never passes through a JSON body, so a 4MB photo on a
+   weak signal is one upload rather than a 5.5MB request. */
+async function uploadPhoto(customerId, kind, file) {
+  const { data: { session } } = await sb.auth.getSession();
+  const call = body => fetch(`${SB_URL}/functions/v1/reseller-upload`, {
+    method: "POST",
+    headers: { "content-type": "application/json",
+               authorization: `Bearer ${session.access_token}` },
+    body: JSON.stringify(body),
+  }).then(async r => {
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || `upload failed (${r.status})`);
+    return j;
+  });
+
+  const signed = await call({ action: "sign-upload", customer_id: customerId, kind: kind,
+                              content_type: file.type });
+  const put = await fetch(signed.signedUrl, {
+    method: "PUT",
+    headers: { "content-type": file.type, "x-upsert": "true" },
+    body: file,
+  });
+  if (!put.ok) throw new Error(`storage refused the file (${put.status})`);
+  await call({ action: "record", customer_id: customerId, kind: kind, path: signed.path });
+  if (S.gal) delete S.gal[customerId];
 }
 
 /* Registration photographs, fetched through the edge function that signs a

@@ -23,6 +23,7 @@ why, so the repository is not silent about where the data lives.
 | 10 | `doc_lines_generated_total` | `doc_lines.line_total` is generated, so the three writers stop setting it |
 | 11 | `van_restocking` | `stock_requests`, `stock_issues`, `request_stock()`, `issue_stock()`, `reject_stock_request()` |
 | 12 | `ranking_board` | `ranking_board(from, to)` — the leaderboard, without breaking row level security |
+| 13 | `registration_with_opening_order` | `post_consign_drop()`, and `register_customer()` extended to every field his form collects |
 
 ## The leaderboard, without a hole in row level security
 
@@ -33,6 +34,32 @@ sales, collected, order count — and nothing else. No document, no customer, no
 line ever leaves through it. It is the only thing one salesman sees of
 another's figures, and it is aggregate by construction rather than by a filter
 someone could forget.
+
+## Registration, as one transaction
+
+`register_customer()` originally stored the first sixteen columns and silently
+dropped the fifteen added for the client's own form — a registration could
+collect an IC number, opening hours, a commission group and a service interval
+and keep none of them. It now writes all of them.
+
+It also posts the opening order. In his design registration and the first order
+are one sequence ending in one green Daftar button, so they belong in one
+transaction: a customer created without the stock that was physically handed
+over is worse than a clean failure. Consignment goes through
+`post_consign_drop()`, everything else through `post_sale()`.
+
+`post_consign_drop()` exists because `post_delivery()` issues one delivery order
+per product. A salesman dropping three products at a shop got three delivery
+notes for one visit. This writes one DO with several lines and one consignment
+row per line, which is what the shopkeeper signs for. Every line is taken from
+the van before anything is written, so a van that cannot cover the drop fails
+the whole delivery rather than half of it. EXECUTE is revoked from
+`authenticated` — it is reached only from inside `register_customer()`.
+
+Verified against a live session: an opening order larger than the van is refused
+with `van holds 68 of this product, 568 requested`, and nothing survives — not
+the delivery order, not the customer, and not the customer code, because
+`next_doc_no` rolls back with everything else.
 
 ## Rebuild to the client's own app — backend foundation
 

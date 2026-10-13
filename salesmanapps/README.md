@@ -67,6 +67,7 @@ signal is thrown back to a login screen he cannot possibly get past.
 | Reseller | Searchable list, and a profile with his four tabs — General, Sejarah Invois, Galeri, Kerja Harian |
 | Customer Profile | Payment-term badge, Call (Dialer / WhatsApp), Location (Google Maps / Waze), consignment stock on the shelf, Service Month |
 | Galeri | The five registration photograph types, read through the signed-URL edge function |
+| Pendaftaran Reseller | His seven-step sequence — shop details, location with GPS capture, the person who runs it, payment term, four photographs, the opening order, and the consignment form signed and photographed back in. **Registers for real**, with the opening order posted in the same transaction |
 | Stok | Van stock per product, with Stok Request and Sejarah Stok Request |
 | Stock Request | **Posts a real request** through `request_stock()` |
 | GPS | Nearest Reseller by distance from the handset, with map links |
@@ -77,6 +78,25 @@ signal is thrown back to a login screen he cannot possibly get past.
 reading another salesman's invoices, which is correct and stays. `ranking_board()`
 returns a name, a zone and two totals per salesman and never a single document,
 customer or line — the only thing one salesman sees of another's figures.
+
+**Registration needed two.** `register_customer()` only stored the original
+fields and silently dropped the fifteen added for his form, so it now writes all
+of them and can post the opening order in the same transaction — in his design
+registration and the first order are one sequence ending in one green Daftar
+button, so they either both happen or neither does. And `post_consign_drop()`
+issues **one** delivery order covering several products; `post_delivery()` makes
+one DO per product, so dropping three products at a shop produced three delivery
+notes for one visit. His app shows one Consignment Order with a product table,
+which is also what the shopkeeper signs for.
+
+Proved by registering a reseller through the wizard: every field landed in the
+database, one DO with two lines, two consignment rows, five photographs stored,
+van stock drawn down 80 → 68. An opening order larger than the van is refused
+with the database's own message — *"van holds 68 of this product, 568
+requested"* — and nothing is written, not even the customer, because the whole
+registration is one transaction. The cash branch produces an SO and an invoice
+and no DO; the consignment branch a DO and no invoice, since nothing is billed
+at the drop.
 
 **What is deliberately not faked.** Several controls in his design have no
 backend yet and say so rather than pretending: `Keluar Invois Muktamad`,
