@@ -170,6 +170,14 @@ img{max-width:100%}
 .row .amt{font-size:13.5px;font-weight:800;text-align:right;flex:none;min-width:74px}
 .row .qty{font-size:15px;font-weight:800;text-align:right;flex:none;min-width:38px}
 .paid{color:var(--grn)} .unpaid{color:var(--red)} .part{color:var(--amb)}
+.void{color:var(--dim)}
+/* A cancelled document stays readable but must never be mistaken for a live
+   one, on a list or on the printed roll. */
+.row.vd .who,.row.vd .mid,.row.vd .amt{opacity:.55}
+.row.vd .amt,.row.vd .nm{text-decoration:line-through}
+.vbar{margin:0 0 14px;padding:11px 13px;border-radius:10px;background:var(--inset);
+  border-left:4px solid var(--dim);font-size:13px;color:var(--mut);line-height:1.5}
+.vbar b{display:block;color:var(--ink);font-weight:800;font-size:13.5px;margin-bottom:2px}
 
 /* reseller list */
 .rrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px;
@@ -473,6 +481,9 @@ body[data-rk="1"]{background:var(--rank)}
 .roll .co span{display:block;font-size:.85em;line-height:1.45}
 .roll .hr{border-top:1px dashed #000;margin:7px 0;opacity:.6}
 .roll .dt{text-align:center;font-weight:700;letter-spacing:.06em}
+/* A cancelled document must say so on the roll as well as on the screen —
+   the paper is what ends up in the shop's folder. */
+.roll .vdoc{margin-top:3px;letter-spacing:.12em}
 .roll .pr{display:flex;justify-content:space-between;gap:8px}
 .roll .pr span{flex:1;min-width:0}
 .roll .pr b{font-weight:700;text-align:right;white-space:nowrap}
@@ -694,6 +705,19 @@ const custOf = id => DB.customers.find(c => c.id === id) || null;
 const rcode  = c => c ? (c.reseller_code || c.code) : "";
 const soOf   = id => DB.sos.find(s => s.id === id) || null;
 const linesOf = id => DB.lines[id] || [];
+
+/* A cancelled document stays on file, stays numbered and stays findable — but
+   it must stop counting. Every figure in the app is read through these rather
+   than off the raw arrays, so cancelling one document moves the money, the
+   stock and the shelf in the same breath.
+   PAYS also drops rejected payments, which were being counted as money
+   received long before cancellation existed. */
+const live   = r => !!r && !r.voided_at;
+const INVS   = () => DB.invoices.filter(live);
+const SOS    = () => DB.sos.filter(live);
+const RETS   = () => DB.returns.filter(live);
+const PAYS   = () => DB.payments.filter(p => !p.rejected_at);
+const SHELF  = () => DB.consign.filter(g => !g.checked_at && !g.voided_at);
 const TERM = { consign: "Konsainan", biltobil: "Bill To Bil", cash: "Tunai" };
 /* Our three invoice states, in his words and his colours. He also shows
    "Pending Acc Approval", which is an approval step we have no workflow for —
@@ -705,6 +729,9 @@ const STAT = { paid: ["Paid", "paid"], partial: ["Separa Bayar", "part"], pendin
 const waiting = v => DB.payments.filter(p => p.invoice_id === v.id && !p.approved_at && !p.rejected_at);
 const pendingAmt = v => waiting(v).reduce((a, p) => a + Number(p.amount), 0);
 function invStat(v) {
+  /* Cancelled outranks everything: an invoice nobody owes anything on must not
+     read Unpaid in red on a list of debts. */
+  if (v.voided_at) return ["Dibatalkan", "void"];
   if (waiting(v).length) return ["Pending Acc Approval", "part"];
   return STAT[v.status] || STAT.pending;
 }
@@ -1006,7 +1033,7 @@ function vSales() {
          what is still owed. In his screenshots this column is ambiguous —
          some settled rows read RM 0.00 and others a real figure — so the two
          screens are given the reading each is actually for. */
-      return `<button class="row" data-a="order" data-id="${v.id}">
+      return `<button class="row${v.voided_at ? " vd" : ""}" data-a="order" data-id="${v.id}">
         <div class="when">${esc(fDay(new Date(v.issued_at)))}</div>
         <div class="main">
           <span class="who"><span class="code">#${esc(rcode(c))}</span>
@@ -1030,8 +1057,9 @@ function vDoList() {
   `<div class="body pad">${rows.length ? `<div class="list">${rows.map(d => {
       const c = custOf(d.customer_id);
       const qty = linesOf(d.id).reduce((a, l) => a + l.qty, 0);
-      return `<button class="row" data-a="dodet" data-id="${d.id}">
-        <div class="when">${esc(fStamp(new Date(d.issued_at)))}</div>
+      return `<button class="row${d.voided_at ? " vd" : ""}" data-a="dodet" data-id="${d.id}">
+        <div class="when">${esc(fStamp(new Date(d.issued_at)))}${d.voided_at
+          ? ` · <b style="color:var(--dim)">DIBATALKAN</b>` : ""}</div>
         <div class="main">
           <span class="who"><span class="code">#${esc(rcode(c))}</span>
             <span class="nm">${esc(c.name)}</span></span>
@@ -1047,7 +1075,7 @@ function vHutang() {
   const q = S.q.toLowerCase();
   /* A chase list is every outstanding invoice, not a period — which is why
      his List Hutang has a search box and no date filter. */
-  const rows = DB.invoices.filter(v => v.status !== "paid").filter(v => {
+  const rows = INVS().filter(v => v.status !== "paid").filter(v => {
     const c = custOf(v.customer_id); if (!c) return false;
     return !q || (c.name + " " + rcode(c) + " " + (c.app_name||"")).toLowerCase().includes(q);
   }).sort((a, b) => new Date(a.issued_at) - new Date(b.issued_at));
@@ -1091,6 +1119,7 @@ function vOrder(id) {
     .sort((a, b) => new Date(b.issued_at) - new Date(a.issued_at))[0];
   return backBar(true) + title("Maklumat Pesanan") + `
   <div class="body pad">
+    ${vbar(v)}
     <div class="cust">
       ${img ? `<img class="avatar" src="${esc(img)}" alt="">`
             : `<div class="avatar ph">${ic(I.shop)}</div>`}
@@ -1119,12 +1148,14 @@ function vOrder(id) {
       ${v.final_at
         ? `<div class="ok" style="margin-top:12px;text-align:center">Invois muktamad dikeluarkan
             ${esc(fLong(new Date(v.final_at)))}</div>`
+        : v.voided_at ? ""
         : isMgmt()
           ? `<button class="rowbtn o" data-a="final" data-id="${v.id}">Keluar Invois Muktamad</button>`
           : `<button class="rowbtn o" data-a="soon"
                data-t="Keluar Invois Muktamad">Keluar Invois Muktamad</button>`}
-      ${isMgmt() ? "" :
+      ${isMgmt() || v.voided_at ? "" :
         `<button class="rowbtn o" data-a="creditnote" data-id="${v.id}">Request Credit Note</button>`}
+      ${vbtn("INV", v)}
     </div></div>
 
     <div class="sec" style="font-size:15px">Pesanan Produk</div>
@@ -1143,7 +1174,8 @@ function vOrder(id) {
       </div>
     </div>
 
-    ${bal > 0 && !isMgmt()
+    ${v.voided_at ? ""
+      : bal > 0 && !isMgmt()
       ? `<button class="rowbtn g" data-a="pay" data-id="${v.id}">Buat Bayaran</button>`
       : `<div class="ok" style="text-align:center;margin-top:12px">Invois ini sudah dijelaskan sepenuhnya.</div>`}
 
@@ -1158,6 +1190,13 @@ function vOrder(id) {
   </div>`;
 }
 const kv = (k, v) => `<div class="kv"><dt>${k}</dt><dd>${v}</dd></div>`;
+const vbar = d => d.voided_at ? `<div class="vbar"><b>Dokumen ini dibatalkan</b>\n  ${esc(fLong(new Date(d.voided_at)))}${d.void_reason ? " · " + esc(d.void_reason) : ""}</div>` : "";
+/* Cancelling is the office's to do, never the salesman's: he is the one
+   person with a reason to make a bad day disappear. */
+const vbtn = (kind, d) => (isMgmt() && !d.voided_at)
+  ? `<button class="rowbtn o" data-a="voidask" data-t="${kind}" data-id="${d.id}"
+       style="color:var(--mut);border-color:var(--line)">Batalkan Dokumen</button>` : "";
+
 
 function vDoDet(id) {
   const d = DB.dos.find(x => x.id === id);
@@ -1168,6 +1207,7 @@ function vDoDet(id) {
   const img = S.photos && S.photos[c.id];
   return backBar(true) + title("Consignment Order") + `
   <div class="body pad">
+    ${vbar(d)}
     <div class="cust">
       ${img ? `<img class="avatar" src="${esc(img)}" alt="">`
             : `<div class="avatar ph">${ic(I.img)}</div>`}
@@ -1201,6 +1241,7 @@ function vDoDet(id) {
         data-print="1">Cetak DO Terbaru</button>
       <button class="rowbtn o" style="margin:0" data-a="doc" data-t="DO" data-id="${d.id}">Lihat DO Terbaru</button>
     </div>
+    ${vbtn("DO", d)}
   </div>`;
 }
 
@@ -1210,7 +1251,9 @@ function vDoDet(id) {
 function vKesimpulan() {
   const r = S.range || { from: dOnly(new Date(Date.now() - 29 * 864e5)), to: dOnly(new Date()) };
   const inR = d => { const t = new Date(d); return t >= r.from && t < new Date(r.to.getTime() + 864e5); };
-  const pays = DB.payments.filter(p => inR(p.paid_at));
+  /* Rejected money is not money received, whether the office turned it down
+     or the invoice behind it was cancelled. */
+  const pays = PAYS().filter(p => inR(p.paid_at));
   const total = pays.reduce((a, p) => a + Number(p.amount), 0);
   /* Grouped by whatever method is actually on the payments, not by a fixed
      list. An earlier version totalled four hardcoded names, so money taken by
@@ -1227,9 +1270,9 @@ function vKesimpulan() {
     .sort((a, b) => byMethod[b] - byMethod[a])
     .map(k => [METH[k] || (k === "cash" ? "Cash" : k === "lain" ? "Lain-lain"
                 : k.charAt(0).toUpperCase() + k.slice(1)), byMethod[k]]);
-  const hutang = DB.invoices.filter(v => v.status !== "paid")
+  const hutang = INVS().filter(v => v.status !== "paid")
     .reduce((a, v) => a + Number(v.total) - Number(v.paid), 0);
-  const sos = DB.sos.filter(s => inR(s.issued_at));
+  const sos = SOS().filter(s => inR(s.issued_at));
   const soldBy = {};
   sos.forEach(s => linesOf(s.id).forEach(l => { soldBy[l.product_id] = (soldBy[l.product_id]||0) + l.qty; }));
   const soldTotal = Object.values(soldBy).reduce((a, n) => a + n, 0);
@@ -1282,7 +1325,7 @@ function vKesimpulan() {
     <div class="block"><table class="t">
       <thead><tr><th>Produk</th><th class="c">Tpp</th><th class="c">Rtn</th></tr></thead>
       <tbody><tr><td class="pname">Total</td><td class="c">—</td>
-        <td class="c">${N(DB.returns.filter(x => inR(x.issued_at)).reduce((a,x)=>a+x.qty,0))}</td></tr>
+        <td class="c">${N(RETS().filter(x => inR(x.issued_at)).reduce((a,x)=>a+x.qty,0))}</td></tr>
       </tbody></table></div>
     <p class="hint">“Rtn” diambil sebagai Pulangan. “Tpp” belum disahkan maksudnya.</p>
   </div>`;
@@ -1312,7 +1355,7 @@ function vCust(id, sub) {
 
 function custGeneral(c) {
   const stock = {};
-  DB.consign.filter(g => g.customer_id === c.id && !g.checked_at)
+  SHELF().filter(g => g.customer_id === c.id)
     .forEach(g => { stock[g.product_id] = (stock[g.product_id] || 0) + g.qty_sent; });
   const stockRows = Object.keys(stock);
   const months = c.service_days ? Math.max(1, Math.round(c.service_days / 30)) : 1;
@@ -1825,12 +1868,168 @@ function vApprovals() {
 
     ${n ? "" : `<div class="empty" style="margin-top:20px"><b>Semuanya selesai</b>
       <span>Tiada bayaran, permohonan harga, credit note atau permintaan stok menunggu.</span></div>`}
+
+    <button class="rowbtn o" style="margin-top:20px" data-a="go" data-v="decided">
+      Sejarah Kelulusan</button>
+    <button class="rowbtn o" data-a="go" data-v="docfind">Cari Dokumen</button>
   </div>`;
 }
 const decideRow = (kind, id) => `<div class="decide">
   <button class="no"  data-a="decide" data-k="${kind}" data-id="${id}" data-v="0">Tolak</button>
   <button class="yes" data-a="decide" data-k="${kind}" data-id="${id}" data-v="1">Lulus</button>
 </div>`;
+
+/* ===========================================================================
+   Sejarah Kelulusan — what the office decided
+   ===========================================================================
+   The queue screen shows only what is still waiting, so the moment a decision
+   is made it vanishes. There was no way to check whether something had already
+   been handled, no way to see who decided it, and nothing to answer "why was
+   that price approved in March" six months later.
+
+   Same four workflows as the queue, read the other way round. */
+function decidedWork() {
+  const out = [];
+  const who = id => { const p = DB.profiles.find(x => x.id === id); return p ? p.code : ""; };
+
+  DB.payments.filter(p => p.rejected_at).forEach(p => {
+    const c = custOf(p.customer_id), inv = DB.invoices.find(v => v.id === p.invoice_id);
+    out.push({ kind: "Bayaran", ok: false, at: p.rejected_at, sm: who(p.salesman_id),
+      code: c ? rcode(c) : "", who: c ? c.name : "—",
+      sub: [inv ? inv.doc_no : "", METH[p.method] || p.method].filter(Boolean).join(" · "),
+      amt: RM(p.amount), reply: p.reject_note, act: inv ? ["order", inv.id] : null });
+  });
+  /* Approved payments are not listed: there are hundreds, every one of them
+     routine, and they would bury the decisions that were actually judgements. */
+
+  DB.priceReqs.filter(r => r.decided_at).forEach(r => {
+    const c = custOf(r.customer_id);
+    out.push({ kind: "Tukar Harga", ok: r.status === "approved", at: r.decided_at,
+      sm: who(r.salesman_id), code: c ? rcode(c) : "", who: c ? c.name : "—",
+      sub: prodOf(r.product_id).name, by: who(r.decided_by),
+      amt: `<s style="color:var(--dim);font-weight:400">${RM(r.old_price)}</s><br>${RM(r.new_price)}`,
+      reply: r.decide_note, act: c ? ["cust", c.id] : null });
+  });
+
+  DB.creditNotes.filter(r => r.decided_at).forEach(r => {
+    const c = custOf(r.customer_id), inv = DB.invoices.find(v => v.id === r.invoice_id);
+    out.push({ kind: "Credit Note", ok: r.status === "approved", at: r.decided_at,
+      sm: who(r.salesman_id), code: c ? rcode(c) : "", who: c ? c.name : "—",
+      sub: [inv ? inv.doc_no : "", r.doc_no, r.reason].filter(Boolean).join(" · "),
+      by: who(r.decided_by), amt: RM(r.amount), reply: r.decide_note,
+      act: inv ? ["order", inv.id] : null });
+  });
+
+  DB.reqs.filter(r => r.decided_at).forEach(r => {
+    const p = prodOf(r.product_id);
+    const short = r.status === "issued" && r.qty_issued != null && r.qty_issued !== r.qty;
+    out.push({ kind: "Request Stok", ok: r.status === "issued", at: r.decided_at,
+      sm: who(r.salesman_id), code: p.sku, who: p.name, by: who(r.decided_by),
+      sub: short ? `Diminta ${N(r.qty)}, dikeluarkan ${N(r.qty_issued)}` : "",
+      amt: N(short ? r.qty_issued : r.qty), reply: r.decide_note, act: null });
+  });
+
+  /* Cancelling a document is a decision the office makes too, and the one most
+     worth being able to look up afterwards. */
+  const voided = (rows, kind, open) => rows.filter(d => d.voided_at).forEach(d => {
+    const c = custOf(d.customer_id);
+    out.push({ kind: kind, ok: false, at: d.voided_at, sm: "", by: who(d.voided_by),
+      code: c ? rcode(c) : "", who: c ? c.name : "—", sub: d.doc_no,
+      amt: d.total != null ? RM(d.total) : N(d.qty), reply: d.void_reason,
+      act: open ? open(d) : null });
+  });
+  voided(DB.invoices, "Invois Dibatal", d => ["order", d.id]);
+  voided(DB.dos, "D/O Dibatal", d => ["dodet", d.id]);
+  voided(DB.returns, "Pulangan Dibatal", null);
+
+  return out.sort((a, b) => new Date(b.at) - new Date(a.at));
+}
+
+function vDecided() {
+  const q = S.q.toLowerCase();
+  const all = decidedWork();
+  const rows = all.filter(r => !q ||
+    (r.who + " " + r.code + " " + r.sub + " " + r.sm + " " + r.kind).toLowerCase().includes(q));
+  return backBar(true) + title("Sejarah Kelulusan") + `
+  <div style="padding:4px 16px 0;background:var(--bg)">
+    <div class="srch" style="border:1px solid var(--line)">${ic(I.search)}
+      <input id="q" type="search" placeholder="Cari reseller, produk, dokumen atau salesman"
+             value="${esc(S.q)}" autocapitalize="off" autocomplete="off"></div>
+  </div>
+  <div class="body pad">
+    ${rows.length ? `<div class="list">${rows.map(r => {
+      const tag = r.act ? `<button class="row rq" data-a="${r.act[0]}" data-id="${r.act[1]}">`
+                        : `<div class="row rq">`;
+      return tag + `
+        <div class="rqtop"><span class="k">${esc(r.kind)}</span>
+          <span class="st ${r.ok ? "paid" : "unpaid"}">${r.ok ? "Diluluskan" : "Ditolak"}</span></div>
+        <div class="main">
+          <span class="who">${r.code ? `<span class="code">${esc(r.code)}</span>` : ""}
+            <span class="nm">${esc(r.who)}</span>
+            ${r.sub ? `<div class="rqsub">${esc(r.sub)}</div>` : ""}</span>
+          <span class="amt">${r.amt}</span>
+        </div>
+        <div class="when">${esc(fDay(new Date(r.at)))}${r.sm ? ` · ${esc(r.sm)}` : ""}${
+          r.by ? ` · diputuskan ${esc(r.by)}` : ""}</div>
+        ${r.reply ? `<div class="note2 off"><b>Catatan:</b> ${esc(r.reply)}</div>` : ""}
+      ` + (r.act ? `</button>` : `</div>`);
+    }).join("")}</div>`
+    : `<div class="empty"><b>Tiada keputusan</b>
+        <span>${q ? "Tiada yang sepadan dengan carian ini."
+                  : "Belum ada apa-apa diputuskan."}</span></div>`}
+    <p class="hint">Bayaran yang <b>diluluskan</b> tidak disenaraikan — ia ratusan dan
+      semuanya rutin, dan akan menenggelamkan keputusan yang betul-betul satu pertimbangan.
+      Bayaran yang ditolak ada di sini.</p>
+  </div>`;
+}
+
+/* ===========================================================================
+   Cari Dokumen — how the office reaches a document to cancel
+   ===========================================================================
+   An invoice can be found through a reseller's profile, but a delivery order
+   and a return cannot: those screens belong to the salesman's side of the app.
+   The office, though, is the only side that can cancel one — so it needs a way
+   in, and "somebody rang about DO000020" is how that conversation starts. */
+function vDocFind() {
+  const q = S.q.toLowerCase().trim();
+  const hit = (doc, c) => !q ||
+    ((doc || "") + " " + (c ? c.name + " " + rcode(c) : "")).toLowerCase().includes(q);
+  const rows = [];
+  if (q) {
+    DB.invoices.forEach(v => { const c = custOf(v.customer_id);
+      if (hit(v.doc_no, c)) rows.push({ t: "INV", lbl: "Invois", d: v, c: c,
+        amt: RM(v.total), at: v.issued_at, act: ["order", v.id] }); });
+    DB.dos.forEach(d => { const c = custOf(d.customer_id);
+      if (hit(d.doc_no, c)) rows.push({ t: "DO", lbl: "D/O", d: d, c: c,
+        amt: RM(d.total), at: d.issued_at, act: ["dodet", d.id] }); });
+    DB.returns.forEach(x => { const c = custOf(x.customer_id);
+      if (hit(x.doc_no, c)) rows.push({ t: "RET", lbl: "Pulangan", d: x, c: c,
+        amt: N(x.qty) + " unit", at: x.issued_at, act: null }); });
+    rows.sort((a, b) => new Date(b.at) - new Date(a.at));
+  }
+  return backBar(true) + title("Cari Dokumen") + `
+  <div style="padding:4px 16px 0;background:var(--bg)">
+    <div class="srch" style="border:1px solid var(--line)">${ic(I.search)}
+      <input id="q" type="search" placeholder="No. dokumen, nama atau kod reseller"
+             value="${esc(S.q)}" autocapitalize="off" autocomplete="off"></div>
+  </div>
+  <div class="body pad">
+    ${!q ? `<div class="empty"><b>Cari dokumen</b>
+        <span>Masukkan nombor dokumen (INV000012, DO000020, RET000003) atau nama reseller.</span></div>`
+    : rows.length ? `<div class="list">${rows.slice(0, 40).map(r => `
+      <button class="row${r.d.voided_at ? " vd" : ""}"
+        data-a="${r.act ? r.act[0] : "doc"}"
+        ${r.act ? `data-id="${r.act[1]}"` : `data-t="RET" data-id="${r.d.id}"`}>
+        <div class="when">${esc(r.lbl)} · ${esc(fDay(new Date(r.at)))}${r.d.voided_at
+          ? ` · <b style="color:var(--dim)">DIBATALKAN</b>` : ""}</div>
+        <div class="main">
+          <span class="who"><span class="code">${esc(r.d.doc_no)}</span>
+            <span class="nm">${esc(r.c ? r.c.name : "—")}</span></span>
+          <span class="amt">${r.amt}</span>
+        </div></button>`).join("")}</div>`
+    : `<div class="empty"><b>Tiada dokumen</b><span>Tiada yang sepadan.</span></div>`}
+  </div>`;
+}
 
 /* ===========================================================================
    Jadual Harian
@@ -1860,9 +2059,9 @@ function schedSuggest(day) {
   const out = [];
   DB.customers.forEach(c => {
     if (on.indexOf(c.id) >= 0 || c.active === false) return;
-    const owed = DB.invoices.filter(v => v.customer_id === c.id && v.status !== "paid")
+    const owed = INVS().filter(v => v.customer_id === c.id && v.status !== "paid")
       .reduce((a, v) => a + (+v.total - +v.paid), 0);
-    const oldest = DB.consign.filter(g => g.customer_id === c.id && !g.checked_at)
+    const oldest = SHELF().filter(g => g.customer_id === c.id)
       .map(g => new Date(g.sent_at)).sort((a, b) => a - b)[0];
     const days = oldest ? Math.floor((Date.now() - oldest) / 864e5) : 0;
     const due = c.term === "consign" && oldest &&
@@ -2002,8 +2201,9 @@ function vReturn(id) {
 
     ${past.length ? `<div class="sec" style="margin-top:22px;font-size:15px">Pulangan Lepas</div>
       <div class="list">${past.map(x => `
-        <button class="row" data-a="doc" data-t="RET" data-id="${x.id}">
-          <div class="when">${esc(fDay(new Date(x.issued_at)))}</div>
+        <button class="row${x.voided_at ? " vd" : ""}" data-a="doc" data-t="RET" data-id="${x.id}">
+          <div class="when">${esc(fDay(new Date(x.issued_at)))}${x.voided_at
+            ? ` · <b style="color:var(--dim)">DIBATALKAN</b>` : ""}</div>
           <div class="main">
             <span class="who"><span class="code">${esc(x.doc_no)}</span>
               <span class="nm">${esc(prodOf(x.product_id).name)}</span></span>
@@ -2071,7 +2271,15 @@ function docModel(type, d) {
   if (type === "INV" && +d.paid > 0) {
     extra.push(["Dibayar", RM(d.paid)], ["Baki", RM(+d.total - +d.paid)]);
   }
-  const stamp = type === "REC" ? "SAH / PAID"
+  /* Cancellation overrides every other stamp, and goes on the PDF and the
+     WhatsApp text as well as the screen — those three must never disagree
+     about whether a document still stands. */
+  if (d.voided_at) {
+    extra.push(["Dibatalkan", fLong(new Date(d.voided_at))]);
+    if (d.void_reason) extra.push(["Sebab batal", d.void_reason]);
+  }
+  const stamp = d.voided_at ? "** DIBATALKAN **"
+              : type === "REC" ? "SAH / PAID"
               : (type === "INV" && d.status === "paid") ? "SETTLED" : "";
   return { type: type, id: d.doc_no, d: d, c: c, rows: rows, lines: lines, amt: amt,
            extra: extra, stamp: stamp,
@@ -2206,6 +2414,7 @@ function vDoc(type, id) {
       </div>
       <div class="hr"></div>
       <div class="dt">${esc((DOC_TITLE[type] || type).toUpperCase())}</div>
+      ${d.voided_at ? `<div class="dt vdoc">** DIBATALKAN **</div>` : ""}
       <div class="hr"></div>
       ${m.rows.map(([k, v]) => `<div class="pr"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join("")}
       ${m.lines.length ? `<div class="hr"></div>${m.lines.map(l => {
@@ -2218,6 +2427,9 @@ function vDoc(type, id) {
       ${m.extra.map(([k, v]) => `<div class="pr"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join("")}
       ${m.stamp ? `<div class="stamp">${esc(m.stamp)}</div>` : ""}
       <div class="hr"></div>
+      ${d.voided_at ? `<div class="co"><span>Dibatalkan
+        ${esc(fLong(new Date(d.voided_at)))}</span>${d.void_reason
+          ? `<span>${esc(d.void_reason)}</span>` : ""}</div><div class="hr"></div>` : ""}
       <div class="co"><span>Terima kasih atas sokongan anda.</span>
         <span>Dokumen dijana oleh ${esc(CO.name)}</span></div>
     </div>
@@ -2232,6 +2444,7 @@ function vDoc(type, id) {
     <p class="hint">PDF dan cetakan dipotong kepada lebar roll yang dipilih, bukan A4.
       WhatsApp menghantar dokumen sebagai teks — satu halaman web tidak boleh melampirkan
       fail pada WhatsApp, hanya sistem telefon boleh.</p>
+    ${type === "RET" ? vbtn("RET", d) : ""}
   </div>`;
 }
 
@@ -2388,7 +2601,7 @@ function ordConfirm(custId) {
    first. The order matters: the balance is assigned to the newest rows, so
    the oldest units are the ones treated as sold. */
 function cgOpen(custId) {
-  const rows = DB.consign.filter(g => g.customer_id === custId && !g.checked_at)
+  const rows = SHELF().filter(g => g.customer_id === custId)
     .sort((a, b) => new Date(b.sent_at) - new Date(a.sent_at));
   const by = {};
   rows.forEach(r => { (by[r.product_id] = by[r.product_id] || []).push(r); });
@@ -2768,6 +2981,8 @@ function draw() {
     else if (t.name === "stockreq")  v = vStockReq();
     else if (t.name === "reqhist")   v = vReqHist();
     else if (t.name === "requests")  v = vRequests();
+    else if (t.name === "decided")   v = vDecided();
+    else if (t.name === "docfind")   v = vDocFind();
     else if (t.name === "nearest")   v = vNearest();
     else if (t.name === "register")  v = vRegister();
     else if (t.name === "cgcheck")   v = vCgCheck(t.id);
@@ -2956,6 +3171,45 @@ const A = {
     const yes = el.dataset.v === "1";
     if (!yes && !note) return toast("Beri sebab ringkas kenapa ditolak.", "bad");
     return doDecide(el.dataset.k, el.dataset.id, yes, note, ($("#dq") || {}).value);
+  },
+
+  /* ---- cancelling a document ---- */
+  voidask(el) {
+    const kind = el.dataset.t, id = el.dataset.id;
+    const d = docFind(kind, id);
+    if (!d) return toast("Dokumen tidak dijumpai.", "bad");
+    /* Spell out what will move. A cancel button that only says "are you sure"
+       invites the office to find out by pressing it. */
+    const what = kind === "INV"
+      ? `Stok dalam invois ini kembali ke van. Bayaran yang sudah direkod akan
+         diterbalikkan dan resitnya ditanda batal. Hutang kedai berkurang
+         ${RM(+d.total - +d.paid)}.`
+      : kind === "DO"
+      ? `Stok dalam D/O ini kembali ke van dan ditarik keluar daripada rak kedai.`
+      : `Stok dalam pulangan ini ditarik keluar semula daripada van.`;
+    $("#over").innerHTML = `<div class="modal"><div class="mbox">
+      <div class="mh"><b>Batalkan ${esc(d.doc_no)}</b>
+        <button data-a="closeover">&times;</button></div>
+      <div class="mi">
+        <p class="hint" style="margin:0 0 14px">${what}
+          Dokumen kekal dalam rekod dengan nombornya, ditanda <b>Dibatalkan</b>.</p>
+        <div class="f"><label for="vn">Sebab pembatalan <span class="req">*</span></label>
+          <textarea id="vn" placeholder="Kenapa dokumen ini dibatalkan"></textarea></div>
+        <button class="rowbtn" style="margin:0" data-a="voidgo"
+          data-t="${esc(kind)}" data-id="${esc(id)}">Batalkan Dokumen</button>
+      </div></div></div>`;
+  },
+  async voidgo(el) {
+    const reason = (($("#vn") || {}).value || "").trim();
+    if (!reason) return toast("Beri sebab ringkas kenapa dibatalkan.", "bad");
+    const { data, error } = await sb.rpc("void_document",
+      { p_kind: el.dataset.t, p_id: el.dataset.id, p_reason: reason });
+    $("#over").innerHTML = "";
+    if (error) return toast(friendly(error.message), "bad");
+    await loadAll(); draw();
+    const n = data && data.payments_reversed;
+    toast(`${(data && data.doc_no) || "Dokumen"} dibatalkan.` +
+          (n ? ` ${n} bayaran diterbalikkan.` : ""), "good");
   },
 
   async final(el) {
@@ -3433,6 +3687,18 @@ function friendly(m) {
   if (s.includes("exceeds")) return "Jumlah melebihi baki tertunggak.";
   if (s.includes("another salesman")) return "Outlet ini dipegang salesman lain.";
   if (s.includes("failed to fetch")) return "Tiada sambungan. Semak internet anda.";
+  if (s.includes("only the office")) return "Hanya pejabat boleh membuat keputusan ini.";
+  if (s.includes("already been cancelled")) return "Dokumen ini sudah dibatalkan.";
+  if (s.includes("final e-invoice")) return
+    "Invois muktamad sudah dikeluarkan. Guna credit note, bukan pembatalan.";
+  if (s.includes("consignment bill cannot be cancelled")) return
+    "Bil konsainan tidak boleh dibatalkan. Guna credit note.";
+  if (s.includes("approved credit note")) return "Invois ini sudah ada credit note diluluskan.";
+  if (s.includes("decide the credit note")) return "Putuskan credit note pada invois ini dahulu.";
+  if (s.includes("already been counted")) return
+    "Stok daripada penghantaran ini sudah dikira dan dibilkan.";
+  if (s.includes("van holds")) return
+    "Stok ini sudah tiada dalam van, jadi pulangan itu tidak boleh ditarik balik.";
   return m;
 }
 
@@ -3588,7 +3854,9 @@ async function loadAll() {
       sb.from("price_requests").select("*").order("requested_at", { ascending: false }),
       sb.from("credit_notes").select("*").order("requested_at", { ascending: false }),
       sb.from("customer_prices").select("*"),
-      sb.from("profiles").select("id,name,code,zone,role").eq("role", "salesman").order("code"),
+      /* Not filtered to salesmen any more: Sejarah Kelulusan names whoever
+         made each decision, and that is someone in the office. */
+      sb.from("profiles").select("id,name,code,zone,role").order("code"),
     ]);
     /* The company row and receipts are not worth failing the whole load over —
        documents degrade to placeholders, everything else still works. */
@@ -3619,8 +3887,8 @@ async function loadAll() {
     (van.data || []).forEach(v => { DB.van[v.product_id] = v.qty; });
 
     const day = dOnly(new Date());
-    const todayPay = DB.payments.filter(p => new Date(p.paid_at) >= day);
-    const todaySo  = DB.sos.filter(s => new Date(s.issued_at) >= day);
+    const todayPay = PAYS().filter(p => new Date(p.paid_at) >= day);
+    const todaySo  = SOS().filter(s => new Date(s.issued_at) >= day);
     S.data = {
       received: todayPay.reduce((a, p) => a + Number(p.amount), 0),
       qty: todaySo.reduce((a, s) => a + linesOf(s.id).reduce((b, l) => b + l.qty, 0), 0),

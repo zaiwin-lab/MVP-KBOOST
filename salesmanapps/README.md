@@ -68,6 +68,9 @@ signal is thrown back to a login screen he cannot possibly get past.
 | Customer Profile | Payment-term badge, Call (Dialer / WhatsApp), Location (Google Maps / Waze), consignment stock on the shelf, Service Month |
 | Galeri | The five registration photograph types, read through the signed-URL edge function |
 | Kelulusan (office) | The management side: payments, price requests, credit notes and stock requests waiting on a decision, each with Lulus / Tolak. Signing in as management swaps the tab bar — no van, so no Stok or GPS |
+| Sejarah Kelulusan (office) | Every decision the office has made, newest first, searchable — including the documents it cancelled, and who decided each one |
+| Cari Dokumen (office) | Find an invoice, delivery order or return by number or reseller. The way into a document the office needs to cancel |
+| Batalkan Dokumen (office) | Cancel an invoice, a delivery order or a return. Stock goes back on the van, payments reverse, the shelf gives it up — and the document stays on file, numbered, marked **Dibatalkan** |
 | Permohonan Saya | Everything the salesman has asked for — price change, credit note, stock request, and money the office has not yet confirmed — in one list, with what the office wrote back. Filtered Semua / Menunggu / Selesai, and reached from the bell or the home screen |
 | Mohon Tukar Harga | A salesman asks for a price change on the reseller profile; approval writes a standing price the order screen then opens at |
 | Request Credit Note | Raised from an invoice, capped at what is still owed, and numbered `CN000001` once the office approves |
@@ -347,6 +350,60 @@ office with a reason, and the reason read back on the salesman's phone with the
 badge appearing, the flag showing, and both clearing on the way out; then the
 same for a stock request, with his note and the warehouse's note sitting side
 by side.
+
+## Cancelling a document, and the office's own record
+
+Two gaps, both of them holes the system could not be got out of from inside the
+app.
+
+**Nothing could be undone.** Post twenty units instead of two and the van
+stock, the invoice and the shop's debt were all wrong with no way back. A
+credit note works only on an invoice; a consignment drop or a return had
+nothing at all. The office can now cancel an **invoice**, a **delivery order**
+or a **return**, and the reversal is the point rather than the flag: stock goes
+back on the van, payments reverse and their receipts are marked void, the
+consignment shelf gives the goods up, and the debt list, Kesimpulan, the day's
+takings and van stock all move in the same breath.
+
+The document is never deleted. It keeps its running number and its lines, it
+still opens and still prints — with `** DIBATALKAN **` on the roll and the
+reason underneath, because the shop may be holding the original. The reason is
+required, since a cancellation nobody can explain is an argument waiting to
+happen. And it is the office's button, never the salesman's: he is the one
+person with a motive to make a bad day disappear.
+
+Four things it refuses, each for a reason the error spells out: a **consignment
+bill** (its shelf rows were split and carried forward; unpicking that from a
+button would silently corrupt the shelf — a credit note is the right
+instrument), a **delivery order whose stock has already been counted**, an
+**invoice with a final e-Invoice or a credit note against it**, and
+**cancelling twice**.
+
+Along the way: rejected payments were still being counted as money received in
+Wang Terima — the rejection reversed the invoice but not the total. Fixed with
+the same change, since a cancellation that left the money on the screen would
+have looked like it had not worked.
+
+**And the office had no record of its own decisions.** The queue shows only
+what is waiting, so the moment something was approved or rejected it vanished —
+no way to check whether it had already been handled, no way to see who decided
+it, nothing to answer "why was that price approved in March" six months later.
+**Sejarah Kelulusan** is the same four workflows read the other way, plus every
+cancellation, searchable by reseller, product, document or salesman. Approved
+payments are deliberately left out: there are hundreds, every one routine, and
+they would bury the decisions that were actually judgements. Rejected ones are
+there.
+
+**Cari Dokumen** exists because of the first feature. An invoice can be reached
+through a reseller's profile, but a delivery order and a return cannot — those
+screens belong to the salesman's side — and the office is the only side that
+can cancel one. "Somebody rang about DO000020" is how that conversation starts,
+so that is what it takes.
+
+One known limitation, left deliberately rather than guessed at: a **referral
+verified by an invoice that is later cancelled keeps its commission**. The
+table records the customer, not the invoice, so there is no safe way to tell
+which sale verified it. It needs a column first.
 
 ## Three access panels
 

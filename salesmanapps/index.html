@@ -4019,7 +4019,7 @@ async function loadLive(){
    Every post re-reads this, so what is on screen is what is in the database
    rather than a local guess at it. */
 async function loadLedger(){
-  const [{data:dos},{data:sos},{data:lines},{data:invs},{data:pays},{data:recs},{data:rets},{data:cgs},{data:sched},{data:sreq},{data:refs}]
+  let [{data:dos},{data:sos},{data:lines},{data:invs},{data:pays},{data:recs},{data:rets},{data:cgs},{data:sched},{data:sreq},{data:refs}]
     = await Promise.all([
       sb.from("delivery_orders").select("*").order("issued_at"),
       sb.from("sales_orders").select("*").order("issued_at"),
@@ -4033,6 +4033,17 @@ async function loadLedger(){
       sb.from("stock_requests").select("*").order("requested_at",{ascending:false}).limit(200),
       sb.from("referrals").select("*").order("created_at",{ascending:false}).limit(200)
     ]);
+
+  /* A document cancelled by the office is reversed at the source: its stock is
+     back on the van, its payments are undone and nothing is owed on it. This
+     portal's figures are sums rather than a document register, so a cancelled
+     row is dropped here rather than filtered at thirty call sites — one of
+     which would be missed, and an outstanding total that counts a cancelled
+     invoice is worse than not listing it at all. */
+  const livez = rows => (rows||[]).filter(r=>!r.voided_at);
+  dos=livez(dos); sos=livez(sos); invs=livez(invs); rets=livez(rets);
+  cgs=livez(cgs); recs=livez(recs);
+  pays=(pays||[]).filter(r=>!r.rejected_at);
 
   /* Lines are fetched once for every document and bucketed here, rather than a
      query per document — a day's paperwork is one request, not ninety. */

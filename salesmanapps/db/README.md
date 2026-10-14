@@ -29,6 +29,7 @@ why, so the repository is not silent about where the data lives.
 | 16 | `return_photo` | `returns.photo_path`, `set_return_photo()`, and `return` added to the file kinds |
 | 17 | `approval_workflows` | `price_requests`, `customer_prices`, `credit_notes`, payment approval columns, and the six decision functions |
 | 18 | `request_feedback_to_salesman` | `profiles.alerts_seen_at`, `stock_requests.decide_note`, `mark_alerts_seen()`, and a fix to `reject_stock_request()` |
+| 19 | `void_documents` | `voided_at` / `voided_by` / `void_reason` on the four document tables, `consignments.voided_at`, and `void_invoice()` · `void_delivery()` · `void_return()` behind `void_document()` |
 
 ## The leaderboard, without a hole in row level security
 
@@ -118,6 +119,71 @@ does not quietly fall through to the default — it fails to find the function a
 all. Rejecting a stock request had never worked. Worth remembering when adding
 an RPC: the parameter names are part of the contract, and a typo in one is a
 404, not a null.
+
+## Cancelling a document
+
+Nothing could be undone. A salesman who posted twenty units instead of two had
+wrong van stock, a wrong invoice and a wrong debt, and no way back: a credit
+note works only on an invoice, and a consignment drop or a return had nothing
+at all. This is the first operation in the system that reverses another.
+
+**Cancelling is the office's, never the salesman's.** He is the one person with
+a motive to make a bad day disappear, so `void_document()` goes through
+`require_management()` like every other decision. A reason is required, not
+optional — a cancelled document with no explanation is an argument waiting to
+happen.
+
+**Nothing is deleted.** The document keeps its running number, keeps its lines,
+and is marked with `voided_at`, `voided_by` and `void_reason`. It still prints,
+with `** DIBATALKAN **` on the roll and the reason under it, because the shop
+may be holding the original. Running numbers are never reused.
+
+Three reversals, one per document that moves something:
+
+| | What it undoes |
+|---|---|
+| `void_invoice()` | Puts the SO's lines back on the van, marks the SO cancelled, reverses every payment against it (exactly as a rejection does) and marks their receipts void, then zeroes `paid`. `total` is left alone — a cancelled document must still read what it said. |
+| `void_delivery()` | Puts the drop back on the van and marks its `consignments` rows voided, so the shelf no longer holds them. |
+| `void_return()` | Takes the goods back off the van through `van_take()`, which raises if they have since been sold on again — the right answer, since the van cannot give back what it no longer holds. |
+
+### What it refuses, and why
+
+- **A consignment bill.** `post_consign_check()` splits shelf rows, carries
+  balances forward at the price they were delivered at, and creates new rows
+  dated now. Unpicking that from a cancel button would silently corrupt what is
+  on the shelf, which is worse than not offering it. A credit note is the right
+  instrument for an over-billed consignment, and the error says so.
+- **A delivery order whose stock has already been counted.** The shelf has
+  moved on and the goods have been billed; there is nothing left to take back.
+- **An invoice with a final e-Invoice issued**, or with a credit note approved
+  or still pending against it. Each would leave two documents disagreeing.
+- **Cancelling twice.**
+
+### Everything stops counting at once
+
+A cancelled document that still appears in a total is worse than no cancel at
+all. The app reads every figure through `INVS()`, `SOS()`, `RETS()`, `PAYS()`
+and `SHELF()` rather than off the raw arrays, so one cancellation moves the
+debt list, Kesimpulan, the day's takings, van stock and the consignment shelf
+together. `post_consign_check()` was changed to skip `voided_at` rows as well,
+or a count would still bill stock that had been taken back.
+
+`PAYS()` also drops **rejected** payments, which were being counted as money
+received since long before cancellation existed — a rejected payment reversed
+the invoice but still showed up in Wang Terima.
+
+### Two things worth knowing
+
+A referral verified by an invoice that is later cancelled **keeps its
+commission**. `referrals` records the customer, not the invoice, so there is no
+safe way to tell which sale verified it. Left alone deliberately rather than
+guessed at; it needs a column before it can be handled properly.
+
+And the Supabase MCP `execute_sql` tool times out on a function body containing
+`delete from`, every time, while the identical body without it applies in under
+a second. The reversal marks `consignments` rows instead of removing them,
+which is the better design anyway — but the reason it was written that way the
+first time was a tool, not a principle.
 
 ## A photograph on a return
 
