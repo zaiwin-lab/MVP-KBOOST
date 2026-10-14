@@ -30,6 +30,7 @@ why, so the repository is not silent about where the data lives.
 | 17 | `approval_workflows` | `price_requests`, `customer_prices`, `credit_notes`, payment approval columns, and the six decision functions |
 | 18 | `request_feedback_to_salesman` | `profiles.alerts_seen_at`, `stock_requests.decide_note`, `mark_alerts_seen()`, and a fix to `reject_stock_request()` |
 | 19 | `void_documents` | `voided_at` / `voided_by` / `void_reason` on the four document tables, `consignments.voided_at`, and `void_invoice()` · `void_delivery()` · `void_return()` behind `void_document()` |
+| 20 | `reseller_status_flags` | `customers.blacklisted_*`, `vip*`, `tin*`, the four `set_*` functions, and `customers_upd` narrowed to management |
 
 ## The leaderboard, without a hole in row level security
 
@@ -184,6 +185,46 @@ And the Supabase MCP `execute_sql` tool times out on a function body containing
 a second. The reversal marks `consignments` rows instead of removing them,
 which is the better design anyway — but the reason it was written that way the
 first time was a tool, not a principle.
+
+## Reseller status: out of the app, VIP, TIN, service month
+
+Four buttons on the client's customer profile did nothing. Each now does one
+thing, through one function, with the authority it actually needs.
+
+**Keluarkan dari Apps** (his "Blacklist Reseller") sets `customers.active =
+false`, which is the flag `acting_salesman()` has always checked — so clearing
+it is what genuinely stops an order, a drop, a payment or a return, rather than
+a new flag that each writer would have to remember. `blacklisted_at`,
+`blacklisted_by` and `blacklist_reason` record who decided and why; without
+them nobody can answer that next month. **Debt survives**: you stop selling to
+a shop, you do not stop chasing what it owes, and `set_blacklist()` returns the
+outstanding balance so the office is told rather than finding out later.
+
+**Set VIP** is a label and a sort order, and nothing else. What VIP should
+*give* a shop — a discount, delivery priority, a higher credit limit — was
+never specified, so it is not invented here. The app says so on the screen and
+it stays an open question in the report.
+
+**TIN** stores the buyer's Tax Identification Number for LHDN e-Invoicing. The
+shape is validated (`^[A-Z]{1,2}[0-9]{9,13}$`), the number is not — only LHDN
+can say whether a TIN is real, and a check that implied otherwise would be
+worse than no check. The client's button said "Enable TIN QR"; **no QR is
+generated**. The validation QR exists only once LHDN has validated the
+e-Invoice, and one we drew ourselves would look like a government attestation
+without being one.
+
+**Service Month** is the only one of the four the salesman may set, and only on
+his own outlets. How often an outlet is serviced is his round, not a commercial
+term, and it feeds the Jadual Harian suggestions.
+
+### The hole these flags opened
+
+`customers_upd` was `is_management() OR salesman_id = auth.uid()`, so a
+salesman could PATCH his own outlets through PostgREST directly — including,
+once these columns existed, `active`, `vip` and `blacklisted_at`. Neither app
+writes to `customers` at all (every write goes through `register_customer()`,
+which is `SECURITY DEFINER`), so the policy is now management-only. A salesman's
+direct write changes no rows.
 
 ## A photograph on a return
 

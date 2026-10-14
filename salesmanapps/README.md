@@ -70,6 +70,8 @@ signal is thrown back to a login screen he cannot possibly get past.
 | Kelulusan (office) | The management side: payments, price requests, credit notes and stock requests waiting on a decision, each with Lulus / Tolak. Signing in as management swaps the tab bar — no van, so no Stok or GPS |
 | Sejarah Kelulusan (office) | Every decision the office has made, newest first, searchable — including the documents it cancelled, and who decided each one |
 | Cari Dokumen (office) | Find an invoice, delivery order or return by number or reseller. The way into a document the office needs to cancel |
+| Borang Konsainan | The consignment agreement as a sheet of A4 — terms, what is on the shelf today, two signature blocks. Printed from the registration wizard before the shop signs, and from an existing outlet's profile or Galeri |
+| Status Reseller (office) | Keluarkan dari Apps with a reason (and Aktifkan Semula), Set VIP, and the buyer's TIN for e-Invoicing. Service Month is the salesman's, on his own outlets |
 | Batalkan Dokumen (office) | Cancel an invoice, a delivery order or a return. Stock goes back on the van, payments reverse, the shelf gives it up — and the document stays on file, numbered, marked **Dibatalkan** |
 | Permohonan Saya | Everything the salesman has asked for — price change, credit note, stock request, and money the office has not yet confirmed — in one list, with what the office wrote back. Filtered Semua / Menunggu / Selesai, and reached from the bell or the home screen |
 | Mohon Tukar Harga | A salesman asks for a price change on the reseller profile; approval writes a standing price the order screen then opens at |
@@ -404,6 +406,64 @@ One known limitation, left deliberately rather than guessed at: a **referral
 verified by an invoice that is later cancelled keeps its commission**. The
 table records the customer, not the invoice, so there is no safe way to tell
 which sale verified it. It needs a column first.
+
+## The nine buttons that said "coming soon"
+
+Nine buttons in the app did nothing but open a sheet saying the screen was not
+built. They were there because they are in the client's screenshots. Every one
+of them now either does something or says plainly whose job it is — and two of
+them turned out never to render at all.
+
+**Keluarkan dari Apps** (his "Blacklist Reseller") stops an outlet trading. It
+sets the same `active` flag the database has always checked, so an order, a
+drop, a payment and a return are all refused at the source rather than hidden
+in the UI. It takes a reason, records who decided, and can be reversed. The
+dialogue says what the shop still owes before you press it, because
+**blacklisting does not cancel a debt** — you stop selling to them, you do not
+stop chasing them.
+
+**Set VIP** sorts the outlet to the top of the Reseller list and the Jadual
+Harian suggestions, and shows a badge. That is all it does, and the screen says
+so: what VIP should *give* a shop — a discount, delivery priority, a bigger
+credit limit — was never specified, and it stays an open question in the report
+rather than something we invented.
+
+**TIN** replaces "Enable TIN QR". The buyer's Tax Identification Number is
+stored and printed on the invoice, ready for LHDN e-Invoicing. **No QR is
+drawn.** The validation QR only exists once LHDN has validated the e-Invoice;
+one we generated ourselves would look like a government attestation without
+being one, which is not a thing to put on a customer's invoice. The screen
+explains that rather than leaving it a gap.
+
+**Service Month** is now editable, with a stepper, by the salesman on his own
+outlets — it is his round, not a commercial term — and it feeds which shops the
+daily schedule suggests.
+
+**Borang Konsainan** was two dead buttons in two places. It is now a real sheet
+of A4: the company header, the shop's details, the six terms, what is on the
+shelf today priced as it was delivered, and two signature blocks. One screen
+serves both callers — the registration wizard printing it for the shopkeeper to
+sign before the opening order is posted, and an outlet already on the books
+printing a fresh copy — because the words have to be identical in both. It
+prints to A4 rather than a thermal roll, since it is signed and kept; the
+phone's print sheet is also how you save it as a PDF.
+
+The two in the Galeri **never rendered at all**: the condition tested for a
+section named `konsainan` when the file kind is `consign_form`, so the branch
+was dead. That is the same mismatch that once left every Galeri section empty.
+
+And the salesman's **Keluar Invois Muktamad** is not a button at all now. It is
+the office's to issue, and the screen says so instead of promising a feature.
+
+### A bug this found, already live
+
+Writing the error messages for all of this exposed six earlier ones that were
+returning `undefined`. `return` followed by a newline is an automatic
+semicolon — the function returns nothing and the string below it is dead code.
+Six refusals, including every one added with document cancellation, were
+showing the salesman the word "undefined" instead of a Malay explanation. All
+of `friendly()` is now covered by a test that asserts every known server
+message maps to a non-empty Malay string.
 
 ## Three access panels
 

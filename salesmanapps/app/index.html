@@ -170,6 +170,14 @@ img{max-width:100%}
 .row .amt{font-size:13.5px;font-weight:800;text-align:right;flex:none;min-width:74px}
 .row .qty{font-size:15px;font-weight:800;text-align:right;flex:none;min-width:38px}
 .paid{color:var(--grn)} .unpaid{color:var(--red)} .part{color:var(--amb)}
+.vipbar{display:flex;align-items:center;gap:7px;margin:0 0 12px;padding:9px 12px;
+  border-radius:9px;background:var(--amb-lo);color:var(--amb);font-size:12.5px;font-weight:800;
+  letter-spacing:.03em;text-transform:uppercase}
+.vipbar svg{width:15px;height:15px}
+.vtag{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:5px;
+  background:var(--amb-lo);color:var(--amb);font-size:9.5px;font-weight:800;
+  letter-spacing:.05em;text-transform:uppercase;vertical-align:1px}
+.rrow.off .nm,.rrow.off .code{opacity:.5}
 .void{color:var(--dim)}
 /* A cancelled document stays readable but must never be mistaken for a live
    one, on a list or on the printed roll. */
@@ -502,6 +510,35 @@ body[data-rk="1"]{background:var(--rank)}
   .roll{box-shadow:none;max-width:none;width:auto;margin:0;padding:0}
 }
 
+/* ---------- borang konsainan (A4) ---------- */
+.a4{background:#fff;border-radius:12px;padding:20px 18px;font-size:12.5px;line-height:1.55;
+  color:var(--ink);box-shadow:0 1px 2px rgba(16,20,32,.06)}
+.a4 .co{text-align:center;display:grid;gap:2px;padding-bottom:12px;
+  border-bottom:1px solid var(--line)}
+.a4 .co b{font-size:14px} .a4 .co span{font-size:11.5px;color:var(--mut)}
+.a4 h3{margin:14px 0 12px;text-align:center;font-size:15px;letter-spacing:.06em;
+  text-transform:uppercase}
+.a4 h4{margin:16px 0 7px;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--mut)}
+.a4 dl{margin:0;display:grid;gap:3px}
+.a4 .kv{display:flex;gap:10px} .a4 .kv dt{flex:none;width:130px;color:var(--mut)}
+.a4 .kv dd{margin:0;flex:1;min-width:0;font-weight:600}
+.a4 ol{margin:0;padding-left:18px;display:grid;gap:5px}
+.a4 table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
+.a4 th{text-align:left;border-bottom:1.5px solid var(--ink);padding:5px 4px;font-size:11.5px;
+  letter-spacing:.03em;text-transform:uppercase}
+.a4 td{padding:6px 4px;border-bottom:1px solid var(--line-s);vertical-align:top}
+.a4 th.c,.a4 td.c{text-align:center} .a4 th.r,.a4 td.r{text-align:right}
+.a4 td.r,.a4 tfoot td.r{white-space:nowrap}   /* "RM 630.00" must not wrap */
+.a4 td small{display:block;color:var(--dim);font-size:10.5px;font-weight:400}
+.a4 tfoot td{border-bottom:0;border-top:1.5px solid var(--ink);font-weight:800}
+.a4 .none{color:var(--mut);font-style:italic;margin:4px 0 0}
+/* Two signature blocks, side by side, with room to actually sign. */
+.a4 .sign{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:34px;font-size:11.5px}
+.a4 .sign span{display:block;border-bottom:1px solid var(--ink);height:40px;margin-bottom:5px}
+.a4 .sign small{display:block;color:var(--mut);font-size:10.5px}
+@media print{ .a4{box-shadow:none;border-radius:0;padding:0;font-size:11pt} }
+
 /* ---------- registration wizard ---------- */
 .steps{display:flex;gap:5px;padding:0 16px 14px;background:var(--bg);flex:none}
 .steps i{flex:1;height:4px;border-radius:2px;background:var(--line)}
@@ -694,8 +731,11 @@ let CO = { name: "[Company Name] Sdn Bhd", address: "[Registered address not set
    swapped out whenever the width changes. Without it the browser prints the
    receipt onto A4 and a 58mm layout arrives a third of the way across. */
 let PAPER = null;
-function setPaper() {
+function setPaper(kind) {
   if (!PAPER) { PAPER = document.createElement("style"); document.head.appendChild(PAPER); }
+  /* The consignment form is a sheet somebody signs and keeps, so it is the one
+     document that wants A4 and proper margins rather than a till roll. */
+  if (kind === "a4") { PAPER.textContent = "@media print{@page{size:A4;margin:14mm 12mm}}"; return; }
   const w = S.roll === "58" ? "58mm" : "80mm";
   PAPER.textContent = "@media print{@page{size:" + w + " auto;margin:3mm 2mm}}";
 }
@@ -886,8 +926,12 @@ const stat = (l, v, g) => `<div class="stat"><div class="art">${ic(g || I.box)}<
 
 function vReseller() {
   const q = S.q.toLowerCase();
+  /* VIP outlets first, then outlets still trading, then the rest. That is the
+     only thing the VIP flag does today, and the profile says so. */
   const rows = DB.customers.filter(c => !q ||
-    (c.name + " " + rcode(c) + " " + (c.app_name||"") + " " + (c.pic||"")).toLowerCase().includes(q));
+    (c.name + " " + rcode(c) + " " + (c.app_name||"") + " " + (c.pic||"")).toLowerCase().includes(q))
+    .slice().sort((a, b) => (b.vip ? 1 : 0) - (a.vip ? 1 : 0) ||
+      (a.active === false ? 1 : 0) - (b.active === false ? 1 : 0));
   return `
   <div class="bar" style="padding-top:calc(var(--top) + 14px)">
     <div class="ttl" style="padding:0;flex:1"><h2>Reseller</h2></div>
@@ -901,9 +945,9 @@ function vReseller() {
   </div>
   <div class="body pad">
     ${rows.length ? `<div class="list">${rows.map(c => `
-      <button class="rrow" data-a="cust" data-id="${c.id}">
+      <button class="rrow${c.active === false ? " off" : ""}" data-a="cust" data-id="${c.id}">
         <div class="t">
-          <div class="code">#${esc(rcode(c))}</div>
+          <div class="code">#${esc(rcode(c))}${c.vip ? `<span class="vtag">VIP</span>` : ""}</div>
           <div class="nm">${esc(c.name)}</div>
           ${c.active === false ? `<span class="chip in">Reactivate Customer</span>` : ""}
         </div>
@@ -1151,8 +1195,8 @@ function vOrder(id) {
         : v.voided_at ? ""
         : isMgmt()
           ? `<button class="rowbtn o" data-a="final" data-id="${v.id}">Keluar Invois Muktamad</button>`
-          : `<button class="rowbtn o" data-a="soon"
-               data-t="Keluar Invois Muktamad">Keluar Invois Muktamad</button>`}
+          : `<p class="hint" style="margin:12px 0 0">Invois muktamad (e-Invois LHDN)
+               dikeluarkan oleh pejabat, bukan dari telefon.</p>`}
       ${isMgmt() || v.voided_at ? "" :
         `<button class="rowbtn o" data-a="creditnote" data-id="${v.id}">Request Credit Note</button>`}
       ${vbtn("INV", v)}
@@ -1378,6 +1422,12 @@ function custGeneral(c) {
       </div>
       <span class="term">${esc(TERM[c.term] || c.term)} ${ic(I.swap)}</span>
     </div>
+    ${c.vip ? `<div class="vipbar">${ic(I.star)} Reseller VIP</div>` : ""}
+    ${c.active === false ? `<div class="vbar"><b>Dikeluarkan daripada Apps</b>
+      ${c.blacklisted_at ? esc(fLong(new Date(c.blacklisted_at))) : ""}${c.blacklist_reason
+        ? " · " + esc(c.blacklist_reason) : ""}<br>
+      Tiada order, hantaran, bayaran atau pulangan boleh direkod. Hutang sedia ada
+      kekal dan masih perlu dikutip.</div>` : ""}
 
     <div class="prow"><span class="ic">${ic(I.user)}</span><span class="lb">Contact</span>
       <span class="vl">${esc(c.phone || "—")}${c.pic ? ` (${esc(c.pic)})` : ""}</span></div>
@@ -1403,7 +1453,13 @@ function custGeneral(c) {
 
     <div class="prow"><span class="ic">${ic(I.list)}</span><span class="lb">Service Month</span>
       <span class="vl">${months}</span>
-      <span class="ac"><button class="sbtn" data-a="soon" data-t="Edit Service Month">${ic(I.edit)} Edit</button></span></div>
+      <span class="ac"><button class="sbtn" data-a="svcedit" data-id="${c.id}"
+        data-v="${months}">${ic(I.edit)} Edit</button></span></div>
+
+    <div class="prow"><span class="ic">${ic(I.note)}</span><span class="lb">TIN (e-Invois)</span>
+      <span class="vl">${c.tin ? esc(c.tin) : "Belum direkod"}</span>
+      ${isMgmt() ? `<span class="ac"><button class="sbtn" data-a="tinedit" data-id="${c.id}"
+        data-v="${esc(c.tin || "")}">${ic(I.edit)} ${c.tin ? "Tukar" : "Isi"}</button></span>` : ""}</div>
 
     <div class="prow"><span class="ic">${ic(I.dollar)}</span><span class="lb">Tukar Harga</span>
       <span class="vl"></span>
@@ -1413,11 +1469,26 @@ function custGeneral(c) {
     <button class="rowbtn" data-a="takeorder" data-id="${c.id}">
       ${c.term === "consign" ? "Hantar Stok" : "Ambil Order"}</button>
     <button class="rowbtn o" data-a="retstart" data-id="${c.id}">Pulangan</button>`}
-    <button class="rowbtn o" data-a="soon" data-t="Blacklist Reseller">Blacklist Reseller</button>
-    <button class="rowbtn o" data-a="soon" data-t="Set VIP">Set VIP</button>
-    <button class="rowbtn g" data-a="soon" data-t="Enable TIN QR">Enable TIN QR</button>
-    <p class="hint">Blacklist, Set VIP, Tukar Harga dan TIN QR memerlukan kelulusan pejabat
-      dan belum dibina. Semuanya ada dalam laporan.</p>
+    <button class="rowbtn o" data-a="borang" data-id="${c.id}">Borang Konsainan</button>
+    ${isMgmt() ? `
+      ${c.active === false
+        ? `<button class="rowbtn g" data-a="blist" data-id="${c.id}" data-v="0">
+             Aktifkan Semula Reseller</button>`
+        : `<button class="rowbtn o" data-a="blist" data-id="${c.id}" data-v="1">
+             Keluarkan dari Apps</button>`}
+      <button class="rowbtn o" data-a="vip" data-id="${c.id}" data-v="${c.vip ? 0 : 1}">
+        ${c.vip ? "Tarik Balik VIP" : "Tetapkan VIP"}</button>`
+    : `<p class="hint">Mengeluarkan reseller daripada Apps, menetapkan VIP dan merekod
+        nombor TIN adalah keputusan pejabat. Hubungi pejabat jika kedai ini patut
+        dikeluarkan.</p>`}
+    <p class="hint">VIP menandakan kedai keutamaan: ia naik ke atas senarai Reseller dan
+      cadangan Jadual Harian. Apa yang VIP sepatutnya <b>beri</b> kedai itu — diskaun,
+      keutamaan hantaran, had kredit lebih tinggi — belum ditetapkan oleh klien dan ada
+      dalam laporan sebagai soalan terbuka.</p>
+    <p class="hint">Nombor <b>TIN</b> disimpan supaya ia boleh dicetak pada invois. Kod QR
+      pengesahan LHDN hanya wujud selepas LHDN mengesahkan e-Invois itu, jadi ia tidak
+      dicetak di sini — apa-apa QR yang kita jana sendiri bukan pengesahan dan tidak
+      sepatutnya kelihatan seperti satu.</p>
   </div>`;
 }
 
@@ -1455,9 +1526,14 @@ function custGaleri(c) {
       return `<div class="gal"><h4>${lbl}</h4><div class="in">
         ${f.length ? f.map(x => `<img src="${esc(x.url)}" alt="${lbl}">`).join(" ")
                    : `<div class="none">Tiada gambar.</div>`}
-        ${k === "konsainan" ? `<div class="acts">
-          <button class="rowbtn o" style="margin:0" data-a="soon" data-t="Preview Borang">Preview</button>
-          <button class="rowbtn o" style="margin:0" data-a="soon" data-t="Cetak Borang">Cetak</button>
+        ${/* The kind is `consign_form`. This condition read `konsainan`, which
+              is not one of the five kinds above, so the two buttons under it
+              never rendered at all — the same mismatch that once left every
+              Galeri section empty. */
+          k === "consign_form" ? `<div class="acts">
+          <button class="rowbtn o" style="margin:0" data-a="borang" data-id="${c.id}">Preview</button>
+          <button class="rowbtn o" style="margin:0" data-a="borang" data-id="${c.id}"
+            data-print="1">Cetak</button>
         </div>` : ""}
       </div></div>`; }).join("")}
     <button class="rowbtn" disabled>Save</button>
@@ -1538,6 +1614,125 @@ function vReqHist() {
     <p class="hint">Reka bentuk asal memberi setiap request satu nombor berjalan
       (contoh <b>RS014199</b>) dan satu request merangkumi banyak produk. Sistem sekarang
       merekod satu baris bagi setiap produk tanpa nombor berjalan. Ada dalam laporan.</p>
+  </div>`;
+}
+
+/* ===========================================================================
+   Borang Konsainan
+   ===========================================================================
+   The consignment agreement: what the shop signs to say the stock on its
+   shelves is still the supplier's, and that it is billed only for what sells.
+   It is a sheet of A4 somebody keeps, not a till roll, which is why it does
+   not go through the document view with the rest of the paperwork.
+
+   One screen serves both callers: the registration wizard printing a blank-ish
+   form for the shopkeeper to sign before the opening order is posted, and an
+   outlet already on the books printing a fresh copy of what is on its shelf
+   today. The words have to be identical in both, which is the whole reason
+   they are not written out twice. */
+function borangModel(src) {
+  if (src.reg) {
+    const f = S.reg.f, ids = Object.keys(S.reg.lines);
+    return {
+      name: f.name || "—", code: "Belum dijana", pic: f.pic || "—",
+      phone: f.phone || "—", term: TERM[f.term] || f.term || "—",
+      months: parseInt(f.service_month, 10) || 1,
+      address: [f.address, f.postcode, f.district, f.state].filter(Boolean).join(", ") || "—",
+      draft: true,
+      rows: ids.map(id => { const p = prodOf(id), q = S.reg.lines[id];
+        return { name: p.name, sku: p.sku, qty: q, price: +p.price, amt: q * +p.price }; }),
+    };
+  }
+  const c = src.c;
+  /* Grouped by product: a shelf holding three deliveries of the same item at
+     three prices is one line to a shopkeeper, not three. */
+  const by = {};
+  SHELF().filter(g => g.customer_id === c.id).forEach(g => {
+    const k = g.product_id;
+    by[k] = by[k] || { qty: 0, amt: 0 };
+    by[k].qty += g.qty_sent; by[k].amt += g.qty_sent * +g.unit_price;
+  });
+  return {
+    name: c.name, code: rcode(c), pic: c.pic || "—", phone: c.phone || "—",
+    term: TERM[c.term] || c.term,
+    months: c.service_days ? Math.max(1, Math.round(c.service_days / 30)) : 1,
+    address: [c.address, c.postcode, c.district, c.state].filter(Boolean).join(", ") || "—",
+    tin: c.tin || null, draft: false,
+    rows: Object.keys(by).map(id => ({ name: prodOf(id).name, sku: prodOf(id).sku,
+      qty: by[id].qty, price: by[id].qty ? by[id].amt / by[id].qty : 0, amt: by[id].amt })),
+  };
+}
+
+function vBorang(id, reg) {
+  const c = reg ? null : custOf(id);
+  if (!reg && !c) return backBar(true) + title("Borang Konsainan") +
+    `<div class="body pad"><div class="empty"><b>Tiada rekod</b></div></div>`;
+  const m = borangModel(reg ? { reg: true } : { c: c });
+  const total = m.rows.reduce((a, r) => a + r.amt, 0);
+  return backBar(true) + title("Borang Konsainan") + `
+  <div class="body pad">
+    <div class="a4">
+      <div class="co">
+        <b>${esc(CO.name)}</b>
+        <span>${esc(CO.address)}</span>
+        <span>${esc(CO.phone)} · SSM ${esc(CO.ssm)}</span>
+      </div>
+      <h3>Borang Konsainan</h3>
+      <dl>
+        ${kv("Kedai", esc(m.name))}
+        ${kv("Kod Reseller", esc(m.code))}
+        ${kv("Orang Bertanggungjawab", esc(m.pic))}
+        ${kv("No. Telefon", esc(m.phone))}
+        ${kv("Alamat", esc(m.address))}
+        ${kv("Terma", esc(m.term))}
+        ${kv("Kitaran Semakan", esc(m.months + " bulan"))}
+        ${m.tin ? kv("TIN", esc(m.tin)) : ""}
+        ${kv("Tarikh", esc(fLong(new Date())))}
+      </dl>
+
+      <h4>Syarat</h4>
+      <ol>
+        <li>Stok yang disenaraikan di bawah dihantar atas dasar <b>konsainan</b>. Ia kekal
+          milik ${esc(CO.name)} sehingga terjual.</li>
+        <li>Kedai dibilkan hanya bagi unit yang <b>telah terjual</b>. Jumlah terjual dikira
+          pada setiap lawatan daripada baki stok yang dikira bersama di kedai.</li>
+        <li>Baki yang belum terjual kekal di rak untuk kitaran berikutnya, pada harga
+          hantaran asalnya.</li>
+        <li>Kedai bertanggungjawab menjaga stok daripada kerosakan, kecurian dan kehilangan
+          semasa ia berada di premis.</li>
+        <li>Stok rosak atau luput hendaklah dimaklumkan semasa lawatan dan direkodkan
+          sebagai pulangan.</li>
+        <li>Semakan baki seterusnya dijangka dalam tempoh ${esc(String(m.months))} bulan.</li>
+      </ol>
+
+      <h4>${m.draft ? "Stok Hantaran Pertama" : "Stok Di Rak Pada Tarikh Ini"}</h4>
+      ${m.rows.length ? `<table>
+        <thead><tr><th>Produk</th><th class="c">Kuantiti</th>
+          <th class="r">Harga/Unit</th><th class="r">Nilai</th></tr></thead>
+        <tbody>${m.rows.map(r => `<tr>
+          <td>${esc(r.name)}<small>${esc(r.sku)}</small></td>
+          <td class="c">${N(r.qty)}</td>
+          <td class="r">${RM(r.price)}</td>
+          <td class="r">${RM(r.amt)}</td></tr>`).join("")}</tbody>
+        <tfoot><tr><td colspan="3">Jumlah Nilai Stok</td>
+          <td class="r">${RM(total)}</td></tr></tfoot>
+      </table>`
+      : `<p class="none">Tiada stok konsainan terbuka di kedai ini pada tarikh borang ini
+          dicetak.</p>`}
+
+      <div class="sign">
+        <div><span></span>Wakil Kedai<small>${esc(m.pic)}</small></div>
+        <div><span></span>Wakil ${esc(CO.name)}<small>${esc(
+          [(S.me || {}).code, (S.me || {}).name].filter(Boolean).join(" ") || "—")}</small></div>
+      </div>
+    </div>
+
+    <button class="rowbtn" data-a="borangprint">Cetak Borang</button>
+    <p class="hint">Cetak membuka papan cetak telefon — pilih <b>Simpan sebagai PDF</b>
+      di sana untuk menyimpan satu salinan. Borang ini dicetak pada A4, bukan roll
+      termal, kerana ia ditandatangani dan disimpan.
+      ${CO.ssm.indexOf("[") === 0 ? `<br>Butiran syarikat belum diisi, jadi kepala borang
+        masih teks sementara.` : ""}</p>
   </div>`;
 }
 
@@ -2077,8 +2272,9 @@ function schedSuggest(day) {
     const due = c.term === "consign" && oldest &&
                 days >= (c.service_days || 30);
     if (owed > 0.004 || due)
-      out.push({ c: c, why: due ? `Baki ${days} hari — perlu disemak` : `Hutang ${RM(owed)}`,
-                 rank: due ? 1 : 2, owed: owed });
+      out.push({ c: c, why: (c.vip ? "VIP · " : "") +
+                   (due ? `Baki ${days} hari — perlu disemak` : `Hutang ${RM(owed)}`),
+                 rank: (c.vip ? 0 : 2) + (due ? 1 : 2), owed: owed });
   });
   return out.sort((a, b) => a.rank - b.rank || b.owed - a.owed).slice(0, 8);
 }
@@ -2265,6 +2461,11 @@ function docModel(type, d) {
     rows.push(["Invois", inv ? inv.doc_no : "Menunggu invois"]);
   }
   if (type === "INV") {
+    /* The buyer's TIN belongs on a B2B invoice under LHDN e-Invoicing. It is
+       printed when the office has recorded one; the validation QR is not,
+       because only LHDN issues that and a QR we generated ourselves would
+       look like one without being one. */
+    if (c && c.tin) rows.push(["TIN Pembeli", c.tin]);
     rows.push(["Tempoh", TERM[d.term] || d.term], ["Perlu Jelas", fLong(new Date(d.due_at))]);
     const so = soOf(d.so_id); if (so) rows.push(["Dari SO", so.doc_no]);
     if (d.do_id) { const o = DB.dos.find(x => x.id === d.do_id); if (o) rows.push(["Dari D/O", o.doc_no]); }
@@ -2894,18 +3095,17 @@ function regBorang() {
     </tbody></table>
     <div style="text-align:right;margin-top:8px"><b>Jumlah: ${RM(total)}</b></div>
   </div>
-  <div class="g2" style="margin-top:12px">
-    <button class="rowbtn o" style="margin:0" data-a="soon" data-t="Cetak Borang">Cetak</button>
-    <button class="rowbtn o" style="margin:0" data-a="soon" data-t="Preview Borang">Preview</button>
-  </div>
+  <button class="rowbtn o" data-a="borang" data-reg="1">Buka &amp; Cetak Borang Penuh</button>
   <div class="f" style="margin-top:16px"><label>Borang Yang Ditandatangani</label>
     <label class="pcell ${p ? "has" : ""}" style="aspect-ratio:16/9">
       ${p ? `<img src="${esc(p.url)}" alt=""><span class="tick">&#10003;</span>` : ""}
       <span class="lb">${p ? "" : ic(I.img)}Ambil gambar borang yang sudah ditandatangani</span>
       <input type="file" accept="image/*" capture="environment" data-rp="consign_form">
     </label></div>
-  <p class="hint">Cetak dan Preview belum disambung. Penjanaan PDF 58mm/80mm sudah siap di
-    portal web dan akan dipindahkan ke sini.</p>`;
+  <p class="hint">Ringkasan di atas ialah borang yang sama dalam bentuk pendek.
+    <b>Buka &amp; Cetak</b> memberi borang penuh berserta syarat dan ruang tandatangan,
+    sedia untuk dicetak pada A4 — cetak, dapatkan tandatangan, kemudian ambil gambarnya
+    di bawah.</p>`;
 }
 
 function regDone() {
@@ -2993,6 +3193,7 @@ function draw() {
     else if (t.name === "requests")  v = vRequests();
     else if (t.name === "decided")   v = vDecided();
     else if (t.name === "docfind")   v = vDocFind();
+    else if (t.name === "borang")    v = vBorang(t.id, t.reg);
     else if (t.name === "nearest")   v = vNearest();
     else if (t.name === "register")  v = vRegister();
     else if (t.name === "cgcheck")   v = vCgCheck(t.id);
@@ -3012,6 +3213,8 @@ function draw() {
      from one goes straight there once the page has settled. */
   const t = cur();
   if (t && t.name === "doc" && t.auto) { t.auto = false; setPaper();
+    setTimeout(() => window.print(), 400); }
+  if (t && t.name === "borang" && t.auto) { t.auto = false; setPaper("a4");
     setTimeout(() => window.print(), 400); }
   /* A stop's remark saves when the salesman leaves the field. Re-rendering on
      every keystroke would close the keyboard mid-note. */
@@ -3099,8 +3302,6 @@ const A = {
     S.me.alerts_seen_at = data;
     cacheWho(S.me);
   },
-  soon(el)   { sheetInfo(el.dataset.t || "Skrin ini",
-                 "Bahagian ini belum dibina. Ia dalam laporan sebagai kerja fasa kedua."); },
   cal()      { openCal(r => { S.range = r; draw(); }); },
   /* ---- documents ---- */
   doc(el) {
@@ -3181,6 +3382,112 @@ const A = {
     const yes = el.dataset.v === "1";
     if (!yes && !note) return toast("Beri sebab ringkas kenapa ditolak.", "bad");
     return doDecide(el.dataset.k, el.dataset.id, yes, note, ($("#dq") || {}).value);
+  },
+
+  /* ---- reseller status: service month, blacklist, VIP, TIN ---- */
+  borang(el) { push("borang", { id: el.dataset.id, reg: el.dataset.reg === "1",
+                                auto: el.dataset.print === "1" }); },
+  borangprint() { setPaper("a4"); window.print(); },
+
+  svcedit(el) {
+    const id = el.dataset.id, now = parseInt(el.dataset.v, 10) || 1;
+    $("#over").innerHTML = `<div class="modal"><div class="mbox">
+      <div class="mh"><b>Service Month</b><button data-a="closeover">&times;</button></div>
+      <div class="mi">
+        <p class="hint" style="margin:0 0 14px">Berapa kerap kedai ini patut dilawat.
+          Ia menentukan bila kedai ini muncul sebagai cadangan dalam Jadual Harian.</p>
+        <div class="f"><label for="sv">Bulan</label>
+          ${stepper(`<input id="sv" class="qin" type="number" min="1" max="12"
+            inputmode="numeric" value="${now}">`)}</div>
+        <button class="rowbtn" style="margin:0" data-a="svcgo" data-id="${id}">Simpan</button>
+      </div></div></div>`;
+  },
+  async svcgo(el) {
+    const n = parseInt(($("#sv") || {}).value, 10);
+    if (!(n >= 1 && n <= 12)) return toast("Service month mesti antara 1 dan 12.", "bad");
+    const { data, error } = await sb.rpc("set_service_days",
+      { p_customer: el.dataset.id, p_months: n });
+    $("#over").innerHTML = "";
+    if (error) return toast(friendly(error.message), "bad");
+    await loadAll(); draw();
+    toast(`Service month ditetapkan kepada ${data.months} bulan.`, "good");
+  },
+
+  blist(el) {
+    const on = el.dataset.v === "1", c = custOf(el.dataset.id);
+    if (!c) return;
+    if (!on) {
+      $("#over").innerHTML = `<div class="modal"><div class="mbox">
+        <div class="mh"><b>Aktifkan Semula</b><button data-a="closeover">&times;</button></div>
+        <div class="mi">
+          <p class="hint" style="margin:0 0 14px">${esc(c.name)} boleh menerima order,
+            hantaran, bayaran dan pulangan semula.${c.blacklist_reason
+              ? ` Sebab ia dikeluarkan: ${esc(c.blacklist_reason)}` : ""}</p>
+          <button class="rowbtn g" style="margin:0" data-a="blistgo"
+            data-id="${c.id}" data-v="0">Aktifkan Semula</button>
+        </div></div></div>`;
+      return;
+    }
+    const owed = INVS().filter(v => v.customer_id === c.id && v.status !== "paid")
+      .reduce((a, v) => a + (+v.total - +v.paid), 0);
+    $("#over").innerHTML = `<div class="modal"><div class="mbox">
+      <div class="mh"><b>Keluarkan ${esc(c.name)}</b>
+        <button data-a="closeover">&times;</button></div>
+      <div class="mi">
+        <p class="hint" style="margin:0 0 14px">Tiada order, hantaran, bayaran atau pulangan
+          boleh direkod untuk kedai ini selepas ini.
+          ${owed > 0.004 ? `<br><b>Hutang ${RM(owed)} kekal</b> dan masih perlu dikutip —
+            mengeluarkan kedai tidak menghapuskan hutangnya.` : ""}
+          Kedai kekal dalam senarai dan boleh diaktifkan semula.</p>
+        <div class="f"><label for="bn">Sebab <span class="req">*</span></label>
+          <textarea id="bn" placeholder="Kenapa kedai ini dikeluarkan"></textarea></div>
+        <button class="rowbtn" style="margin:0" data-a="blistgo"
+          data-id="${c.id}" data-v="1">Keluarkan dari Apps</button>
+      </div></div></div>`;
+  },
+  async blistgo(el) {
+    const on = el.dataset.v === "1";
+    const reason = (($("#bn") || {}).value || "").trim();
+    if (on && !reason) return toast("Beri sebab ringkas kenapa dikeluarkan.", "bad");
+    const { data, error } = await sb.rpc("set_blacklist",
+      { p_customer: el.dataset.id, p_on: on, p_reason: reason || null });
+    $("#over").innerHTML = "";
+    if (error) return toast(friendly(error.message), "bad");
+    await loadAll(); draw();
+    toast(on ? `${data.name} dikeluarkan daripada Apps.` +
+               (+data.outstanding > 0.004 ? ` Hutang ${RM(data.outstanding)} kekal.` : "")
+             : `${data.name} aktif semula.`, on ? "bad" : "good");
+  },
+
+  async vip(el) {
+    const on = el.dataset.v === "1";
+    const { data, error } = await sb.rpc("set_vip", { p_customer: el.dataset.id, p_on: on });
+    if (error) return toast(friendly(error.message), "bad");
+    await loadAll(); draw();
+    toast(on ? `${data.name} ditandakan VIP.` : `Tanda VIP ditarik balik.`, "good");
+  },
+
+  tinedit(el) {
+    const id = el.dataset.id, now = el.dataset.v || "";
+    $("#over").innerHTML = `<div class="modal"><div class="mbox">
+      <div class="mh"><b>TIN Pembeli</b><button data-a="closeover">&times;</button></div>
+      <div class="mi">
+        <p class="hint" style="margin:0 0 14px">Nombor Pengenalan Cukai kedai, seperti
+          <b>C1234567890</b>. Ia disimpan supaya invois boleh membawanya apabila e-Invois
+          LHDN disambungkan. Biarkan kosong untuk membuangnya.</p>
+        <div class="f"><label for="tn">TIN</label>
+          <input id="tn" value="${esc(now)}" placeholder="C1234567890"
+            autocapitalize="characters" autocomplete="off" spellcheck="false"></div>
+        <button class="rowbtn" style="margin:0" data-a="tingo" data-id="${id}">Simpan</button>
+      </div></div></div>`;
+  },
+  async tingo(el) {
+    const v = (($("#tn") || {}).value || "").trim();
+    const { data, error } = await sb.rpc("set_tin", { p_customer: el.dataset.id, p_tin: v });
+    if (error) return toast(friendly(error.message), "bad");
+    $("#over").innerHTML = "";
+    await loadAll(); draw();
+    toast(data.tin ? `TIN ${data.tin} disimpan.` : "TIN dibuang.", "good");
   },
 
   /* ---- cancelling a document ---- */
@@ -3573,14 +3880,6 @@ function sheet(opts) {
       rel="noopener">${ic(g)}<span>${esc(l)}</span></a>`).join("")}
   </div></div>`;
 }
-function sheetInfo(t, b) {
-  $("#over").innerHTML = `<div class="scrim" data-a="closeover"><div class="sheet"
-    style="padding:22px 22px calc(var(--bot) + 22px)">
-    <b style="display:block;font-size:17px">${esc(t)}</b>
-    <p style="margin:8px 0 16px;color:var(--mut);font-size:14px">${esc(b)}</p>
-    <button class="rowbtn" style="margin:0">OK</button></div></div>`;
-}
-
 let calFrom = null, calTo = null, calMon = null, calDone = null;
 function openCal(done) {
   calFrom = S.range ? S.range.from : null; calTo = S.range ? S.range.to : null;
@@ -3699,16 +3998,17 @@ function friendly(m) {
   if (s.includes("failed to fetch")) return "Tiada sambungan. Semak internet anda.";
   if (s.includes("only the office")) return "Hanya pejabat boleh membuat keputusan ini.";
   if (s.includes("already been cancelled")) return "Dokumen ini sudah dibatalkan.";
-  if (s.includes("final e-invoice")) return
-    "Invois muktamad sudah dikeluarkan. Guna credit note, bukan pembatalan.";
-  if (s.includes("consignment bill cannot be cancelled")) return
-    "Bil konsainan tidak boleh dibatalkan. Guna credit note.";
+  if (s.includes("final e-invoice")) return "Invois muktamad sudah dikeluarkan. Guna credit note, bukan pembatalan.";
+  if (s.includes("consignment bill cannot be cancelled")) return "Bil konsainan tidak boleh dibatalkan. Guna credit note.";
   if (s.includes("approved credit note")) return "Invois ini sudah ada credit note diluluskan.";
   if (s.includes("decide the credit note")) return "Putuskan credit note pada invois ini dahulu.";
-  if (s.includes("already been counted")) return
-    "Stok daripada penghantaran ini sudah dikira dan dibilkan.";
-  if (s.includes("van holds")) return
-    "Stok ini sudah tiada dalam van, jadi pulangan itu tidak boleh ditarik balik.";
+  if (s.includes("already been counted")) return "Stok daripada penghantaran ini sudah dikira dan dibilkan.";
+  if (s.includes("van holds")) return "Stok ini sudah tiada dalam van, jadi pulangan itu tidak boleh ditarik balik.";
+  if (s.includes("already out of the app")) return "Kedai ini sudah dikeluarkan.";
+  if (s.includes("already active")) return "Kedai ini sudah aktif.";
+  if (s.includes("reason is required to blacklist")) return "Beri sebab ringkas kenapa kedai ini dikeluarkan.";
+  if (s.includes("a tin looks like")) return "Format TIN tidak betul. Contoh: C1234567890 — satu atau dua huruf, kemudian 9 hingga 13 digit.";
+  if (s.includes("service month must be")) return "Service month mesti antara 1 dan 12 bulan.";
   return m;
 }
 
