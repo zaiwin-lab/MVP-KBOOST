@@ -1192,10 +1192,20 @@ function vOrder(id) {
 const kv = (k, v) => `<div class="kv"><dt>${k}</dt><dd>${v}</dd></div>`;
 const vbar = d => d.voided_at ? `<div class="vbar"><b>Dokumen ini dibatalkan</b>\n  ${esc(fLong(new Date(d.voided_at)))}${d.void_reason ? " · " + esc(d.void_reason) : ""}</div>` : "";
 /* Cancelling is the office's to do, never the salesman's: he is the one
-   person with a reason to make a bad day disappear. */
-const vbtn = (kind, d) => (isMgmt() && !d.voided_at)
-  ? `<button class="rowbtn o" data-a="voidask" data-t="${kind}" data-id="${d.id}"
-       style="color:var(--mut);border-color:var(--line)">Batalkan Dokumen</button>` : "";
+   person with a reason to make a bad day disappear.
+   The two invoices the database will refuse are not offered at all, with the
+   reason in their place — a button that opens a dialogue describing what will
+   move, then fails, is worse than no button. */
+function vbtn(kind, d) {
+  if (!isMgmt() || d.voided_at) return "";
+  if (kind === "INV" && d.term === "consign") return `<p class="hint">Bil konsainan tidak
+    boleh dibatalkan — rak dan harga setiap hantaran sudah dikira daripadanya.
+    Guna <b>credit note</b> jika jumlahnya salah.</p>`;
+  if (kind === "INV" && d.final_at) return `<p class="hint">Invois muktamad sudah
+    dikeluarkan, jadi invois ini tidak boleh dibatalkan. Guna <b>credit note</b>.</p>`;
+  return `<button class="rowbtn o" data-a="voidask" data-t="${kind}" data-id="${d.id}"
+    style="color:var(--mut);border-color:var(--line)">Batalkan Dokumen</button>`;
+}
 
 
 function vDoDet(id) {
