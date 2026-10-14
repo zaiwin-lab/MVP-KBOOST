@@ -68,6 +68,7 @@ signal is thrown back to a login screen he cannot possibly get past.
 | Customer Profile | Payment-term badge, Call (Dialer / WhatsApp), Location (Google Maps / Waze), consignment stock on the shelf, Service Month |
 | Galeri | The five registration photograph types, read through the signed-URL edge function |
 | Kelulusan (office) | The management side: payments, price requests, credit notes and stock requests waiting on a decision, each with Lulus / Tolak. Signing in as management swaps the tab bar — no van, so no Stok or GPS |
+| Permohonan Saya | Everything the salesman has asked for — price change, credit note, stock request, and money the office has not yet confirmed — in one list, with what the office wrote back. Filtered Semua / Menunggu / Selesai, and reached from the bell or the home screen |
 | Mohon Tukar Harga | A salesman asks for a price change on the reseller profile; approval writes a standing price the order screen then opens at |
 | Request Credit Note | Raised from an invoice, capped at what is still owed, and numbered `CN000001` once the office approves |
 | Jadual Harian | The day's round — pick a date, add shops, order them, note against each, and Navigate / Hubungi / Profil per stop. Suggests outlets with money owed or consignment stock due a count |
@@ -304,6 +305,48 @@ approval directly got `only the office can decide this`.
 Still open and genuinely blocked on the client: whether his app has an office
 side at all (question 29), and what Pending Acc Approval means in his own
 operation (question 6). This is a proposal, not a reading of his design.
+
+## Permohonan Saya — the answer getting back
+
+Those four workflows only ran one way. A salesman raised a Mohon or a credit
+note, the office decided it, and nothing told him. He had to telephone. The
+bell in the corner of the home screen made it worse: it carried a permanent red
+dot and a "coming soon" message.
+
+**Permohonan Saya** is one list of all four things he has asked for, newest
+movement first, each showing the outcome, the date it was answered, his own
+reason for asking, and — set apart in red — what the office wrote back. On a
+rejection that last line is the whole point of the screen. Filters are Semua /
+Menunggu / Selesai, and tapping a row opens the shop or the invoice it is
+about. It is reached from the bell and from a button on the home screen that
+reads `Permohonan Saya · 3 menunggu`.
+
+The bell now carries a **count of decisions he has not looked at**, and nothing
+at all when there are none. Opening the screen is what marks them read. The
+"Baru" flags are measured against a snapshot taken as the screen opens, not
+against the live stamp, or they would vanish in the same frame that showed
+them — the badge clears, the flags stay until he leaves.
+
+**A payment appears here only while it is waiting, or if it was rejected.** An
+approved payment is not news: the invoice itself turns **Paid**, which is what
+he wanted, and listing all forty-odd of them would bury the three kinds of
+request that genuinely need an answer. The screen says so at the bottom rather
+than leaving it a mystery.
+
+The office keeps no bell — their home screen *is* the queue, with its own live
+count, so a second unread badge over the top of it would say nothing.
+
+Two bugs surfaced while building it, both in the stock-request path and both
+now fixed: the office's rejection reason was overwriting the salesman's own
+note, and the app was calling `reject_stock_request` with the wrong argument
+name, which in PostgREST is a 404 rather than a null — **rejecting a stock
+request had never worked at all**. Both are written up in `db/README.md`.
+
+Verified end to end: a price request raised on the phone, rejected by the
+office with a reason, and the reason read back on the salesman's phone with the
+badge appearing, the flag showing, and both clearing on the way out; then the
+same for a stock request, with his note and the warehouse's note sitting side
+by side.
 
 ## Three access panels
 

@@ -68,6 +68,12 @@ img{max-width:100%}
 .hd .acts svg{width:21px;height:21px}
 .dot{position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;
   background:#fff;border:2px solid var(--red)}
+/* The bell used to carry a permanent dot that meant nothing. It now carries a
+   count of decisions the salesman has not looked at, and nothing at all when
+   there are none. */
+.dot.n{top:3px;right:1px;width:auto;min-width:17px;height:17px;padding:0 4px;border-radius:9px;
+  background:#fff;border:1.5px solid var(--red);color:var(--red);font-size:10.5px;
+  font-weight:800;display:grid;place-items:center;line-height:1}
 
 /* back bar + big red page title, as on his inner screens */
 .bar{padding:calc(var(--top) + 10px) 10px 2px;display:flex;align-items:center;gap:8px;flex:none;
@@ -404,6 +410,22 @@ body[data-rk="1"]{background:var(--rank)}
 .decide .no:active{background:var(--red-lo)}
 .note2{margin-top:8px;padding:8px 10px;background:var(--inset);border-radius:7px;
   font-size:12.5px;color:var(--mut);line-height:1.45}
+/* What the office wrote back, kept visibly apart from what the salesman
+   wrote. On a rejection this line is the whole point of the screen. */
+.note2.off{background:var(--red-lo);color:var(--red-d)}
+.note2 b{font-weight:800}
+
+/* ---------- permohonan saya ---------- */
+.row.rq{padding:14px}
+.rq .rqtop{display:flex;align-items:center;gap:7px;margin-bottom:8px}
+.rq .rqtop .k{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--dim)}
+.rq .rqtop .st{margin-left:auto;min-width:0}
+.rq .baru{background:var(--red);color:#fff;font-size:9.5px;font-weight:800;letter-spacing:.04em;
+  text-transform:uppercase;padding:2px 6px;border-radius:5px}
+.rq .rqsub{font-size:12px;color:var(--mut);font-weight:400;margin-top:3px;line-height:1.35}
+.rq .when{margin:8px 0 0}
+.rq.nw{background:#FFF8F8}
 
 /* ---------- jadual harian ---------- */
 .dstrip{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
@@ -744,10 +766,13 @@ const backBar = (withHome) => `<div class="bar">
 </div>`;
 const title = t => `<div class="ttl"><h2>${esc(t)}</h2></div>`;
 
-const hdActs = () => `<div class="acts">
-  <button data-a="soon" data-t="Notifikasi" aria-label="Notifikasi">${ic(I.bell)}<i class="dot"></i></button>
+/* No bell for the office: their home screen *is* the queue, with its own live
+   count, so a second unread badge over the top of it would say nothing. */
+const hdActs = () => { const n = alertCount(); return `<div class="acts">
+  ${isMgmt() ? "" : `<button data-a="alerts" aria-label="Permohonan Saya">${ic(I.bell)}
+    ${n ? `<i class="dot n">${n > 9 ? "9+" : n}</i>` : ""}</button>`}
   <button data-a="settings" aria-label="Tetapan">${ic(I.gear)}</button>
-</div>`;
+</div>`; };
 
 /* The red band: month label, date-range picker, and a search box. Shared by
    Sales History, D/O Lepas and List Hutang, which is how his app does it. */
@@ -821,6 +846,9 @@ function vHome() {
         <button data-a="refresh" style="color:var(--red);font-weight:700">Cuba lagi</button></p>`}
     </div>
 
+    ${(() => { const w = myRequests().filter(r => r.status === "pending").length;
+      return `<button class="rowbtn o" data-a="alerts">Permohonan Saya${
+        w ? ` · ${w} menunggu` : ""}</button>`; })()}
     <button class="rowbtn" data-a="go" data-v="sales">Invois Lama</button>
     <button class="rowbtn" data-a="go" data-v="dolist">D/O Lama</button>
     <button class="rowbtn" data-a="go" data-v="hutang">Hutang Lama</button>
@@ -1449,11 +1477,155 @@ function vReqHist() {
             <span class="code" style="font-weight:600">${esc(prodOf(r.product_id).sku)}</span></span>
           <span class="qty">${N(r.qty)}</span>
           <span class="st ${cls}">${lbl}</span>
-        </div></div>`; }).join("")}</div>`
+        </div>
+        ${r.note ? `<div class="note2"><b>Nota saya:</b> ${esc(r.note)}</div>` : ""}
+        ${r.decide_note ? `<div class="note2 off"><b>Pejabat:</b> ${esc(r.decide_note)}</div>` : ""}
+      </div>`; }).join("")}</div>`
     : `<div class="empty"><b>Tiada request</b><span>Belum ada permintaan stok direkod.</span></div>`}
     <p class="hint">Reka bentuk asal memberi setiap request satu nombor berjalan
       (contoh <b>RS014199</b>) dan satu request merangkumi banyak produk. Sistem sekarang
       merekod satu baris bagi setiap produk tanpa nombor berjalan. Ada dalam laporan.</p>
+  </div>`;
+}
+
+/* ===========================================================================
+   Permohonan Saya — the other half of the approval loop
+   ===========================================================================
+   Four things a salesman does are decided by somebody else: a price change
+   (Mohon), a credit note, a stock request, and the money he collects. Until
+   now the answer went only to the office and he had to telephone to find out.
+   This is one list of all four, because a salesman wondering "did that go
+   through?" does not think in terms of which table it was in.
+
+   A payment appears here only while it is waiting or if it was rejected. An
+   approved payment is not news — the invoice reads Paid, which is what he
+   wanted — and listing every one of them would bury the three kinds of
+   request that genuinely need an answer. */
+
+const RQSTAT = {
+  pending:  ["Menunggu",   "part"],
+  approved: ["Diluluskan", "paid"],
+  issued:   ["Diluluskan", "paid"],
+  rejected: ["Ditolak",    "unpaid"],
+};
+
+function myRequests() {
+  const me = (S.me || {}).id;
+  const out = [];
+
+  DB.priceReqs.filter(r => r.salesman_id === me).forEach(r => {
+    const c = custOf(r.customer_id);
+    out.push({ kind: "Tukar Harga", status: r.status,
+      at: r.requested_at, decided: r.decided_at,
+      code: c ? rcode(c) : "", who: c ? c.name : "—",
+      sub: prodOf(r.product_id).name,
+      /* Struck through, as on the office's own screen: two prices stacked
+         without it do not say which one he is asking for. */
+      amt: `<s style="color:var(--dim);font-weight:400">${RM(r.old_price)}</s><br>${RM(r.new_price)}`,
+      mine: r.note, reply: r.decide_note,
+      act: c ? ["cust", c.id] : null });
+  });
+
+  DB.creditNotes.filter(r => r.salesman_id === me).forEach(r => {
+    const c = custOf(r.customer_id), inv = DB.invoices.find(v => v.id === r.invoice_id);
+    out.push({ kind: "Credit Note", status: r.status,
+      at: r.requested_at, decided: r.decided_at,
+      code: c ? rcode(c) : "", who: c ? c.name : "—",
+      sub: [inv ? inv.doc_no : "", r.doc_no, r.reason].filter(Boolean).join(" · "),
+      amt: RM(r.amount),
+      mine: r.note, reply: r.decide_note,
+      act: inv ? ["order", inv.id] : null });
+  });
+
+  DB.reqs.filter(r => r.salesman_id === me).forEach(r => {
+    const p = prodOf(r.product_id);
+    /* The warehouse may issue fewer than were asked for, and that difference
+       is the whole answer — so it is shown rather than just the figure. */
+    const short = r.status === "issued" && r.qty_issued != null && r.qty_issued !== r.qty;
+    out.push({ kind: "Request Stok", status: r.status,
+      at: r.requested_at, decided: r.decided_at,
+      code: p.sku, who: p.name,
+      sub: short ? `Diminta ${N(r.qty)}, dikeluarkan ${N(r.qty_issued)}` : "",
+      amt: N(short ? r.qty_issued : r.qty),
+      mine: r.note, reply: r.decide_note, act: null });
+  });
+
+  DB.payments.filter(p => p.salesman_id === me && (p.rejected_at || !p.approved_at))
+    .forEach(p => {
+      const c = custOf(p.customer_id), inv = DB.invoices.find(v => v.id === p.invoice_id);
+      out.push({ kind: "Bayaran", status: p.rejected_at ? "rejected" : "pending",
+        at: p.paid_at, decided: p.rejected_at,
+        code: c ? rcode(c) : "", who: c ? c.name : "—",
+        sub: [inv ? inv.doc_no : "", METH[p.method] || p.method].filter(Boolean).join(" · "),
+        amt: RM(p.amount),
+        mine: null, reply: p.reject_note,
+        act: inv ? ["order", inv.id] : null });
+    });
+
+  /* Newest movement first: a request answered this morning belongs above one
+     raised last week and still waiting. */
+  return out.sort((a, b) => new Date(b.decided || b.at) - new Date(a.decided || a.at));
+}
+
+/* `S.seenAt` is a snapshot taken when the screen opens, not the live value.
+   Opening the screen is what marks everything read, and if the flags were
+   measured against the live value they would vanish in the same frame that
+   showed them. The bell's count uses the live value, so that does clear. */
+const unseen = r => !!(r.decided && S.seenAt && new Date(r.decided) > new Date(S.seenAt));
+const alertCount = () => {
+  /* A profile restored from the offline cache may predate this column. No
+     stamp means "assume seen" — a badge that cannot be cleared is worse than
+     no badge. */
+  if (!S.me || isMgmt() || !S.loaded || !S.me.alerts_seen_at) return 0;
+  const seen = new Date(S.me.alerts_seen_at);
+  return myRequests().filter(r => r.decided && new Date(r.decided) > seen).length;
+};
+
+function vRequests() {
+  const all = myRequests();
+  const waiting = all.filter(r => r.status === "pending").length;
+  const f = S.rqf || "all";
+  const rows = all.filter(r => f === "all" ? true
+    : f === "wait" ? r.status === "pending" : r.status !== "pending");
+
+  const chip = (k, l, n) => `<button data-a="rqf" data-v="${k}"
+    class="${f === k ? "on" : ""}">${l}${n ? ` (${n})` : ""}</button>`;
+
+  return backBar(true) + title("Permohonan Saya") + `
+  <div class="body pad">
+    <div class="chips" style="margin-bottom:14px">
+      ${chip("all", "Semua", all.length)}
+      ${chip("wait", "Menunggu", waiting)}
+      ${chip("done", "Selesai", all.length - waiting)}
+    </div>
+    ${rows.length ? `<div class="list">${rows.map(r => {
+      const [lbl, cls] = RQSTAT[r.status] || RQSTAT.pending;
+      const tag = r.act ? `<button class="row rq${unseen(r) ? " nw" : ""}"
+                            data-a="${r.act[0]}" data-id="${r.act[1]}">`
+                        : `<div class="row rq${unseen(r) ? " nw" : ""}">`;
+      return tag + `
+        <div class="rqtop"><span class="k">${esc(r.kind)}</span>
+          ${unseen(r) ? `<span class="baru">Baru</span>` : ""}
+          <span class="st ${cls}">${lbl}</span></div>
+        <div class="main">
+          <span class="who">${r.code ? `<span class="code">${esc(r.code)}</span>` : ""}
+            <span class="nm">${esc(r.who)}</span>
+            ${r.sub ? `<div class="rqsub">${esc(r.sub)}</div>` : ""}</span>
+          <span class="amt">${r.amt}</span>
+        </div>
+        <div class="when">Dimohon ${esc(fDay(new Date(r.at)))}${r.decided
+          ? ` · Dijawab ${esc(fDay(new Date(r.decided)))}` : ""}</div>
+        ${r.mine ? `<div class="note2"><b>Nota saya:</b> ${esc(r.mine)}</div>` : ""}
+        ${r.reply ? `<div class="note2 off"><b>Pejabat:</b> ${esc(r.reply)}</div>` : ""}
+      ` + (r.act ? `</button>` : `</div>`);
+    }).join("")}</div>`
+    : `<div class="empty"><b>Tiada permohonan</b>
+        <span>${f === "all"
+          ? "Mohon tukar harga, credit note dan request stok akan muncul di sini."
+          : "Tiada apa-apa dalam bahagian ini."}</span></div>`}
+    <p class="hint">Bayaran hanya tersenarai selagi pejabat belum mengesahkannya, atau
+      jika ia ditolak. Bayaran yang diluluskan tidak disenaraikan di sini kerana
+      invois itu sendiri sudah bertukar kepada <b>Paid</b>.</p>
   </div>`;
 }
 
@@ -1544,7 +1716,11 @@ async function doDecide(kind, id, yes, note, qty) {
     const r = DB.reqs.find(x => x.id === id);
     res = yes ? await sb.rpc("issue_stock", { p_salesman: r.salesman_id, p_product: r.product_id,
                    p_qty: parseInt(qty, 10) || r.qty, p_request: id })
-              : await sb.rpc("reject_stock_request", { p_request: id, p_note: note });
+              /* The argument is p_reason, not p_note. PostgREST resolves an
+                 overload by argument name, so the wrong one does not fall back
+                 to the default — it fails to find the function at all, and
+                 rejecting a stock request never worked. */
+              : await sb.rpc("reject_stock_request", { p_request: id, p_reason: note });
   } else return;
 
   $("#over").innerHTML = "";
@@ -2591,6 +2767,7 @@ function draw() {
     else if (t.name === "cust")      v = vCust(t.id, t.sub);
     else if (t.name === "stockreq")  v = vStockReq();
     else if (t.name === "reqhist")   v = vReqHist();
+    else if (t.name === "requests")  v = vRequests();
     else if (t.name === "nearest")   v = vNearest();
     else if (t.name === "register")  v = vRegister();
     else if (t.name === "cgcheck")   v = vCgCheck(t.id);
@@ -2682,6 +2859,21 @@ const A = {
   rkp(el)    { S.rkPeriod = el.dataset.v;
                if (el.dataset.v === "custom") return openCal(r => { S.range = r; loadRanking(); });
                S.rkRows = null; draw(); loadRanking(); },
+  /* ---- permohonan saya ---- */
+  rqf(el)    { S.rqf = el.dataset.v; draw(); scrollTo(0, 0); },
+  async alerts() {
+    /* Snapshot first: the screen about to be drawn marks the "Baru" flags
+       against this value, so they survive the visit that clears them. */
+    S.seenAt = (S.me && S.me.alerts_seen_at) || null;
+    S.rqf = "all";
+    push("requests");
+    const { data, error } = await sb.rpc("mark_alerts_seen");
+    /* A failure here costs nothing but a badge that clears on the next try,
+       so it is not worth interrupting the salesman over. */
+    if (error || !S.me) return;
+    S.me.alerts_seen_at = data;
+    cacheWho(S.me);
+  },
   soon(el)   { sheetInfo(el.dataset.t || "Skrin ini",
                  "Bahagian ini belum dibina. Ia dalam laporan sebagai kerja fasa kedua."); },
   cal()      { openCal(r => { S.range = r; draw(); }); },
@@ -3356,7 +3548,7 @@ async function loadMe(opts) {
   if (!user) { S.me = null; return; }
   S.email = user.email;
   const { data: p, error } = await sb.from("profiles")
-    .select("id,name,code,zone,role,active").eq("id", user.id).maybeSingle();
+    .select("id,name,code,zone,role,active,alerts_seen_at").eq("id", user.id).maybeSingle();
   if (error) {
     /* A token we already hold is evidence enough to open the app. The figures
        inside stay as dashes until the signal returns, so nothing unverified is

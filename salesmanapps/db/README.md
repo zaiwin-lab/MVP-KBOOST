@@ -28,6 +28,7 @@ why, so the repository is not silent about where the data lives.
 | 15 | `grant_consign_drop_to_salesmen` | `post_consign_drop()` granted to `authenticated`, so taking an order at a consignment outlet reaches it |
 | 16 | `return_photo` | `returns.photo_path`, `set_return_photo()`, and `return` added to the file kinds |
 | 17 | `approval_workflows` | `price_requests`, `customer_prices`, `credit_notes`, payment approval columns, and the six decision functions |
+| 18 | `request_feedback_to_salesman` | `profiles.alerts_seen_at`, `stock_requests.decide_note`, `mark_alerts_seen()`, and a fix to `reject_stock_request()` |
 
 ## The leaderboard, without a hole in row level security
 
@@ -83,6 +84,40 @@ because the error only surfaced in a toast.
 And introducing an approval gate must **backfill existing rows as approved**.
 Without it the office signs in to a queue of forty-four historical payments it
 was never asked to review.
+
+## The answer getting back to the salesman
+
+The four workflows above only ran one way. A salesman raised a Mohon or a
+credit note, the office decided it, and nothing told him — he had to telephone.
+Migration `request_feedback_to_salesman` is the return path.
+
+`profiles.alerts_seen_at` is a single timestamp per person: everything decided
+after it is unread. One stamp rather than a row per notification, because the
+question a salesman asks is "what has happened since I last looked", and a
+table of read receipts would be a second thing to keep correct for no extra
+answer. It defaults to `now()`, so switching this on does not greet everybody
+with a month of history.
+
+`profiles` is management-write, and should stay that way — a salesman must not
+be able to edit his own code, zone or role. So the one field that *is* his to
+set moves through `mark_alerts_seen()`, a `SECURITY DEFINER` function that
+stamps `auth.uid()` and nothing else, rather than by widening the table's write
+policy.
+
+### Two bugs this uncovered
+
+`reject_stock_request()` wrote the office's reason into `note` — which is the
+*salesman's* column, holding why he asked for the stock. The answer destroyed
+the question, and his history screen read the rejection back to him as if he
+had written it. The reason now goes in `stock_requests.decide_note`, which the
+other three workflows already had.
+
+And the app was calling that function with `p_note` when the argument is
+`p_reason`. PostgREST resolves an overload by argument *name*, so a wrong name
+does not quietly fall through to the default — it fails to find the function at
+all. Rejecting a stock request had never worked. Worth remembering when adding
+an RPC: the parameter names are part of the contract, and a typo in one is a
+404, not a null.
 
 ## A photograph on a return
 
