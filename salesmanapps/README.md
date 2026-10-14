@@ -163,6 +163,21 @@ price, and a penny lower is refused. Quantities are capped at van stock. Totals
 recalculate as the salesman types, without re-rendering, so the caret and the
 phone keyboard stay put.
 
+**Every quantity field has − and + buttons.** Typing into eight boxes while
+standing in a shop holding a phone in one hand is miserable, and the browser's
+own number spinner is far too small to hit. The field stays typeable, so a
+count of 48 is still one entry, but the common one-or-two-more case is a tap.
+The buttons read the input's own `min`, `max` and `step`, so the van ceiling
+and the shelf ceiling are declared once and obeyed everywhere — pressing + past
+van stock clamps and says `Maksimum 24.` rather than silently accepting a
+number the post would reject. They fire the same `input` event typing does, so
+the running totals and the draft harvesters needed no changes. Ambil Order,
+Semak Baki Stok, Pulangan, Request Stok and the registration opening order all
+have them.
+
+The line-total column on Ambil Order used to show an em dash for a row with no
+quantity. Beside a − button that reads as another control, so it is now blank.
+
 One difference worth flagging: his design handles price changes through a
 **Mohon** request on the reseller profile rather than on the order screen. The
 app says so under the table, and it is an open question in the report.

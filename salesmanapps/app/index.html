@@ -200,6 +200,10 @@ table.t td.r{text-align:right}
 table.t td[data-ot]{white-space:nowrap}   /* "RM 22.50" must not wrap to two lines */
 table.t td.c{text-align:center}
 table.t tbody tr:last-child td{border-bottom:0}
+/* Four columns and a stepper on a 360px phone: every pixel of cell padding
+   comes out of the product name, which is the one thing that must stay
+   readable. */
+table.t.tight td,table.t.tight thead th{padding-left:5px;padding-right:5px}
 table.t .pname{font-weight:700}
 table.t .price{color:var(--red);font-weight:700}
 .tfoot{padding:12px 15px;border-top:1px solid var(--line-s)}
@@ -312,6 +316,24 @@ body[data-rk="1"]{background:var(--rank)}
   font-size:13.5px;font-weight:600;margin-bottom:14px}
 .qin{width:54px;padding:8px 4px;border:1px solid var(--line);border-radius:6px;text-align:center;
   font-size:14px}
+/* A salesman enters these standing in a shop holding a phone in one hand.
+   Tapping is the only reasonable way in; the field stays typeable for a big
+   number. The spinner the browser puts on a number input is far too small to
+   hit, so it is removed and replaced with real buttons. */
+/* The unit price, which the salesman may edit down to the floor price. Wide
+   enough for "150.00" without clipping, and no stepper: a sen at a time is
+   not how anyone negotiates. */
+.qin.pin{width:68px;padding:8px 2px;font-size:13.5px}
+.step{display:inline-flex;align-items:center;gap:0}
+.step button{width:27px;height:34px;border:1px solid var(--line);background:var(--card);
+  color:var(--red);font-size:17px;font-weight:700;line-height:1;display:grid;place-items:center}
+.step button:first-child{border-radius:7px 0 0 7px}
+.step button:last-child{border-radius:0 7px 7px 0}
+.step button:active{background:var(--red-lo)}
+.step .qin{width:42px;height:34px;border-radius:0;border-left:0;border-right:0;padding:0}
+.step .qin::-webkit-outer-spin-button,.step .qin::-webkit-inner-spin-button{
+  -webkit-appearance:none;margin:0}
+.step .qin[type=number]{-moz-appearance:textfield}
 
 /* ---------- login ---------- */
 .lg{min-height:100%;display:flex;flex-direction:column;background:var(--red);color:#fff}
@@ -555,6 +577,14 @@ const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c =>
 const RM = n => "RM " + (Number(n) || 0).toLocaleString("en-MY",
   { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const N = n => (Number(n) || 0).toLocaleString("en-MY");
+
+/* Wrap a quantity input in − / + buttons. The field stays typeable, so a
+   count of 48 is still one entry, but the common one-or-two-more case is a
+   tap. `min`/`max`/`step` on the input are what the buttons obey, so the van
+   ceiling and the shelf ceiling need saying only once. */
+const stepper = inp => '<span class="step">' +
+  '<button type="button" data-qs="-1" aria-label="tolak satu">&minus;</button>' + inp +
+  '<button type="button" data-qs="1" aria-label="tambah satu">+</button></span>';
 
 const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const MONS = ["January","February","March","April","May","June","July","August","September",
@@ -1392,8 +1422,8 @@ function vStockReq() {
         <td class="pname">${esc(p.name)}<div style="font-size:11.5px;color:var(--dim);
           font-weight:400">${esc(p.sku)}</div></td>
         <td class="c">${N(DB.van[p.id] || 0)}</td>
-        <td class="c"><input class="qin" type="number" min="0" inputmode="numeric"
-          data-p="${p.id}" placeholder="0"></td></tr>`).join("")}
+        <td class="c">${stepper(`<input class="qin" type="number" min="0" inputmode="numeric"
+          data-p="${p.id}" placeholder="0">`)}</td></tr>`).join("")}
       </tbody></table>
     </div>
     <p class="hint">Reka bentuk asal ada tiga ruangan kuantiti (Pt. / Hc. / Tst) dan pilihan
@@ -1772,8 +1802,8 @@ function vReturn(id) {
       </select></div>
 
     <div class="f"><label for="rt_q">Kuantiti <span class="req">*</span></label>
-      <input id="rt_q" data-rt="qty" type="number" min="1" inputmode="numeric"
-        value="${esc(r.qty)}" placeholder="0"></div>
+      ${stepper(`<input id="rt_q" class="qin" data-rt="qty" type="number" min="1"
+        inputmode="numeric" value="${esc(r.qty)}" placeholder="0">`)}</div>
 
     <div class="f"><label>Sebab <span class="req">*</span></label><div class="chips">
       ${REASONS.map(([k, l]) => `<button data-a="retreason" data-v="${k}"
@@ -2056,8 +2086,8 @@ function vTakeOrder(id) {
 
     ${avail.length ? `
     <div class="block">
-      <table class="t"><thead><tr>
-        <th>Produk</th><th class="r">Harga/Unit</th><th class="c">Kuantiti</th><th class="r">Jumlah</th>
+      <table class="t tight"><thead><tr>
+        <th>Produk</th><th class="r">Harga</th><th class="c">Kuantiti</th><th class="r">Jumlah</th>
       </tr></thead><tbody>${avail.map(p => {
         const van = DB.van[p.id] || 0;
         /* An approved Tukar Harga is a standing price for this outlet, so it
@@ -2068,12 +2098,15 @@ function vTakeOrder(id) {
         return `<tr data-ol="${p.id}">
           <td class="pname">${esc(p.name)}
             <div style="font-size:11px;color:var(--dim);font-weight:400">
-              Van: ${N(van)} · Lantai ${RM(p.floor_price)}${own ? " · harga diluluskan" : ""}</div></td>
-          <td class="r"><input class="qin" style="width:72px" type="number" step="0.01"
+              Van ${N(van)} · Lantai ${(+p.floor_price).toFixed(2)}</div>
+            ${own ? `<div style="font-size:11px;color:var(--grn-d);font-weight:600">
+              Harga diluluskan</div>` : ""}</td>
+          <td class="r"><input class="qin pin" type="number" step="0.01"
             min="${p.floor_price}" inputmode="decimal" data-op="${p.id}" value="${esc(pr)}"></td>
-          <td class="c"><input class="qin" type="number" min="0" max="${van}"
-            inputmode="numeric" data-oq="${p.id}" value="${d.lines[p.id] || ""}" placeholder="0"></td>
-          <td class="r" data-ot="${p.id}">—</td></tr>`;
+          <td class="c">${stepper(`<input class="qin" type="number" min="0" max="${van}"
+            inputmode="numeric" data-oq="${p.id}" value="${d.lines[p.id] || ""}"
+            placeholder="0">`)}</td>
+          <td class="r" data-ot="${p.id}"></td></tr>`;
       }).join("")}</tbody></table>
       <div class="tfoot">
         <div><span>Total Kuantiti :</span><b id="ordQty">0</b></div>
@@ -2113,7 +2146,9 @@ function ordRecalc() {
     const p = parseFloat((row.querySelector("[data-op]") || {}).value) || 0;
     const cell = row.querySelector("[data-ot]");
     const amt = Math.round(q * p * 100) / 100;
-    if (cell) cell.textContent = q > 0 ? RM(amt) : "—";
+    /* Blank, not a dash: a dash in a money column beside a − button reads as
+       another control. */
+    if (cell) cell.textContent = q > 0 ? RM(amt) : "";
     qty += q; total += amt;
   });
   const a = $("#ordQty"), b = $("#ordTotal");
@@ -2235,10 +2270,10 @@ function vCgCheck(id) {
             ${g.rows.length > 1 ? `<div style="font-size:11px;color:var(--dim);font-weight:400">
               ${g.rows.length} hantaran, harga berbeza</div>` : ""}</td>
           <td class="c"><b>${N(g.sent)}</b></td>
-          <td class="c"><input class="qin" type="number" min="0" max="${g.sent}"
+          <td class="c">${stepper(`<input class="qin" type="number" min="0" max="${g.sent}"
             inputmode="numeric" data-cg="${g.product_id}"
             value="${counts[g.product_id] == null ? "" : counts[g.product_id]}"
-            placeholder="0"></td></tr>`).join("")}
+            placeholder="0">`)}</td></tr>`).join("")}
         </tbody></table>
       </div>
       <p class="hint">Kira berapa unit <b>masih ada</b> di kedai. Sistem tolak daripada
@@ -2403,8 +2438,8 @@ function regOrder() {
   const consign = S.reg.f.term === "consign";
   const cash = S.reg.f.term === "cash";
   return `<div class="block">
-    <table class="t"><thead><tr>
-      <th>Produk</th><th class="r">Harga Kedai</th><th class="r">Harga Jualan</th>
+    <table class="t tight"><thead><tr>
+      <th>Produk</th><th class="r">Kedai</th><th class="r">Jualan</th>
       <th class="c">Kuantiti</th></tr></thead>
     <tbody>${DB.products.map(p => {
       const van = DB.van[p.id] || 0;
@@ -2413,8 +2448,9 @@ function regOrder() {
           <div style="font-size:11px;color:var(--dim);font-weight:400">Van: ${N(van)}</div></td>
         <td class="r price">${RM(p.price)}</td>
         <td class="r">${p.retail_price ? RM(p.retail_price) : "—"}</td>
-        <td class="c"><input class="qin" type="number" min="0" max="${van}" inputmode="numeric"
-          data-rq="${p.id}" value="${S.reg.lines[p.id] || ""}" placeholder="0"></td></tr>`;
+        <td class="c">${stepper(`<input class="qin" type="number" min="0" max="${van}"
+          inputmode="numeric" data-rq="${p.id}" value="${S.reg.lines[p.id] || ""}"
+          placeholder="0">`)}</td></tr>`;
     }).join("")}</tbody></table></div>
     ${cash ? `<div class="f"><label>Cara Bayaran <span class="req">*</span></label>
       <div class="chips">${[["tunai","Tunai"],["cek","Cek"],["pindahan","Pindahan Bank"],
@@ -3211,7 +3247,30 @@ function friendly(m) {
 /* ===========================================================================
    Events
    =========================================================================== */
+/* A − / + tap on a quantity field. The input's own min/max/step are the rule,
+   and the synthetic `input` event is what makes the running totals, the draft
+   harvesters and everything else already bound to typing fire unchanged. */
+function bump(inp, dir) {
+  const stp  = parseFloat(inp.getAttribute("step")) || 1;
+  const lo   = inp.getAttribute("min") === null ? -Infinity : +inp.getAttribute("min");
+  const hi   = inp.getAttribute("max") === null ?  Infinity : +inp.getAttribute("max");
+  const had  = inp.value.trim() !== "";
+  if (!had && dir < 0) return;            /* empty already means none */
+  let n = Math.round(((parseFloat(inp.value) || 0) + dir * stp) * 1000) / 1000;
+  if (n > hi) { n = hi; toast(`Maksimum ${N(hi)}.`, "bad"); }
+  if (n < lo) n = lo;
+  inp.value = String(n);
+  inp.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
 document.addEventListener("click", e => {
+  const qs = e.target.closest("[data-qs]");
+  if (qs) {
+    e.preventDefault();
+    const inp = qs.parentNode.querySelector("input");
+    if (inp) bump(inp, +qs.dataset.qs);
+    return;
+  }
   /* calendar */
   const cd = e.target.closest("[data-cd]");
   if (cd) {
