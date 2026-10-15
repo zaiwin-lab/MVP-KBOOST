@@ -261,6 +261,26 @@ table.t .price{color:var(--red);font-weight:700}
 .prow .lb{width:78px;flex:none;color:var(--red);font-size:13.5px;font-weight:700;line-height:1.2}
 .prow .vl{flex:1;min-width:0;font-size:13px;color:var(--mut);line-height:1.45}
 .prow .ac{flex:none}
+/* Registration collects twenty-odd fields; the profile used to show five.
+   A row renders only when it has something in it, so an outlet registered
+   before a field existed shows a shorter profile rather than a column of
+   dashes. */
+.psec{display:flex;align-items:center;gap:8px;margin:20px 0 2px;font-size:11.5px;
+  font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.psec:first-child{margin-top:4px}
+.psec i{flex:1;height:1px;background:var(--line-s)}
+.prow .vl b{color:var(--ink);font-weight:700}
+.prow .vl .sub{display:block;font-size:11.5px;color:var(--dim);margin-top:2px}
+.prow .ac .sbtn + .sbtn{margin-left:6px}
+.sbtn.o{background:#fff;color:var(--red);border:1.5px solid var(--red)}
+.sbtn.o:active{background:var(--red-lo)}
+/* Three figures a salesman wants before he walks in. */
+.pstat{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line-s);
+  border:1px solid var(--line-s);border-radius:12px;overflow:hidden;margin:14px 0 4px}
+.pstat div{background:var(--card);padding:11px 10px;text-align:center}
+.pstat b{display:block;font-size:13.5px;font-weight:800;letter-spacing:-.02em;line-height:1.25}
+.pstat span{display:block;font-size:10.5px;color:var(--dim);margin-top:3px;line-height:1.3}
+.pstat .owed{color:var(--red)} .pstat .clear{color:var(--grn)}
 .sbtn{background:var(--red);color:#fff;font-size:12.5px;font-weight:700;padding:8px 13px;
   border-radius:8px;display:inline-flex;align-items:center;gap:5px}
 .sbtn svg{width:14px;height:14px}
@@ -667,6 +687,10 @@ const fStamp = d => `${MONS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} ` 
   `${((d.getHours()+11)%12)+1}:${p2(d.getMinutes())}:${p2(d.getSeconds())} ` +
   (d.getHours() < 12 ? "AM" : "PM");
 const fLong = d => `${p2(d.getDate())} ${MONS[d.getMonth()]} ${d.getFullYear()}`;
+/* "6 Okt 26" — for the three narrow tiles at the top of a reseller profile,
+   where the long form wraps onto two lines and unbalances the row. */
+const MON3 = ["Jan","Feb","Mac","Apr","Mei","Jun","Jul","Ogos","Sep","Okt","Nov","Dis"];
+const fShort = d => `${d.getDate()} ${MON3[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`;
 const dOnly = d => { const x = new Date(d); x.setHours(0,0,0,0); return x; };
 
 const ic = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
@@ -1417,12 +1441,45 @@ function custGeneral(c) {
     .forEach(g => { stock[g.product_id] = (stock[g.product_id] || 0) + g.qty_sent; });
   const stockRows = Object.keys(stock);
   const months = c.service_days ? Math.max(1, Math.round(c.service_days / 30)) : 1;
+
+  /* A row only appears when it has something to say. Registration collects
+     twenty-odd fields and an outlet registered last year may have half of
+     them, so an empty row is left out rather than printed as a dash. */
+  const row = (icon, label, value, actions) => value ? `<div class="prow">
+    <span class="ic">${icon ? ic(icon) : ""}</span><span class="lb">${esc(label)}</span>
+    <span class="vl">${value}</span>
+    ${actions ? `<span class="ac">${actions}</span>` : ""}</div>` : "";
+  const sec = t => `<div class="psec">${esc(t)}<i></i></div>`;
+  const dial = n => `<a class="sbtn" href="tel:${esc(String(n).replace(/[^0-9+]/g, ""))}">${ic(I.phone)}</a>`;
+  const wa = n => { const d = String(n).replace(/[^0-9]/g, "");
+    const to = d.startsWith("60") ? d : d.startsWith("0") ? "6" + d : "60" + d;
+    return `<a class="sbtn o" href="https://wa.me/${to}" target="_blank" rel="noopener">${ic(I.wa)}</a>`; };
+
+  /* What a salesman wants to know before he gets out of the van. */
+  const owed = INVS().filter(v => v.customer_id === c.id && v.status !== "paid")
+    .reduce((a, v) => a + (+v.total - +v.paid), 0);
+  const sales = INVS().filter(v => v.customer_id === c.id)
+    .reduce((a, v) => a + +v.total, 0);
+  const lastDoc = [].concat(
+      INVS().filter(v => v.customer_id === c.id).map(v => v.issued_at),
+      DB.dos.filter(live).filter(d => d.customer_id === c.id).map(d => d.issued_at))
+    .sort().pop();
+
+  const DAYSHORT = ["Ahad","Isnin","Selasa","Rabu","Khamis","Jumaat","Sabtu"];
+  const off = (c.pic_off_days || []).map(i => DAYSHORT[i]).filter(Boolean);
+  const hhmm = t => t ? String(t).slice(0, 5) : "";
+  const hours = (c.pic_open_time || c.pic_close_time)
+    ? `${hhmm(c.pic_open_time) || "?"} – ${hhmm(c.pic_close_time) || "?"}` : "";
+  const addr = [c.address, c.town, c.postcode, c.district, c.state, c.country]
+    .filter(Boolean).join(", ");
+
   return `<div class="pcard">
     <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:6px">
       <div style="flex:1;min-width:0">
         <div style="font-size:19px;font-weight:800;letter-spacing:-.02em;line-height:1.2">
           ${esc(rcode(c))}<br>${esc(c.name)}</div>
-        <div style="font-size:12.5px;color:var(--dim);margin-top:4px">${esc(c.app_name || c.ssm_name || c.name)}</div>
+        <div style="font-size:12.5px;color:var(--dim);margin-top:4px">${esc(
+          [c.app_name, c.outlet_type].filter(Boolean).join(" · ") || c.ssm_name || c.name)}</div>
       </div>
       <span class="term">${esc(TERM[c.term] || c.term)} ${ic(I.swap)}</span>
     </div>
@@ -1433,41 +1490,66 @@ function custGeneral(c) {
       Tiada order, hantaran, bayaran atau pulangan boleh direkod. Hutang sedia ada
       kekal dan masih perlu dikutip.</div>` : ""}
 
-    <div class="prow"><span class="ic">${ic(I.user)}</span><span class="lb">Contact</span>
-      <span class="vl">${esc(c.phone || "—")}${c.pic ? ` (${esc(c.pic)})` : ""}</span></div>
-    <div class="prow" style="padding-top:0"><span class="ic"></span><span class="lb"></span>
-      <span class="vl"></span><span class="ac">
-      <button class="sbtn" data-a="call" data-id="${c.id}">${ic(I.phone)} Call</button></span></div>
+    <div class="pstat">
+      <div><b class="${owed > 0.004 ? "owed" : "clear"}">${owed > 0.004 ? RM(owed) : "Tiada"}</b>
+        <span>Hutang</span></div>
+      <div><b>${RM(sales)}</b><span>Jumlah jualan</span></div>
+      <div><b>${lastDoc ? esc(fShort(new Date(lastDoc))) : "—"}</b><span>Urusan terakhir</span></div>
+    </div>
 
-    <div class="prow"><span class="ic">${ic(I.pin)}</span><span class="lb">Alamat</span>
-      <span class="vl">${esc([c.address, c.postcode, c.district, c.state].filter(Boolean).join(", ") || "—")}</span></div>
-    <div class="prow" style="padding-top:0"><span class="ic"></span><span class="lb"></span>
-      <span class="vl"></span><span class="ac">
-      <button class="sbtn" data-a="loc" data-id="${c.id}">${ic(I.pin)} Location</button></span></div>
+    ${sec("Hubungi")}
+    ${row(I.user, "Telefon", c.phone ? esc(c.phone) : "",
+      (c.phone ? dial(c.phone) : "") + (c.phone && !c.whatsapp ? wa(c.phone) : ""))}
+    ${row(I.wa, "WhatsApp", c.whatsapp ? esc(c.whatsapp) : "", c.whatsapp ? wa(c.whatsapp) : "")}
+    ${row(I.phone, "Pejabat", c.office_phone ? esc(c.office_phone) : "",
+      c.office_phone ? dial(c.office_phone) : "")}
+    ${row(I.note, "E-mel", c.email
+      ? `<a href="mailto:${esc(c.email)}" style="color:var(--mut)">${esc(c.email)}</a>` : "")}
+    ${row(I.user, "PIC", c.pic ? `<b>${esc(c.pic)}</b>${c.pic_ic
+      ? `<span class="sub">${esc(c.pic_ic)}</span>` : ""}` : "")}
 
-    <div class="prow"><span class="ic">${ic(I.box)}</span><span class="lb">Stok</span>
-      <span class="vl">${stockRows.length
-        ? stockRows.map(k => `${esc(prodOf(k).name)}: ${N(stock[k])}`).join("<br>") +
-          `<br><b>Total: ${N(Object.values(stock).reduce((a,n)=>a+n,0))}</b>`
-        : (c.term === "consign" ? "Tiada stok konsainan terbuka" : "Bukan konsainan")}</span></div>
-    ${c.term === "consign" && stockRows.length ? `<div class="prow" style="padding-top:0">
-      <span class="ic"></span><span class="lb"></span><span class="vl"></span>
-      <span class="ac"><button class="sbtn" data-a="cgcheck" data-id="${c.id}">
-        ${ic(I.list)} Semak Baki</button></span></div>` : ""}
+    ${sec("Lokasi")}
+    ${row(I.pin, "Alamat", addr ? esc(addr) : "",
+      `<button class="sbtn" data-a="loc" data-id="${c.id}">${ic(I.pin)}</button>`)}
+    ${row(null, "Koordinat", (c.lat && c.lng)
+      ? `${(+c.lat).toFixed(5)}, ${(+c.lng).toFixed(5)}
+         <span class="sub">Diambil daripada daerah, tepat lebih kurang 600m</span>`
+      : `<span style="color:var(--dim)">Belum ditangkap</span>`)}
 
-    <div class="prow"><span class="ic">${ic(I.list)}</span><span class="lb">Service Month</span>
-      <span class="vl">${months}</span>
-      <span class="ac"><button class="sbtn" data-a="svcedit" data-id="${c.id}"
-        data-v="${months}">${ic(I.edit)} Edit</button></span></div>
+    ${(hours || off.length) ? sec("Waktu Operasi") : ""}
+    ${row(I.clock, "Waktu", hours ? esc(hours) : "")}
+    ${row(null, "Hari Tutup", off.length
+      ? `<b>${esc(off.join(", "))}</b><span class="sub">Jangan jadualkan lawatan pada hari ini</span>` : "")}
 
-    <div class="prow"><span class="ic">${ic(I.note)}</span><span class="lb">TIN (e-Invois)</span>
-      <span class="vl">${c.tin ? esc(c.tin) : "Belum direkod"}</span>
-      ${isMgmt() ? `<span class="ac"><button class="sbtn" data-a="tinedit" data-id="${c.id}"
-        data-v="${esc(c.tin || "")}">${ic(I.edit)} ${c.tin ? "Tukar" : "Isi"}</button></span>` : ""}</div>
+    ${(c.ssm || c.ssm_name || c.tin || isMgmt()) ? sec("Syarikat") : ""}
+    ${row(I.shop, "Nama SSM", c.ssm_name ? esc(c.ssm_name) : "")}
+    ${row(null, "No. SSM", c.ssm ? esc(c.ssm) : "")}
+    ${row(I.note, "TIN (e-Invois)", c.tin ? esc(c.tin)
+        : `<span style="color:var(--dim)">Belum direkod</span>`,
+      isMgmt() ? `<button class="sbtn" data-a="tinedit" data-id="${c.id}"
+        data-v="${esc(c.tin || "")}">${ic(I.edit)} ${c.tin ? "Tukar" : "Isi"}</button>` : "")}
 
-    <div class="prow"><span class="ic">${ic(I.dollar)}</span><span class="lb">Tukar Harga</span>
-      <span class="vl"></span>
-      <span class="ac"><button class="sbtn" data-a="mohon" data-id="${c.id}">Mohon</button></span></div>
+    ${sec("Terma & Servis")}
+    ${row(I.swap, "Terma", `<b>${esc(TERM[c.term] || c.term)}</b>${c.term !== "cash" && c.term_months
+      ? `<span class="sub">Perlu jelas dalam ${N(c.term_months)} bulan</span>` : ""}`)}
+    ${row(I.dollar, "Had Kredit", +c.credit_limit > 0
+      ? `<b>${RM(c.credit_limit)}</b>${owed > +c.credit_limit
+          ? `<span class="sub" style="color:var(--red)">Hutang melebihi had</span>` : ""}` : "")}
+    ${row(I.list, "Service Month", `<b>${months}</b> bulan`,
+      `<button class="sbtn" data-a="svcedit" data-id="${c.id}"
+        data-v="${months}">${ic(I.edit)}</button>`)}
+    ${row(I.dollar, "Tukar Harga", `<span style="color:var(--dim)">Mohon harga khas</span>`,
+      `<button class="sbtn" data-a="mohon" data-id="${c.id}">Mohon</button>`)}
+    ${row(null, "Didaftar", c.registered_at ? esc(fLong(new Date(c.registered_at))) : "")}
+
+    ${sec("Stok Di Kedai")}
+    ${row(I.box, "Stok", stockRows.length
+      ? stockRows.map(k => `${esc(prodOf(k).name)}: <b>${N(stock[k])}</b>`).join("<br>") +
+        `<br><b>Total: ${N(Object.values(stock).reduce((a,n)=>a+n,0))}</b>`
+      : `<span style="color:var(--dim)">${c.term === "consign"
+          ? "Tiada stok konsainan terbuka" : "Bukan konsainan"}</span>`,
+      (c.term === "consign" && stockRows.length)
+        ? `<button class="sbtn" data-a="cgcheck" data-id="${c.id}">${ic(I.list)} Semak</button>` : "")}
 
     ${isMgmt() ? "" : `
     <button class="rowbtn" data-a="takeorder" data-id="${c.id}">

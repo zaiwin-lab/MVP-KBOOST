@@ -65,7 +65,7 @@ signal is thrown back to a login screen he cannot possibly get past.
 | List Hutang | Outstanding invoices, oldest first, with the total owed |
 | Kesimpulan | Date range, Wang Terima split by payment method, Qty Jualan and Stok Terkini per product |
 | Reseller | Searchable list, and a profile with his four tabs — General, Sejarah Invois, Galeri, Kerja Harian |
-| Customer Profile | Payment-term badge, Call (Dialer / WhatsApp), Location (Google Maps / Waze), consignment stock on the shelf, Service Month |
+| Customer Profile | Everything registration collects, grouped and only shown when it exists: three figures at the top (outstanding, lifetime sales, last dealing), every phone number with its own dial and WhatsApp button, email, the person in charge and their IC, full address with coordinates and their accuracy, opening hours and closed days, SSM name and number, TIN, payment term and months, credit limit with a warning when the debt exceeds it, service month, registration date, and the consignment stock on the shelf |
 | Galeri | The five registration photograph types, read through the signed-URL edge function |
 | Kelulusan (office) | The management side: payments, price requests, credit notes and stock requests waiting on a decision, each with Lulus / Tolak. Signing in as management swaps the tab bar — no van, so no Stok or GPS |
 | Sejarah Kelulusan (office) | Every decision the office has made, newest first, searchable — including the documents it cancelled, and who decided each one |
@@ -406,6 +406,38 @@ One known limitation, left deliberately rather than guessed at: a **referral
 verified by an invoice that is later cancelled keeps its commission**. The
 table records the customer, not the invoice, so there is no safe way to tell
 which sale verified it. It needs a column first.
+
+## The reseller profile shows what registration collected
+
+Registration asks for twenty-odd fields across seven steps. The profile showed
+five of them: one phone number, one address line, the consignment stock,
+service month and the payment term. Everything else — the WhatsApp number, the
+office line, the email, the person in charge and their IC, the SSM name and
+number, the opening hours, the closed days, the credit limit, the coordinates —
+was captured, stored, and never shown to anybody again.
+
+It is now grouped into sections — **Hubungi, Lokasi, Waktu Operasi, Syarikat,
+Terma & Servis, Stok Di Kedai** — with three figures above them that answer
+what a salesman wants to know before he gets out of the van: **what this shop
+owes, what it has ever bought, and when it was last dealt with.**
+
+Two decisions worth stating:
+
+**A row appears only when it has something in it.** An outlet registered before
+a field existed shows a shorter profile rather than a column of dashes. The
+seeded outlets carry no opening hours, so they have no Waktu Operasi section at
+all; the one registered from a real phone does, and shows *Ahad, Sabtu* under
+**Hari Tutup** with the note not to schedule a visit then.
+
+**Every number is actionable where it sits.** The phone row carries a dial
+button, the WhatsApp row its own link with the number normalised to a 60 prefix,
+the office line a dial button, the email a `mailto:`. Previously one Call button
+guessed between WhatsApp and the dialler — which is the thing the report
+criticised in Coach Aril's design.
+
+The credit limit shows **Hutang melebihi had** in red when the outstanding
+balance is over it, which is the one thing on the screen that should stop a
+salesman writing another order.
 
 ## The nine buttons that said "coming soon"
 
