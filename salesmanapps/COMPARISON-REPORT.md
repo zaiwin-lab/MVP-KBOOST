@@ -3,8 +3,14 @@
 **What was asked for, what has been delivered, and what Coach Aril's design adds
 on top of it.**
 
-Date: 8 October 2026
+Date: **Revised 15 October 2026** (original 8 October 2026)
 Prepared as a reference for discussion with Coach Aril.
+
+> **This revises the report of 8 October.** Since that date a phone application
+> has been built to Coach Aril's design and is running on the live database.
+> **Eight of the nineteen additions identified below are now built**, and two
+> more are partly built. Section 2a records what changed; every other section
+> has been brought up to date against it.
 
 ---
 
@@ -74,6 +80,55 @@ not have survived contact with real use without them:
 
 ---
 
+## 2a. What changed in a week
+
+On 8 October the answer to "can it look like Coach Aril's design?" was a shell
+that signed in and nothing more. It is now a working phone application built to
+his screenshots, on the same live database.
+
+- **26** screens on the phone
+- **8 / 19** of his additions now built
+- **20** database migrations applied
+- **7** days
+
+Everything below runs against real rows. Post an order on the phone and the van
+decrements, the invoice exists, the debt moves and the receipt prints — on
+another device, next week.
+
+- **The salesman's day, end to end.** Registration in seven steps with GPS
+  capture and five photographs; Ambil Order with three outcomes decided by
+  payment term; the consignment balance check that bills only what sold;
+  payment, receipt, returns; and Jadual Harian — a screen Coach Aril never
+  supplied, built to the written requirement instead.
+- **Every Cetak and Lihat button does something.** Delivery order, sales order,
+  invoice, receipt and return, each on a 58mm or 80mm roll, with PDF, WhatsApp
+  and print behind them. **Borang Konsainan** prints as a sheet of A4 with the
+  terms and two signature blocks.
+- **Four approval workflows, both halves.** The salesman raises; the office
+  decides; and — this is the part his design does not show — the answer comes
+  back to the salesman's phone, with the office's reason attached.
+- **Documents can be cancelled.** Stock returns to the van, payments reverse,
+  the consignment shelf gives the goods up, and the debt list, the day's takings
+  and van stock all move together. The document stays on file, numbered, marked
+  *Dibatalkan*.
+
+**Still only in his design:** product flavours, multi-branch operation and free
+goods — the three that change the database. GPS route recording and the Kerja
+Harian log, both of which the requirement document explicitly excludes. Over
+Payment. The stock request as one numbered document. A full map tile.
+
+**In neither his design nor the brief:** cancelling a document and reversing
+what it did; the salesman seeing what happened to his own requests; the office's
+record of its own decisions. These are not features anybody asked for — they are
+the things a system needs before real money moves through it.
+
+**The practical reading.** Seven days took the interface question off the table.
+What is left to decide is not *whose screens* — it is the three schema items,
+and the labels nobody outside his team can read. Those are the only things
+genuinely blocking the next phase.
+
+---
+
 ## 3. The two builds are different kinds of thing
 
 **Coach Aril's version.** A designed interface, broad and detailed, covering
@@ -114,34 +169,36 @@ The significant point is not the number — it is where they came from.
 
 - **19** features added
 - **0** of them specified in MASTER FINAL
-- **2** that contradict it directly
+- **8** now built, 2 part-built
 - **3** that require database changes
 
-| Addition | In MASTER FINAL? | Class |
-|---|---|---|
-| Product variants (flavours) | No | **Schema** |
-| Multi-branch operation (Selangor, Johor, Sabah) | No | **Schema** |
-| Free goods and combo products (FOC) | No | **Schema** |
-| Pending Acc Approval on payments | No — statuses listed are Paid, Partial, Pending, Overdue | Workflow |
-| Price change as an approval request | Permission is mentioned; an approval workflow is not | Workflow |
-| Request Credit Note | No — returns are specified, credit notes are not | Workflow |
-| Over Payment permitted | No | Rule change |
-| Enable TIN QR (LHDN e-Invoice) | No — only "Tax / SST jika diperlukan" | Compliance |
-| Nearest Reseller map | Coordinates are stored; no map is specified | Screen |
-| GPS route recording | **Contradicts it** — tracking is explicitly excluded | Screen |
-| Kerja Harian per-customer log | **Contradicts it** — visit tracking is explicitly excluded | Screen |
-| Stock request as one document with many lines | No | Structure |
-| Stock request running number | No — six sequences are listed, this is not among them | Field |
-| Blacklist Reseller, as distinct from removal | No | Field |
-| Set VIP | No | Field |
-| Reseller Removed as a tracked metric | No | Field |
-| Per-outlet Service Month | No | Field |
-| Gaji as a payment method | Method is mentioned generically | Field |
-| Salesman photographs | No | Field |
+| Addition | In MASTER FINAL? | Class | Now |
+|---|---|---|---|
+| Product variants (flavours) | No | **Schema** | Blocked — needs a decision |
+| Multi-branch operation (Selangor, Johor, Sabah) | No | **Schema** | Blocked — needs a decision |
+| Free goods and combo products (FOC) | No | **Schema** | Blocked — needs a decision |
+| Pending Acc Approval on payments | No — statuses listed are Paid, Partial, Pending, Overdue | Workflow | **Built** |
+| Price change as an approval request | Permission is mentioned; an approval workflow is not | Workflow | **Built** |
+| Request Credit Note | No — returns are specified, credit notes are not | Workflow | **Built** |
+| Over Payment permitted | No | Rule change | Held — see question 9 |
+| Enable TIN QR (LHDN e-Invoice) | No — only "Tax / SST jika diperlukan" | Compliance | *Part* — TIN stored and printed; QR needs LHDN |
+| Nearest Reseller map | Coordinates are stored; no map is specified | Screen | *Part* — ranked by distance, Waze and Maps links; no map tile |
+| GPS route recording | **Contradicts it** — tracking is explicitly excluded | Screen | Not built — contradicts the brief |
+| Kerja Harian per-customer log | **Contradicts it** — visit tracking is explicitly excluded | Screen | Not built — contradicts the brief |
+| Stock request as one document with many lines | No | Structure | Not built |
+| Stock request running number | No — six sequences are listed, this is not among them | Field | Not built |
+| Blacklist Reseller, as distinct from removal | No | Field | **Built** |
+| Set VIP | No | Field | **Built** |
+| Reseller Removed as a tracked metric | No | Field | **Built** |
+| Per-outlet Service Month | No | Field | **Built** |
+| Gaji as a payment method | Method is mentioned generically | Field | **Built** |
+| Salesman photographs | No | Field | Not built |
 
 None of this is unreasonable to want. Several of the additions are plainly good
 ideas, and two of them — e-Invoice and product variants — would have to be built
-eventually regardless.
+eventually regardless. **Eight have since been built and two more are
+part-built**, which is the most useful thing in this table: it converts an
+argument about scope into a list with dates against it.
 
 But it should be stated plainly, because it governs timeline and budget: taken
 together, these nineteen items describe a **multi-branch distribution platform
@@ -199,14 +256,27 @@ request and decides. **No such screen appeared anywhere in the forty
 screenshots.** His design is the salesman's half of four conversations that each
 require two parties.
 
-The current build already has that half: a management panel that reads
-everything and posts nothing, sitting on access control that distinguishes
-office from field at the database. Stock requests already flow through it, with
-issue and reject implemented.
+The current build already had that half in the web portal. Since 8 October it
+also has it **on the phone**: signing in as the office swaps the tab bar — no
+van, so no stock and no GPS — and the home screen becomes the queue of what is
+waiting. Payments, price changes, credit notes and stock requests, each with
+Lulus and Tolak, and a rejection always asks why.
+
+Two things were added that his screenshots do not show on either side, because
+four one-way workflows are not four workflows:
+
+- **The answer goes back to the salesman.** He raises a Mohon or a credit note
+  and sees the decision on his own phone, with the office's reason attached.
+  Without it he telephones the office to find out, which is the thing the app
+  was supposed to stop.
+- **The office keeps a record of what it decided.** A queue that only shows what
+  is waiting cannot answer "did we already deal with that?", or "why was that
+  price approved in March?".
 
 If his design does have an admin side that simply was not shared, we should see
 it — it changes the estimate. If it does not, that office-side application is
-unbudgeted scope on his side, and largely built already on ours.
+unbudgeted scope on his side, and it is built and running on ours, on the phone
+as well as in the browser.
 
 ---
 
@@ -415,20 +485,24 @@ costed second phase.**
   control, collision-free document numbering and consignment reconciliation are
   the parts that take longest and cannot be judged by eye. Rebuilding them from
   a prototype would mean paying for them twice.
-- **The form factor is not an obstacle.** A phone app shell now exists that signs
-  in against the same database, installs to a home screen and works without a
-  signal. It took one working session, which is a fair measure of what
-  re-skinning to his design actually costs.
-- **His design should drive the interface.** It is detailed, it is the client's
-  own, and adopting it removes the largest source of rework. Where it improves
-  on ours — the per-outlet consignment view, the stock request as one document,
-  the customer profile layout — it should simply be followed.
+- **The form factor is no longer a question at all.** On 8 October this said a
+  phone shell existed and that re-skinning would be cheap. Seven days later
+  there are twenty-six screens built to his screenshots, running on the live
+  database, with the office side on the phone beside the salesman's. That is
+  the measure of what adopting his design costs, and it has already been paid.
+- **His design should drive the interface, and it now does.** It is detailed, it
+  is the client's own, and following it removed the largest source of rework.
+  Where it improves on ours — the per-outlet consignment view, the customer
+  profile layout — it was simply followed. Where it is silent, the requirement
+  document was followed instead: **Jadual Harian** was never supplied, so it was
+  built to the brief's explicit exclusions rather than invented.
 - **The three schema items must be settled first.** Variants, branches and free
   goods are weeks of work each if decided late and days if decided now.
 
 The alternative — restarting from the prototype — means rebuilding a tested data
-layer that already does the job, while the nineteen additions remain unbuilt in
-either version.
+layer that already does the job. A week ago it could at least be said that the
+nineteen additions were unbuilt in both versions. **Eight of them are now built
+in one of them.**
 
 ---
 
@@ -436,22 +510,35 @@ either version.
 
 1. **All sixteen modules of the agreed requirement are built and running against
    a live database.** The brief has been delivered.
-2. Coach Aril's design is a detailed interface with hardcoded figures and no
-   data layer. It shows what the system should look like; it cannot yet record a
-   sale.
-3. The two fit together. His design should drive the screens; the existing
-   system should remain underneath them.
+2. **His design now drives the screens.** Twenty-six of them, built to his
+   screenshots in seven days, running on real rows — the salesman's whole day
+   and the office's side of it. The interface question is settled.
+3. Coach Aril's version remains a designed interface with hardcoded figures and
+   no data layer. It shows what the system should look like; it cannot yet
+   record a sale.
 4. **Nineteen features in his design were never in the requirement document**,
    and two of them contradict it directly. They are worth having, but they are a
    second phase, not a list of omissions.
-5. Eight of those nineteen are hours of work. Eight are days. **Three — product
-   flavours, multiple branches and free goods — change the database and should
-   be decided before anything else is built.**
-6. His design contains four approval workflows and no screen for the approver.
-   That office-side application already exists on our side.
-7. Both versions independently departed from the requirement in the same place,
+5. **Eight of those nineteen are now built and two are part-built**, including
+   all three approval workflows with the approver's side. Of what remains, two
+   are features the requirement document explicitly excludes.
+6. **Three — product flavours, multiple branches and free goods — change the
+   database and are the only things genuinely blocking the next phase.** They
+   are the one group that has not moved, because each needs a decision that is
+   the client's to make rather than ours.
+7. His design contains four approval workflows and no screen for the approver.
+   That office side is built and running on ours — on the phone as well as the
+   browser — together with two things his design does not show at all: the
+   salesman seeing what happened to his own requests, and the office keeping a
+   record of what it decided.
+8. **A document can be cancelled and everything it did reversed** — stock back
+   on the van, payments undone, the shelf given up, the debt corrected. Neither
+   the requirement nor his design mentions it. It is the first thing a real
+   operation needs on the day somebody keys twenty instead of two.
+9. Both versions independently departed from the requirement in the same place,
    on delivery orders, and both were right. The foundation is sound.
-8. **Enable TIN QR is LHDN e-Invoice — the only legal deadline anywhere in
-   this.** We need the date.
-9. Several labels — TPP, RTN, Pt., Hc., Tst — cannot be read by anyone outside
-   his team, and cannot be built until they are defined.
+10. **Enable TIN QR is LHDN e-Invoice — the only legal deadline anywhere in
+    this.** The buyer's TIN is now stored and printed; the validation QR is
+    LHDN's to issue, not ours to draw. We still need the date.
+11. Several labels — TPP, RTN, Pt., Hc., Tst — cannot be read by anyone outside
+    his team, and cannot be built until they are defined.
