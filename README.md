@@ -137,7 +137,7 @@ The earlier root application remains a browser-only demonstration. It is useful 
 
 ## Delivery role
 
-**Ts. Zaiwin Kassim** led the product concept, operating-model translation, commercial direction and delivery review with the **KOBIS AI Prodigy Team**, using supervised AI-assisted development.
+**Zaiwin Kassim, MBA** led the product concept, operating-model translation, commercial direction and delivery review with the **KOBIS AI Prodigy Team**, using supervised AI-assisted development.
 
 This statement describes product and delivery responsibility. It does not claim client adoption, endorsement, partnership approval or production deployment.
 
@@ -169,6 +169,27 @@ Open the repository-root `index.html` in a modern browser.
 ### Current Sales Portal
 
 Serve the `salesmanapps/` directory with a local static server. Authenticated workflows also require the authorised Supabase configuration and deployed database objects documented under `salesmanapps/db/`.
+
+## 7–14-day validation sprint
+
+The next release should test one complete operational cycle with synthetic or expressly authorised data. The sprint is successful only when the evidence shows that:
+
+1. management can create and revoke a salesperson account;
+2. opening van stock can be issued and reconciled;
+3. a salesperson can serve an assigned outlet without seeing another salesperson's restricted records;
+4. a sale or consignment transaction updates stock and creates the expected document;
+5. a payment cannot exceed the outstanding amount;
+6. a return restores stock through the intended transaction path;
+7. management reports reconcile with the underlying ledger;
+8. the deployed build is linked to the exact reviewed Git commit.
+
+Publish a dated validation note containing the dataset used, tester roles, pass/fail result for each criterion, defects found and changes made. Do not publish personal data, customer records, credentials or commercially sensitive prices.
+
+## Licence guidance
+
+No open-source licence is currently declared for this repository. Public visibility does not grant permission to copy, reuse, redistribute or commercialise the code, interface, branding or documentation.
+
+Keep the repository under a proprietary or portfolio-use position until KOBIS confirms ownership, third-party component obligations, commercial reuse rights and whether any client-specific configuration must remain private. If a reusable community edition is later separated cleanly from commercial material, evaluate an appropriate open-source licence for that edition only.
 
 ## Highest-value next validation
 
