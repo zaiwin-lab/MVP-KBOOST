@@ -519,3 +519,36 @@ The transaction tables were emptied and the document counters reset to zero
 after the posting functions were verified, so the first real document issued
 will be `DO000001` / `SO000001` / `INV000001`. Van stock sits at 80 units per
 salesman per product.
+
+### Kept demo-ready
+
+The data since then is about ten weeks of a five-salesman round, and it is
+maintained so that opening either login shows a working day rather than an
+empty screen:
+
+- **The office queue is never empty.** Three collections taken this morning and
+  not yet confirmed, two price requests, a credit note and two stock requests —
+  spread across four salesmen, so it reads like a team rather than one man.
+- **`SM01` is the demo salesman.** His home screen shows money taken and
+  quantity sold *today*, his bell carries an unread count, and Permohonan Saya
+  has both things waiting and things recently answered, including rejections
+  with the office's reason attached.
+- **Cancelled documents are left in deliberately** — an invoice, two delivery
+  orders and two returns. They are the clearest demonstration of the reversal
+  working, and they show correctly as struck through and marked *Dibatalkan*.
+- **`C0016` Uncle Aiman Workshop is left alone.** It is a real registration
+  done from a phone, with real photographs, and it is the proof that
+  registration works end to end.
+
+Two faults were fixed while setting this up, both of which would have been
+visible in a demo:
+
+- **Seven stock requests were answered before they were asked.** The seed
+  generated `decided_at` and `requested_at` independently, so the history
+  screens read "Dimohon 8 Okt · Dijawab 24 Sep". Decisions are now placed a few
+  hours after their request.
+- **Re-running a test twice left exact duplicate rows** — same note, same
+  decision, same day. One of each is useful; two is obviously machinery.
+
+Nothing here is dated in the future, which is checked rather than assumed: a
+document dated later than now is the first thing that gives demo data away.
