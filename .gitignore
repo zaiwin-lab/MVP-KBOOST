@@ -12,3 +12,6 @@ salesmanapps/.validation-commit
 
 # Screenshots written by the test suites in salesmanapps/db.
 salesmanapps/.shots/
+
+# Written by db/validate.mjs on each run.
+salesmanapps/validation-run.json
