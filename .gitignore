@@ -3,3 +3,8 @@ _site/
 node_modules/
 .gstack/
 salesmanapps/_site/
+
+# Written by salesmanapps/deploy.sh at the moment of deploy, from the real
+# HEAD, so the published build can name the commit it came from. Never
+# committed: a file cannot contain its own hash.
+salesmanapps/app/.commit

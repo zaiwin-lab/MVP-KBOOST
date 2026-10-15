@@ -10,13 +10,23 @@
 # the repository never publishes it by accident. It must stay in step with what
 # the pages reference: og.png and favicon.svg are named in the social tags,
 # robots.txt and sitemap.xml are fetched by crawlers.
+# The build stamp is injected here rather than typed into the source, because
+# a file cannot contain its own commit hash: the hash is computed from the
+# file. COMMIT_REF is set by Netlify on a git-linked build; `app/.commit` is
+# written by `deploy.sh` at the moment of deploy, from the real HEAD, and is
+# deliberately untracked. Either way the published page names the commit it
+# was built from, which is what makes a deployed build auditable.
 [build]
   command = """
     mkdir -p _site/share _site/app && \
     cp index.html playbook.html og.png favicon.svg robots.txt sitemap.xml _site/ && \
     cp share/index.html _site/share/ && \
     cp app/index.html app/sw.js app/manifest.webmanifest _site/app/ && \
-    cp app/icon-192.png app/icon-512.png app/icon-maskable.png _site/app/
+    cp app/icon-192.png app/icon-512.png app/icon-maskable.png _site/app/ && \
+    REF="${COMMIT_REF:-$(cat app/.commit 2>/dev/null)}" && \
+    REF="$(printf '%s' "${REF:-unknown}" | cut -c1-7)" && \
+    sed -i "s|__BUILD__|$REF · $(date -u +%Y-%m-%d)|" _site/app/index.html && \
+    echo "build stamp: $REF"
   """
   publish = "_site"
 

@@ -711,7 +711,11 @@ const S = {
   q: "", range: null, rkPeriod: "month", rkRows: null, roll: "80",
 };
 try { S.roll = localStorage.getItem("sa.roll") === "58" ? "58" : "80"; } catch (_) {}
-const BUILD = "2026-10-12";
+/* Replaced at deploy time with the commit this build came from (see
+   netlify.toml). Left as the placeholder when served straight from the
+   repository, which is the honest answer for a file nobody has deployed. */
+const BUILD = "__BUILD__";
+const buildLabel = () => BUILD.indexOf("__") === 0 ? "belum dibina (sumber)" : BUILD;
 
 /* Everything the salesman may see, read once at sign-in. At this scale — a
    dozen outlets, a few hundred documents — one round of queries is cheaper
@@ -3140,7 +3144,9 @@ function vSettings() {
     </div>
     <button class="rowbtn o" data-a="reload">Muat semula data</button>
     <button class="rowbtn o" data-a="signout">Log keluar</button>
-    <p class="hint" style="margin-top:22px">Salesman App · bina ${esc(BUILD)}</p>
+    <p class="hint" style="margin-top:22px">Salesman App · bina ${esc(buildLabel())}<br>
+      Nombor itu ialah commit Git yang membina versi ini. Sebutkan ia apabila
+      melaporkan sebarang masalah.</p>
   </div>`;
 }
 
