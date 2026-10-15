@@ -167,6 +167,10 @@ img{max-width:100%}
 .row .nm{font-size:13.5px;font-weight:700;line-height:1.3;margin-top:1px}
 .row .mid{flex:1;min-width:0;font-size:12.5px;color:var(--mut);line-height:1.35}
 .row .st{font-size:12.5px;font-weight:700;text-align:right;flex:none;min-width:62px}
+/* "Pending Acc Approval" is twenty characters; without this it wrapped into
+   the amount beside it. */
+.row .main{flex-wrap:wrap}
+.row .st{max-width:50%}
 .row .amt{font-size:13.5px;font-weight:800;text-align:right;flex:none;min-width:74px}
 .row .qty{font-size:15px;font-weight:800;text-align:right;flex:none;min-width:38px}
 .paid{color:var(--grn)} .unpaid{color:var(--red)} .part{color:var(--amb)}
@@ -281,6 +285,24 @@ table.t .price{color:var(--red);font-weight:700}
 .pstat b{display:block;font-size:13.5px;font-weight:800;letter-spacing:-.02em;line-height:1.25}
 .pstat span{display:block;font-size:10.5px;color:var(--dim);margin-top:3px;line-height:1.3}
 .pstat .owed{color:var(--red)} .pstat .clear{color:var(--grn)}
+.pstat button{width:100%;text-align:center;position:relative}
+.pstat button:active{background:var(--inset)}
+/* A tappable figure should look tappable; a chevron is cheaper than a label. */
+.pstat button::after{content:"";position:absolute;top:7px;right:7px;width:5px;height:5px;
+  border-right:1.5px solid var(--line);border-bottom:1.5px solid var(--line);
+  transform:rotate(-45deg)}
+
+/* The one line on the profile that should change what a salesman does next. */
+.agebar{display:block;width:100%;text-align:left;margin:10px 0 2px;padding:11px 13px;
+  border-radius:10px;background:var(--red-lo);border-left:4px solid var(--red)}
+.agebar:active{background:#FBDDDB}
+.agebar b{display:block;font-size:13px;font-weight:800;color:var(--red-d)}
+.agebar span{display:block;font-size:11.5px;color:var(--red-d);opacity:.85;margin-top:3px;
+  line-height:1.45}
+
+/* The due date under an outstanding invoice, in the chase list. */
+.row .due{margin-top:7px;font-size:11.5px;color:var(--dim)}
+.row .due.late{color:var(--red);font-weight:700}
 .sbtn{background:var(--red);color:#fff;font-size:12.5px;font-weight:700;padding:8px 13px;
   border-radius:8px;display:inline-flex;align-items:center;gap:5px}
 .sbtn svg{width:14px;height:14px}
@@ -786,6 +808,30 @@ const SOS    = () => DB.sos.filter(live);
 const RETS   = () => DB.returns.filter(live);
 const PAYS   = () => DB.payments.filter(p => !p.rejected_at);
 const SHELF  = () => DB.consign.filter(g => !g.checked_at && !g.voided_at);
+
+/* What an outlet owes, read once and read the same way everywhere. A single
+   total answers "how much"; a salesman standing at a counter also needs "how
+   old", because an invoice thirty days past its due date is a different
+   conversation from one raised yesterday. */
+function debtOf(custId) {
+  const open = INVS().filter(v => v.customer_id === custId && v.status !== "paid");
+  const today = dOnly(new Date());
+  const days = v => Math.floor((today - dOnly(new Date(v.due_at))) / 864e5);
+  const late = open.filter(v => days(v) > 0);
+  return {
+    owed:    open.reduce((a, v) => a + (+v.total - +v.paid), 0),
+    count:   open.length,
+    overdue: late.length,
+    lateAmt: late.reduce((a, v) => a + (+v.total - +v.paid), 0),
+    oldest:  late.length ? Math.max.apply(null, late.map(days)) : 0,
+  };
+}
+/* The last money actually taken — not the last dealing. An order counts as a
+   dealing and tells you nothing about whether they pay. */
+function lastPayOf(custId) {
+  return PAYS().filter(p => p.customer_id === custId)
+    .sort((a, b) => new Date(b.paid_at) - new Date(a.paid_at))[0] || null;
+}
 const TERM = { consign: "Konsainan", biltobil: "Bill To Bil", cash: "Tunai" };
 /* Our three invoice states, in his words and his colours. He also shows
    "Pending Acc Approval", which is an approval step we have no workflow for —
@@ -1424,13 +1470,17 @@ function vCust(id, sub) {
   const img = S.photos && S.photos[c.id];
   const tabs = [["general","General"],["invois","Sejarah Invois"],["galeri","Galeri"],["kerja","Kerja Harian"]];
   let inner;
-  if (sub === "invois")      inner = custInvois(c);
+  /* `hutang` is not a tab of its own — it is what the Hutang figure opens, and
+     it highlights Sejarah Invois because that is the list it is filtering. */
+  if (sub === "hutang")      inner = custInvois(c, true);
+  else if (sub === "invois") inner = custInvois(c);
   else if (sub === "galeri") inner = custGaleri(c);
   else if (sub === "kerja")  inner = custKerja(c);
   else                       inner = custGeneral(c);
   return backBar(true) +
   `<div class="ptabs">${tabs.map(([k, l]) =>
-    `<button data-a="csub" data-v="${k}" class="${(sub||"general")===k?"on":""}">${l}</button>`).join("")}</div>
+    `<button data-a="csub" data-v="${k}" class="${
+        (sub === "hutang" ? "invois" : (sub || "general")) === k ? "on" : ""}">${l}</button>`).join("")}</div>
   ${img ? `<img class="photo" src="${esc(img)}" alt="">` : `<div class="ph-ph">${ic(I.img)}</div>`}
   <div class="body" style="padding-top:0">${inner}</div>`;
 }
@@ -1456,8 +1506,9 @@ function custGeneral(c) {
     return `<a class="sbtn o" href="https://wa.me/${to}" target="_blank" rel="noopener">${ic(I.wa)}</a>`; };
 
   /* What a salesman wants to know before he gets out of the van. */
-  const owed = INVS().filter(v => v.customer_id === c.id && v.status !== "paid")
-    .reduce((a, v) => a + (+v.total - +v.paid), 0);
+  const d = debtOf(c.id);
+  const owed = d.owed;
+  const lastPay = lastPayOf(c.id);
   const sales = INVS().filter(v => v.customer_id === c.id)
     .reduce((a, v) => a + +v.total, 0);
   const lastDoc = [].concat(
@@ -1491,11 +1542,18 @@ function custGeneral(c) {
       kekal dan masih perlu dikutip.</div>` : ""}
 
     <div class="pstat">
-      <div><b class="${owed > 0.004 ? "owed" : "clear"}">${owed > 0.004 ? RM(owed) : "Tiada"}</b>
-        <span>Hutang</span></div>
-      <div><b>${RM(sales)}</b><span>Jumlah jualan</span></div>
+      <button data-a="csub" data-v="hutang">
+        <b class="${owed > 0.004 ? "owed" : "clear"}">${owed > 0.004 ? RM(owed) : "Tiada"}</b>
+        <span>Hutang${d.count ? ` · ${N(d.count)} invois` : ""}</span></button>
+      <button data-a="csub" data-v="invois">
+        <b>${RM(sales)}</b><span>Jumlah jualan</span></button>
       <div><b>${lastDoc ? esc(fShort(new Date(lastDoc))) : "—"}</b><span>Urusan terakhir</span></div>
     </div>
+
+    ${d.overdue ? `<button class="agebar" data-a="csub" data-v="hutang">
+      <b>${N(d.overdue)} invois lewat tempoh · ${RM(d.lateAmt)}</b>
+      <span>Yang paling lama sudah ${N(d.oldest)} hari melepasi tarikh perlu jelas.
+        Tekan untuk melihatnya.</span></button>` : ""}
 
     ${sec("Hubungi")}
     ${row(I.user, "Telefon", c.phone ? esc(c.phone) : "",
@@ -1528,6 +1586,13 @@ function custGeneral(c) {
         : `<span style="color:var(--dim)">Belum direkod</span>`,
       isMgmt() ? `<button class="sbtn" data-a="tinedit" data-id="${c.id}"
         data-v="${esc(c.tin || "")}">${ic(I.edit)} ${c.tin ? "Tukar" : "Isi"}</button>` : "")}
+
+    ${sec("Bayaran")}
+    ${row(I.cash, "Bayaran Akhir", lastPay
+      ? `<b>${RM(lastPay.amount)}</b> · ${esc(METH[lastPay.method] || lastPay.method || "—")}
+         <span class="sub">${esc(fLong(new Date(lastPay.paid_at)))}${
+           lastPay.approved_at ? "" : " · belum disahkan pejabat"}</span>`
+      : `<span style="color:var(--dim)">Belum pernah membayar</span>`)}
 
     ${sec("Terma & Servis")}
     ${row(I.swap, "Terma", `<b>${esc(TERM[c.term] || c.term)}</b>${c.term !== "cash" && c.term_months
@@ -1578,22 +1643,42 @@ function custGeneral(c) {
   </div>`;
 }
 
-function custInvois(c) {
-  const rows = DB.invoices.filter(v => v.customer_id === c.id)
+function custInvois(c, onlyOpen) {
+  /* One renderer, two readings. `onlyOpen` is what the Hutang figure opens:
+     the same rows, filtered to what is still owed and ordered oldest first,
+     because that is the order they should be chased in. */
+  let rows = DB.invoices.filter(v => v.customer_id === c.id)
     .sort((a, b) => new Date(b.issued_at) - new Date(a.issued_at));
+  if (onlyOpen) rows = rows.filter(v => live(v) && v.status !== "paid")
+    .sort((a, b) => new Date(a.due_at) - new Date(b.due_at));
+  const today = dOnly(new Date());
+  const lateBy = v => Math.floor((today - dOnly(new Date(v.due_at))) / 864e5);
   return `<div class="pcard">
     ${rows.length ? `<div class="list" style="box-shadow:none">${rows.map(v => {
       const so = soOf(v.so_id); const [lbl, cls] = invStat(v);
-      return `<button class="row" data-a="order" data-id="${v.id}">
+      /* No customer column: this list already sits inside that customer's
+         profile, and repeating the name on every row left a long status like
+         "Pending Acc Approval" nothing to wrap into but the amount beside it.
+         The document number takes the space, which is what identifies a row
+         here anyway. */
+      return `<button class="row${v.voided_at ? " vd" : ""}" data-a="order" data-id="${v.id}">
         <div class="when">${esc(fDay(new Date(v.issued_at)))}</div>
         <div class="main">
-          <span class="who"><span class="code">#${esc(rcode(c))}</span>
-            <span class="nm">${esc(c.name)}</span></span>
-          <span class="mid">Invois :<br>${esc(so ? so.doc_no : v.doc_no)}</span>
+          <span class="who"><span class="code">${esc(v.doc_no)}</span>
+            <span class="nm" style="display:block;font-weight:400;font-size:12.5px;
+              color:var(--mut)">${esc(so ? "dari " + so.doc_no : "")}</span></span>
           <span class="st ${cls}">${lbl}</span>
           <span class="amt ${cls}">${RM(Number(v.total) - Number(v.paid))}</span>
-        </div></button>`; }).join("")}</div>`
-    : `<div class="empty"><b>Tiada invois</b><span>Reseller ini belum mempunyai invois.</span></div>`}
+        </div>
+        ${onlyOpen ? `<div class="due ${lateBy(v) > 0 ? "late" : ""}">${lateBy(v) > 0
+          ? `Lewat ${N(lateBy(v))} hari · sepatutnya jelas ${esc(fLong(new Date(v.due_at)))}`
+          : `Perlu jelas ${esc(fLong(new Date(v.due_at)))}`}</div>` : ""}
+      </button>`; }).join("")}</div>`
+    : `<div class="empty"><b>${onlyOpen ? "Tiada hutang" : "Tiada invois"}</b>
+        <span>${onlyOpen ? "Semua invois reseller ini sudah dijelaskan."
+                         : "Reseller ini belum mempunyai invois."}</span></div>`}
+    ${onlyOpen && rows.length ? `<p class="hint">Disusun mengikut tarikh perlu jelas,
+      yang paling lama dahulu — itu urutan yang patut dikutip.</p>` : ""}
   </div>`;
 }
 

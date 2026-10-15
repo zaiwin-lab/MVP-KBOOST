@@ -33,6 +33,7 @@ why, so the repository is not silent about where the data lives.
 | 20 | `reseller_status_flags` | `customers.blacklisted_*`, `vip*`, `tin*`, the four `set_*` functions, and `customers_upd` narrowed to management |
 | 21 | `function_execute_allowlist` | `public` functions denied by default; EXECUTE granted back only to what the apps call |
 | 22 | `rls_initplan_and_fk_indexes` | 30 policies evaluate `auth.uid()` once per statement instead of once per row; 43 foreign keys gain a covering index |
+| 23 | `reseller_code_collision` | Counters repaired to the highest number in use; `next_free_code()` walks past a code already taken |
 
 ## The leaderboard, without a hole in row level security
 
@@ -604,6 +605,33 @@ world-accessible until RLS is enabled on it.** Unlike the function grants,
 this default is intentional in Supabase's model — row level security is what
 does the protecting, which is why every table here has it enabled, and why
 that is now checked rather than assumed.
+
+## A running number that fell behind
+
+Registration failed with `duplicate key value violates unique constraint
+"customers_code_key"`. The counter said 15; `C0016` already existed.
+
+`next_doc_no()` hands out the counter's next value and assumes nothing else
+ever writes one. For the six document kinds that holds — a delivery order, a
+sales order, an invoice, a receipt, a return and a credit note are only ever
+created by the posting functions. **Customers are different**: they can also
+arrive by direct insert, which is how the demo data was seeded, and a counter
+set from a row count rather than from the highest code in use sits silently
+behind until the next registration collides.
+
+Both halves are fixed. The counters are repaired to the highest number
+actually in use — only `CUST` had drifted — and registration now goes through
+`next_free_code()`, which walks the counter forward past anything already
+taken instead of trusting it.
+
+`register_customer` was patched **in place from its live definition** rather
+than restated in the migration: it carries fifteen fields and an opening
+order, and a copy in a migration file is a copy that can drift from what is
+deployed.
+
+The invariant worth remembering: **a counter must never sit below the highest
+number it has issued.** Anything that writes a coded row without going through
+`next_doc_no()` — a seed, an import, a restore — has to move the counter too.
 
 ## Validating a release
 
