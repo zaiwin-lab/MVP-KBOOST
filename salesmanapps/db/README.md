@@ -31,6 +31,7 @@ why, so the repository is not silent about where the data lives.
 | 18 | `request_feedback_to_salesman` | `profiles.alerts_seen_at`, `stock_requests.decide_note`, `mark_alerts_seen()`, and a fix to `reject_stock_request()` |
 | 19 | `void_documents` | `voided_at` / `voided_by` / `void_reason` on the four document tables, `consignments.voided_at`, and `void_invoice()` · `void_delivery()` · `void_return()` behind `void_document()` |
 | 20 | `reseller_status_flags` | `customers.blacklisted_*`, `vip*`, `tin*`, the four `set_*` functions, and `customers_upd` narrowed to management |
+| 21 | `function_execute_allowlist` | `public` functions denied by default; EXECUTE granted back only to what the apps call |
 
 ## The leaderboard, without a hole in row level security
 
@@ -512,6 +513,53 @@ state — they are the write API, and their authorisation is inside them.
 - `visit_schedule` is empty and nothing writes to it yet. Until a planning
   screen exists the portal derives the day's route from outstanding money, in
   the browser, and rebuilds it on every load rather than storing it.
+
+## The API surface is an allow-list
+
+Supabase grants `EXECUTE` on every new function in `public` to `anon` and
+`authenticated` by default. Every function written for this project inherited
+that, which meant the internal helpers were published to the REST API the
+moment they were created: `van_put`, `van_take`, `move_van_stock` and
+`next_doc_no` were all callable by anyone holding the publishable key and a
+signed-in session.
+
+Nothing was exploited — the posting functions were still the only way to make
+a *coherent* change, and row level security still held — but a signed-in
+salesman could have put stock on his own van, or burned document numbers.
+
+Migration `function_execute_allowlist` fixes the cause rather than the
+instances. The schema default is revoked first, so a function added by the
+next migration is unreachable until it is deliberately granted; then every
+existing function is revoked and only what the two applications actually call
+is granted back. Twenty-six reachable, fifteen internal.
+
+**Two traps, both of which this hit:**
+
+`is_management()` must stay executable by `authenticated`. It is called inside
+the row level security policies on every table, and a policy is evaluated as
+the *querying* role, not as the function owner. Revoking it does not tighten
+anything — it silently empties every management query. The validation sprint
+caught this within a minute of the change, which is the whole argument for
+having one.
+
+`doc_seq` has RLS enabled with no policy, and the linter flags it as a finding.
+It is deliberate: deny-all. The table is reached only through `next_doc_no()`,
+which locks the row, and that lock is what stops two salesmen posting at the
+same instant from being handed the same invoice number. Adding a policy to
+satisfy the linter would undo it. Both the table and the function now carry a
+SQL comment saying so.
+
+`db/api-surface.mjs` proves the result from the outside: it signs in as a
+salesman and tries to call the internal functions directly, the way anyone
+with the publishable key could.
+
+### Still open
+
+**Leaked-password protection is disabled**, and it cannot be enabled from a
+migration — it is a project setting, at *Authentication → Policies* in the
+Supabase dashboard. It checks new passwords against HaveIBeenPwned. Worth
+turning on before real salesman accounts are issued, because they will choose
+weak passwords.
 
 ## Validating a release
 

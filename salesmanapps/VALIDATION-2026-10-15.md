@@ -170,6 +170,43 @@ of which would have affected real operation:
 - Six error messages returned `undefined` to the user instead of an
   explanation, caused by a `return` placed on its own line.
 
+## Addendum — database security hardening, same day
+
+After the sprint passed, Supabase's security linter was run against the
+project. It found that **every function in the `public` schema was reachable
+over the REST API**, including the internal helpers that move van stock
+(`van_put`, `van_take`, `move_van_stock`) and issue document numbers
+(`next_doc_no`). The cause was the schema's default grant, which publishes
+every new function to `anon` and `authenticated` automatically, so each
+function written for this project inherited it.
+
+Nothing was exploited and nothing in the data is wrong: the posting functions
+remained the only way to make a *coherent* change, and row-level security held
+throughout — as this sprint demonstrates. But a signed-in salesman could have
+put stock on his own van.
+
+Fixed at the cause: the schema default is now deny, and `EXECUTE` is granted
+back only to the twenty-six functions the applications call. Fifteen are now
+unreachable from the API, which was verified from the outside by signing in as
+a salesman and attempting each one directly.
+
+**One regression, caught by re-running this sprint.** Revoking
+`is_management()` broke every management query — it is called inside the
+row-level security policies, and a policy is evaluated as the querying role,
+not as the function owner. The sprint failed within a minute, the grant was
+restored, and all eight criteria passed again. The sprint was re-run to
+completion after the change, and the result above is from that run.
+
+The linter's remaining finding on `public.doc_seq` — RLS enabled with no
+policy — is deliberate and is not a defect. It is deny-all by design; the
+table is reached only through a `SECURITY DEFINER` function that locks the
+row, and that lock is what prevents two salesmen being issued the same invoice
+number.
+
+**Not fixed, and outstanding:** leaked-password protection is disabled. It is a
+project setting rather than a migration, and should be enabled before real
+salesman accounts are issued.
+
 ## Scope and limitations
 
 Stated plainly, because a validation note that overclaims is worse than none:
@@ -182,6 +219,9 @@ Stated plainly, because a validation note that overclaims is worse than none:
   screens on a physical handset, which remains worth doing before go-live.
 - Row-level security was tested for the salesman-to-salesman boundary. It was
   not exhaustively tested for every table and every role combination.
+- The database linter was run and its findings acted on (see the addendum).
+  That is not a substitute for a penetration test by someone trying to break
+  in.
 - The company details printed on documents are still placeholders. No document
   produced in this run is a valid commercial document.
 - LHDN e-Invoice is **not** implemented. The buyer's TIN is stored and printed;
