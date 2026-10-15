@@ -513,6 +513,33 @@ state — they are the write API, and their authorisation is inside them.
   screen exists the portal derives the day's route from outstanding money, in
   the browser, and rebuilds it on every load rather than storing it.
 
+## Validating a release
+
+`db/validate.mjs` runs the acceptance criteria from the repository README as
+one audited cycle, in the order it specifies: management creates a
+salesperson, stock is issued, that salesperson serves an outlet, a transaction
+posts, a document leaves the system, a payment settles, management reconciles.
+
+It drives the application's own Supabase client in a real browser, so the
+tokens, the row level security policies and the posting functions are the ones
+a salesman's phone uses — **no service-role key, no bypass**. That is the whole
+point: a validation that runs as an administrator proves nothing about what a
+salesman can reach.
+
+It creates its own salesperson account and its own outlet, so criterion 3 is
+tested against a genuinely empty account rather than one that happens to look
+empty, and it revokes the account and deactivates the outlet when it finishes.
+
+```sh
+git rev-parse HEAD > .validation-commit    # the build being validated
+node db/validate.mjs                        # with the app served on :8901
+```
+
+It prints pass or fail per criterion and writes `validation-run.json`. The
+findings go in a dated note — see `VALIDATION-2026-10-15.md` for the shape:
+dataset, tester roles, result per criterion, defects found, and an explicit
+statement of what the run does **not** cover.
+
 ## Test data
 
 The transaction tables were emptied and the document counters reset to zero
