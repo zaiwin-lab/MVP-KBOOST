@@ -32,6 +32,7 @@ why, so the repository is not silent about where the data lives.
 | 19 | `void_documents` | `voided_at` / `voided_by` / `void_reason` on the four document tables, `consignments.voided_at`, and `void_invoice()` · `void_delivery()` · `void_return()` behind `void_document()` |
 | 20 | `reseller_status_flags` | `customers.blacklisted_*`, `vip*`, `tin*`, the four `set_*` functions, and `customers_upd` narrowed to management |
 | 21 | `function_execute_allowlist` | `public` functions denied by default; EXECUTE granted back only to what the apps call |
+| 22 | `rls_initplan_and_fk_indexes` | 30 policies evaluate `auth.uid()` once per statement instead of once per row; 43 foreign keys gain a covering index |
 
 ## The leaderboard, without a hole in row level security
 
@@ -560,6 +561,49 @@ migration — it is a project setting, at *Authentication → Policies* in the
 Supabase dashboard. It checks new passwords against HaveIBeenPwned. Worth
 turning on before real salesman accounts are issued, because they will choose
 weak passwords.
+
+## Two performance findings, and one the linter is wrong about
+
+**Thirty row level security policies were re-evaluating `auth.uid()` for every
+row.** The planner treats it as opaque, so `salesman_id = auth.uid()` called
+the function once per row scanned. Wrapped as `( select auth.uid() )` it
+becomes an InitPlan — evaluated once per statement, result reused.
+`is_management()` got the same treatment, since it appears in nearly every
+policy here.
+
+The rewrite was generated from `pg_policy` rather than typed out, because a
+mistyped policy silently changes who can see what. A snapshot was taken first,
+the wrapper stripped back out afterwards, and the two compared: **zero
+policies changed meaning**. The validation sprint was then re-run end to end.
+
+**Forty-three foreign keys had no covering index** — mostly the `voided_by`,
+`decided_by` and `product_id` columns added over the last fortnight. Without
+one, every delete or update of a parent row scans the whole child table.
+
+### Where the linter is wrong
+
+It also reports four indexes as "never used", and they are kept deliberately.
+The tables hold between 15 and 87 rows, where Postgres will choose a
+sequential scan whatever indexes exist — so "unused" here means *the dataset
+is too small to need one*, not *not needed*. Three of the four cover
+`salesman_id`, which is the column every policy filters on, and therefore
+exactly what will carry the load once the tables are real. Dropping them to
+satisfy a linter would remove the indexes that matter most.
+
+Likewise the "multiple permissive policies" warning on `company`, `products`
+and `profiles`: that is a read policy and a write policy coexisting, which is
+the intended shape.
+
+### A note on scratch tables
+
+Taking the policy snapshot meant creating a table in `public`, and Supabase's
+default privileges granted it full read and write to `anon` and `authenticated`
+the moment it existed — with no RLS. It was dropped immediately, but the lesson
+generalises: **any table created in `public`, even for five minutes, is
+world-accessible until RLS is enabled on it.** Unlike the function grants,
+this default is intentional in Supabase's model — row level security is what
+does the protecting, which is why every table here has it enabled, and why
+that is now checked rather than assumed.
 
 ## Validating a release
 

@@ -207,6 +207,32 @@ number.
 project setting rather than a migration, and should be enabled before real
 salesman accounts are issued.
 
+## Addendum 2 — database performance pass, same day
+
+The performance linter was run after the security one. Two findings were real
+and are fixed; the rest were not defects.
+
+**Thirty row-level-security policies re-evaluated `auth.uid()` for every row
+scanned.** Wrapped in a scalar subquery it is evaluated once per statement
+instead. The rewrite was generated from the catalogue rather than typed, a
+snapshot was compared before and after with the wrapper stripped back out —
+**zero policies changed meaning** — and this sprint was re-run to completion
+afterwards: 8 of 8, 43 checks, 0 failed.
+
+**Forty-three foreign keys had no covering index**, mostly on columns added in
+the last fortnight. Each now has one.
+
+Four indexes reported as "never used" were **kept deliberately**. The tables
+hold 15 to 87 rows, where Postgres chooses a sequential scan whatever indexes
+exist, so the report means *too small to need one* rather than *not needed* —
+and three of the four cover `salesman_id`, the column every policy filters on.
+
+One thing worth recording against this sprint rather than hiding: taking the
+policy snapshot required a scratch table in `public`, which Supabase's default
+privileges granted to `anon` and `authenticated` the instant it was created,
+with no row-level security. It existed for about two minutes and was dropped.
+Every table in `public` is now checked to have RLS enabled rather than assumed.
+
 ## Scope and limitations
 
 Stated plainly, because a validation note that overclaims is worse than none:
