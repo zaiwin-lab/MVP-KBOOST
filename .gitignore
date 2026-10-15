@@ -9,3 +9,6 @@ salesmanapps/_site/
 # committed: a file cannot contain its own hash.
 salesmanapps/app/.commit
 salesmanapps/.validation-commit
+
+# Screenshots written by the test suites in salesmanapps/db.
+salesmanapps/.shots/

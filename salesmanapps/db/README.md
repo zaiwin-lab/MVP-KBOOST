@@ -34,6 +34,7 @@ why, so the repository is not silent about where the data lives.
 | 21 | `function_execute_allowlist` | `public` functions denied by default; EXECUTE granted back only to what the apps call |
 | 22 | `rls_initplan_and_fk_indexes` | 30 policies evaluate `auth.uid()` once per statement instead of once per row; 43 foreign keys gain a covering index |
 | 23 | `reseller_code_collision` | Counters repaired to the highest number in use; `next_free_code()` walks past a code already taken |
+| 24 | `price_request_floor_guard` | `request_price()` and `decide_price_request()` check the product's floor price, so an approved special price cannot be one no order can use |
 
 ## The leaderboard, without a hole in row level security
 
@@ -633,6 +634,26 @@ The invariant worth remembering: **a counter must never sit below the highest
 number it has issued.** Anything that writes a coded row without going through
 `next_doc_no()` — a seed, an import, a restore — has to move the counter too.
 
+## A special price is a standing price
+
+Approving a `price_requests` row writes `customer_prices`, and that row is what
+the order screen opens at from then on. Nothing expires it. Two consequences
+are worth stating because neither is obvious from the tables:
+
+**It has to clear the floor price, and it is checked twice.** `line_total()`
+refuses any line below the product's floor, so a special price below the floor
+is a price no order can use — the salesman would be shown "below the floor
+price" on a figure the application itself had filled in for him. Migration 24
+checks the floor when the price is *asked for* and again when it is
+*approved*, because the floor can rise while a request sits waiting.
+
+**It can still drift afterwards.** Nothing stops the catalogue moving after an
+approval, so the profile compares each standing price against the product's
+current list and floor and says so in both directions: below the new floor
+(the order will be refused) and above the new list price (this outlet is
+paying more than everyone else). Neither can be prevented at write time — only
+noticed.
+
 ## Validating a release
 
 `db/validate.mjs` runs the acceptance criteria from the repository README as
@@ -659,6 +680,34 @@ It prints pass or fail per criterion and writes `validation-run.json`. The
 findings go in a dated note — see `VALIDATION-2026-10-15.md` for the shape:
 dataset, tester roles, result per criterion, defects found, and an explicit
 statement of what the run does **not** cover.
+
+### The suites in this folder
+
+All four drive the real application in a real browser through
+`db/harness.mjs`, signed in with real credentials. None holds a service-role
+key, which is the point: a test that runs as an administrator proves nothing
+about what a salesman can reach.
+
+| File | What it proves |
+|---|---|
+| `validate.mjs` | The eight acceptance criteria, as one audited cycle |
+| `api-surface.mjs` | The internal functions are unreachable from outside, and the ones the app needs still work |
+| `profile-debt.mjs` | Debt ageing and last payment agree with the ledger, and the figures open the list behind them |
+| `profile-prices.mjs` | Approved special prices match `customer_prices`, both drift warnings render, and the waiting panel matches the pending rows |
+
+`harness.mjs` reads three environment variables, so the suites are runnable
+outside the machine they were written on:
+
+```sh
+PLAYWRIGHT_MODULE=…   # path to playwright, if not resolvable from this folder
+CHROME_PATH=…         # a Chromium binary, if Playwright's own is absent
+TLS_VIA_NODE=1        # route the page's https through Node
+```
+
+The last one exists for sandboxes where Chromium cannot verify a local proxy's
+certificate authority. It performs those requests in Node, which does trust
+the bundle, rather than switching certificate checking off in the browser —
+verification stays on, it just happens one process over.
 
 ## Test data
 

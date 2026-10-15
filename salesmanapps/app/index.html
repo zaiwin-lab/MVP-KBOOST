@@ -31,7 +31,7 @@
 :root{
   --red:#E12B24; --red-d:#C21F19; --red-lo:#FDEBEA;
   --grn:#22A45D; --grn-d:#1B8A4D; --grn-lo:#E3F5EB;
-  --amb:#E08A00; --amb-lo:#FDF3E2;
+  --amb:#E08A00; --amb-lo:#FDF3E2; --amb-t:#8A5600;
   --blue:#2563EB; --blue-d:#1D4FD7;
   --rank:#2F4FD8;
   --bg:#F2F3F7; --card:#FFFFFF; --inset:#F7F8FB;
@@ -299,6 +299,32 @@ table.t .price{color:var(--red);font-weight:700}
 .agebar b{display:block;font-size:13px;font-weight:800;color:var(--red-d)}
 .agebar span{display:block;font-size:11.5px;color:var(--red-d);opacity:.85;margin-top:3px;
   line-height:1.45}
+
+/* An approved Tukar Harga, shown as the swap it is: list price struck out,
+   the standing price beside it. .drift is the warning when the prices it was
+   approved against have since moved. */
+.pprice{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
+.pprice s{color:var(--dim);font-weight:400}
+.pprice .new{color:var(--grn-d);font-weight:800;font-size:14.5px}
+.pprice .cut{background:var(--grn-lo);color:var(--grn-d);font-size:10.5px;font-weight:800;
+  padding:2px 6px;border-radius:5px}
+.drift{display:block;margin-top:5px;font-size:11.5px;color:var(--red-d);font-weight:600;
+  line-height:1.4}
+
+/* What this outlet is waiting on. Amber, because nothing is wrong — it is
+   just not answered yet, and a salesman should not promise anything on it. */
+.waitbar{display:block;width:100%;text-align:left;margin:10px 0 2px;padding:11px 13px;
+  border-radius:10px;background:var(--amb-lo);border-left:4px solid var(--amb)}
+.waitbar:active{background:#FAEBD0}
+.waitbar > b{display:block;font-size:13px;font-weight:800;color:var(--amb-t)}
+.waitbar > span{display:block;margin-top:8px;font-size:11px;color:var(--amb-t);opacity:.85;
+  line-height:1.45}
+.wrow{display:flex;gap:8px;align-items:baseline;margin-top:7px;font-size:11.5px;
+  color:var(--amb-t);line-height:1.4}
+.wrow .k{flex:none;width:72px;font-size:10px;font-weight:800;letter-spacing:.04em;
+  text-transform:uppercase}
+.wrow .v{flex:1;min-width:0}
+.wrow .d{flex:none;opacity:.8;white-space:nowrap}
 
 /* The due date under an outstanding invoice, in the chase list. */
 .row .due{margin-top:7px;font-size:11.5px;color:var(--dim)}
@@ -832,6 +858,74 @@ function lastPayOf(custId) {
   return PAYS().filter(p => p.customer_id === custId)
     .sort((a, b) => new Date(b.paid_at) - new Date(a.paid_at))[0] || null;
 }
+
+/* An approved Tukar Harga is a standing price: it overrides the list price on
+   every future order for this outlet and nothing expires it. Worth showing on
+   the profile, and worth checking — the list and floor prices it was approved
+   against can move afterwards, and then the standing price is either
+   unusable (below the new floor, which the posting function refuses) or worse
+   for the shop than the list price every other outlet gets. */
+function pricesOf(custId) {
+  const rows = DB.custPrices.filter(x => x.customer_id === custId).map(x => {
+    /* The catalogue is loaded active-only, so a missing product means the
+       product was withdrawn and this standing price is dead weight. */
+    const p = DB.products.find(q => q.id === x.product_id);
+    if (!p) return { gone: true };
+    const price = +x.price, list = +p.price, floor = +p.floor_price;
+    return { p, price, list, floor, at: x.set_at, by: x.set_by,
+      cut: list > 0 ? (list - price) / list * 100 : 0,
+      underFloor: price < floor - 0.0001,
+      overList:   price > list + 0.0001 };
+  });
+  return { live: rows.filter(x => !x.gone)
+                     .sort((a, b) => a.p.name.localeCompare(b.p.name)),
+           gone: rows.filter(x => x.gone).length };
+}
+
+/* The latest refused price per product, while it is still recent. A refusal
+   is as useful at the counter as an approval — it stops him promising a price
+   the office has already said no to — and the reason is the whole answer. A
+   later approval supersedes it, which is why set_at is compared rather than
+   just checking whether an approved price exists. */
+function refusedPrices(custId) {
+  const now = Date.now();
+  const sup = pid => DB.custPrices.find(x => x.customer_id === custId && x.product_id === pid);
+  return DB.priceReqs
+    .filter(r => r.customer_id === custId && r.status === "rejected" && r.decided_at)
+    .filter(r => now - new Date(r.decided_at) < 60 * 864e5)
+    .filter(r => { const a = sup(r.product_id);
+                   return !a || new Date(a.set_at) < new Date(r.decided_at); })
+    .sort((a, b) => new Date(b.decided_at) - new Date(a.decided_at))
+    .filter((r, i, all) => all.findIndex(x => x.product_id === r.product_id) === i);
+}
+
+/* What this outlet is waiting on, filtered by outlet rather than by person.
+   Permohonan Saya answers "what did I ask for"; this answers "what is in
+   flight on this shop", which is the question standing outside it — and a
+   manager opening the profile should see it too. Row-level security still
+   limits a salesman to his own rows, so this widens the reading, not the
+   access. A stock request is not here: it belongs to a van, not to a shop. */
+function waitingOn(custId) {
+  const out = [];
+  DB.priceReqs.filter(r => r.customer_id === custId && r.status === "pending")
+    .forEach(r => out.push({ k: "Tukar Harga", at: r.requested_at,
+      v: `${prodOf(r.product_id).name} · ${RM(r.old_price)} → ${RM(r.new_price)}` }));
+  DB.creditNotes.filter(r => r.customer_id === custId && r.status === "pending")
+    .forEach(r => { const inv = DB.invoices.find(v => v.id === r.invoice_id);
+      out.push({ k: "Credit Note", at: r.requested_at,
+        v: [RM(r.amount), inv ? inv.doc_no : "", r.reason].filter(Boolean).join(" · ") }); });
+  DB.payments.filter(p => p.customer_id === custId && !p.approved_at && !p.rejected_at)
+    .forEach(p => { const inv = DB.invoices.find(v => v.id === p.invoice_id);
+      out.push({ k: "Bayaran", at: p.paid_at,
+        v: [RM(p.amount), METH[p.method] || p.method, inv ? inv.doc_no : ""]
+             .filter(Boolean).join(" · ") }); });
+  /* Longest wait first: that is the one to chase. */
+  return out.sort((a, b) => new Date(a.at) - new Date(b.at));
+}
+const waitedDays = at => {
+  const n = Math.floor((dOnly(new Date()) - dOnly(new Date(at))) / 864e5);
+  return n <= 0 ? "hari ini" : `${N(n)} hari`;
+};
 const TERM = { consign: "Konsainan", biltobil: "Bill To Bil", cash: "Tunai" };
 /* Our three invoice states, in his words and his colours. He also shows
    "Pending Acc Approval", which is an approval step we have no workflow for —
@@ -1509,6 +1603,9 @@ function custGeneral(c) {
   const d = debtOf(c.id);
   const owed = d.owed;
   const lastPay = lastPayOf(c.id);
+  const px = pricesOf(c.id);
+  const refused = refusedPrices(c.id);
+  const wait = waitingOn(c.id);
   const sales = INVS().filter(v => v.customer_id === c.id)
     .reduce((a, v) => a + +v.total, 0);
   const lastDoc = [].concat(
@@ -1555,6 +1652,19 @@ function custGeneral(c) {
       <span>Yang paling lama sudah ${N(d.oldest)} hari melepasi tarikh perlu jelas.
         Tekan untuk melihatnya.</span></button>` : ""}
 
+    ${wait.length ? (isMgmt() ? `<div class="waitbar">`
+                              : `<button class="waitbar" data-a="alerts">`) +
+      `<b>${N(wait.length)} perkara menunggu keputusan pejabat</b>
+       ${wait.map(w => `<div class="wrow"><span class="k">${esc(w.k)}</span>
+         <span class="v">${esc(w.v)}</span>
+         <span class="d">${esc(waitedDays(w.at))}</span></div>`).join("")}
+       <span>${isMgmt()
+         ? "Keputusan dibuat pada tab Kelulusan."
+         : `Pejabat belum menjawab. Apa yang berkuat kuasa sekarang kekal sehingga
+            ia dijawab, jadi jangan janjikan apa-apa kepada kedai ini atas
+            permohonan yang masih menunggu. Tekan untuk Permohonan Saya.`}</span>`
+      + (isMgmt() ? `</div>` : `</button>`) : ""}
+
     ${sec("Hubungi")}
     ${row(I.user, "Telefon", c.phone ? esc(c.phone) : "",
       (c.phone ? dial(c.phone) : "") + (c.phone && !c.whatsapp ? wa(c.phone) : ""))}
@@ -1594,6 +1704,34 @@ function custGeneral(c) {
            lastPay.approved_at ? "" : " · belum disahkan pejabat"}</span>`
       : `<span style="color:var(--dim)">Belum pernah membayar</span>`)}
 
+    ${sec("Harga Khas")}
+    ${px.live.map(x => row(I.dollar, x.p.name,
+      `<span class="pprice"><s>${RM(x.list)}</s><b class="new">${RM(x.price)}</b>
+         ${x.cut > 0.05 ? `<span class="cut">&minus;${x.cut.toFixed(1)}%</span>` : ""}</span>
+       <span class="sub">Diluluskan ${esc(fShort(new Date(x.at)))}${
+         smOf(x.by).name !== "—" ? " · " + esc(smOf(x.by).name) : ""}</span>
+       ${x.underFloor ? `<span class="drift">Harga lantai produk ini kini
+         ${RM(x.floor)}, lebih tinggi daripada harga khas ini — order pada harga ini
+         akan ditolak. Pejabat perlu meluluskannya semula.</span>` : ""}
+       ${x.overList ? `<span class="drift">Harga senarai kini ${RM(x.list)}, lebih murah
+         daripada harga khas ini. Kedai ini membayar lebih daripada kedai lain.</span>`
+         : ""}`)).join("")}
+    ${px.live.length ? "" : row(I.dollar, "Tiada",
+      `<span style="color:var(--dim)">Tiada harga khas diluluskan untuk kedai ini.
+        Order dibuka pada harga senarai.</span>`)}
+    ${px.gone ? row(null, "Lain",
+      `<span style="color:var(--dim)">${N(px.gone)} harga khas untuk produk yang tidak
+        lagi dalam katalog. Ia tidak digunakan pada order.</span>`) : ""}
+    ${refused.map(r => row(I.note, "Ditolak",
+      `<b>${esc(prodOf(r.product_id).name)}</b> &mdash; ${RM(r.new_price)} tidak diluluskan
+       <span class="sub">${esc(fShort(new Date(r.decided_at)))}${r.decide_note
+         ? " · " + esc(r.decide_note) : ""}</span>`)).join("")}
+    ${row(I.swap, "Mohon", `<span style="color:var(--dim)">Untuk kedai ini sahaja</span>`,
+      `<button class="sbtn" data-a="mohon" data-id="${c.id}">Mohon</button>`)}
+    <p class="hint" style="margin:10px 0 0">Harga khas yang diluluskan adalah
+      <b>harga tetap</b> untuk kedai ini: setiap order akan dibuka pada harga itu
+      sehingga pejabat menukarnya semula. Ia tidak luput sendiri.</p>
+
     ${sec("Terma & Servis")}
     ${row(I.swap, "Terma", `<b>${esc(TERM[c.term] || c.term)}</b>${c.term !== "cash" && c.term_months
       ? `<span class="sub">Perlu jelas dalam ${N(c.term_months)} bulan</span>` : ""}`)}
@@ -1603,8 +1741,6 @@ function custGeneral(c) {
     ${row(I.list, "Service Month", `<b>${months}</b> bulan`,
       `<button class="sbtn" data-a="svcedit" data-id="${c.id}"
         data-v="${months}">${ic(I.edit)}</button>`)}
-    ${row(I.dollar, "Tukar Harga", `<span style="color:var(--dim)">Mohon harga khas</span>`,
-      `<button class="sbtn" data-a="mohon" data-id="${c.id}">Mohon</button>`)}
     ${row(null, "Didaftar", c.registered_at ? esc(fLong(new Date(c.registered_at))) : "")}
 
     ${sec("Stok Di Kedai")}
@@ -3720,7 +3856,8 @@ const A = {
         <p style="margin:0 0 14px;font-size:13.5px;color:var(--mut)">${esc(c.name)}</p>
         <div class="f"><label for="mp">Produk</label>
           <select id="mp">${DB.products.map(p => `<option value="${p.id}"
-            data-cur="${price(p)}">${esc(p.name)} — ${RM(price(p))}</option>`).join("")}</select></div>
+            data-cur="${price(p)}" data-floor="${p.floor_price}">${esc(p.name)} —
+            ${RM(price(p))} · lantai ${(+p.floor_price).toFixed(2)}</option>`).join("")}</select></div>
         <div class="f"><label for="mn">Harga Dipohon (RM)</label>
           <input id="mn" type="number" step="0.01" min="0.01" inputmode="decimal"
             placeholder="0.00"></div>
@@ -3736,6 +3873,11 @@ const A = {
     const note = (($("#mr") || {}).value || "").trim();
     if (!prod) return toast("Pilih produk.", "bad");
     if (!(price > 0)) return toast("Masukkan harga yang dipohon.", "bad");
+    /* The floor is enforced in the database for a price request as well as an
+       order, so a request below it would be refused after the round trip. */
+    const pr = DB.products.find(x => x.id === prod);
+    if (pr && price < +pr.floor_price - 0.0001)
+      return toast(`${pr.name}: harga lantai ${RM(pr.floor_price)}.`, "bad");
     el.textContent = "Menghantar…"; el.disabled = true;
     const { error } = await sb.rpc("request_price",
       { p_customer: el.dataset.id, p_product: prod, p_price: price, p_note: note || null });
@@ -4182,6 +4324,8 @@ function friendly(m) {
   if (s.includes("reason is required to blacklist")) return "Beri sebab ringkas kenapa kedai ini dikeluarkan.";
   if (s.includes("a tin looks like")) return "Format TIN tidak betul. Contoh: C1234567890 — satu atau dua huruf, kemudian 9 hingga 13 digit.";
   if (s.includes("service month must be")) return "Service month mesti antara 1 dan 12 bulan.";
+  if (s.includes("below the floor price")) return "Harga itu di bawah harga lantai produk ini.";
+  if (s.includes("already waiting")) return "Permohonan harga untuk produk ini masih menunggu keputusan pejabat.";
   return m;
 }
 

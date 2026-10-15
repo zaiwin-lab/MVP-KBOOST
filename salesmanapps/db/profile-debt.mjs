@@ -1,5 +1,8 @@
 /* Debt ageing, last payment, and the figures that open the list behind them. */
 import { browser, page } from './harness.mjs';
+/* Screenshots are evidence of a run, not part of the repository. */
+import { mkdirSync } from 'node:fs';
+mkdirSync('.shots', { recursive: true });
 const b = await browser();
 const pg = await page(b, { width: 390, height: 844 });
 const errs = [], fails = [];
@@ -57,7 +60,7 @@ check('it is the real last payment', await pg.evaluate(() => {
   const all = PAYS().filter(x => x.customer_id === cur().id);
   return !!p && all.every(x => new Date(x.paid_at) <= new Date(p.paid_at));
 }), true);
-await pg.screenshot({ path: 'a-prof.png', fullPage: true });
+await pg.screenshot({ path: '.shots/a-prof.png', fullPage: true });
 
 console.log('\n=== the Hutang figure opens the chase list ===');
 await pg.locator('.pstat button').first().click(); await pg.waitForTimeout(1400);
@@ -72,7 +75,7 @@ check('late ones are marked', await pg.locator('.row .due.late').count(), truth.
 const order = await pg.locator('.row .due').allInnerTexts();
 ok('first row', order[0].replace(/\s+/g, ' '));
 check('oldest first', /^Lewat/.test(order[0]), true);
-await pg.screenshot({ path: 'a-chase.png', fullPage: true });
+await pg.screenshot({ path: '.shots/a-chase.png', fullPage: true });
 
 console.log('\n=== the sales figure opens the full history ===');
 await pg.click('[data-a="csub"][data-v="general"]'); await pg.waitForTimeout(1200);
@@ -112,7 +115,7 @@ check('customer name not repeated per row', await pg.evaluate(() =>
 check('each row names its document', await pg.evaluate(() =>
   [...document.querySelectorAll('.row .code')].every(e => /^(INV|SO)\d{6}$/.test(e.textContent.trim()))), true);
 ok('first row', (await T('.row')).slice(0, 80));
-await pg.screenshot({ path: 'a-chase2.png', fullPage: true });
+await pg.screenshot({ path: '.shots/a-chase2.png', fullPage: true });
 
 console.log('\n=== the other two lists keep their customer names ===');
 /* vSales, vHutang and custInvois render near-identical rows. Changing the one

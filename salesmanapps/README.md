@@ -65,7 +65,7 @@ signal is thrown back to a login screen he cannot possibly get past.
 | List Hutang | Outstanding invoices, oldest first, with the total owed |
 | Kesimpulan | Date range, Wang Terima split by payment method, Qty Jualan and Stok Terkini per product |
 | Reseller | Searchable list, and a profile with his four tabs — General, Sejarah Invois, Galeri, Kerja Harian |
-| Customer Profile | Everything registration collects, grouped and only shown when it exists: three figures at the top (outstanding, lifetime sales, last dealing), every phone number with its own dial and WhatsApp button, email, the person in charge and their IC, full address with coordinates and their accuracy, opening hours and closed days, SSM name and number, TIN, payment term and months, credit limit with a warning when the debt exceeds it, service month, registration date, and the consignment stock on the shelf |
+| Customer Profile | Everything registration collects, grouped and only shown when it exists: three figures at the top (outstanding, lifetime sales, last dealing) with the first two tappable, an ageing bar when anything is overdue, a panel of what the outlet is waiting on, the last payment actually taken, the approved special prices, every phone number with its own dial and WhatsApp button, email, the person in charge and their IC, full address with coordinates and their accuracy, opening hours and closed days, SSM name and number, TIN, payment term and months, credit limit with a warning when the debt exceeds it, service month, registration date, and the consignment stock on the shelf |
 | Galeri | The five registration photograph types, read through the signed-URL edge function |
 | Kelulusan (office) | The management side: payments, price requests, credit notes and stock requests waiting on a decision, each with Lulus / Tolak. Signing in as management swaps the tab bar — no van, so no Stok or GPS |
 | Sejarah Kelulusan (office) | Every decision the office has made, newest first, searchable — including the documents it cancelled, and who decided each one |
@@ -438,6 +438,66 @@ criticised in Coach Aril's design.
 The credit limit shows **Hutang melebihi had** in red when the outstanding
 balance is over it, which is the one thing on the screen that should stop a
 salesman writing another order.
+
+## What the profile answers now
+
+Three readings were added to it after the fields, because the fields alone
+answer *who this shop is* and not *what to do about it*.
+
+**How old the debt is.** One total answers "how much"; a salesman at the
+counter also needs "how old", because an invoice thirty days past its due date
+is a different conversation from one raised yesterday. A red bar appears when
+anything is overdue, naming how many invoices, how much, and how long the
+worst one has been late. Tapping it opens exactly those invoices, **oldest
+first**, each carrying its due date and how late it is — the order they should
+be chased in.
+
+**When they last actually paid.** Separate from *Urusan terakhir*, which
+counts an order. An order says they wanted stock; a payment says they settle.
+The row names the amount, the method, the date, and whether the office has
+confirmed it yet.
+
+**What the outlet is waiting on.** An amber panel listing every price request,
+credit note and collection on this shop that the office has not answered,
+longest wait first, with how many days each has waited. It is filtered by
+*outlet* rather than by person — Permohonan Saya answers "what did I ask for",
+this answers "what is in flight on this shop" — so a manager opening the
+profile sees it too. Row-level security still limits a salesman to his own
+rows, so this widens the reading, not the access. A stock request is not in
+it: that belongs to a van, not to a shop.
+
+### Approved special prices, and the two ways they go wrong
+
+An approved **Mohon Tukar Harga** writes a standing price for that outlet, and
+the order screen opens at it from then on. Nothing expires it. It was visible
+nowhere except as a small green *Harga diluluskan* label once an order was
+already being written.
+
+The profile now has a **Harga Khas** section: each standing price with the
+list price struck through beside it, the discount, and who approved it when.
+An outlet with none says so, rather than showing an empty section.
+
+Two checks come with it, because a price approved months ago is compared
+against a catalogue that has since moved:
+
+- **Below the new floor.** `line_total()` refuses any line under the product's
+  floor price, so this is a standing price no order can use — and the salesman
+  would be shown *below the floor price* on a figure the app itself filled in.
+  The row says so and says the office must approve it again.
+- **Above the new list price.** The special price is now worse than the price
+  every other outlet gets, and the order screen would still open at it. The
+  row says the shop is paying more.
+
+Neither can be prevented at write time, only noticed. What *can* be prevented
+is creating an unusable one in the first place, and that was a real gap:
+nothing checked a price request against the floor at all. Migration 24 checks
+it when the price is asked for and again when it is approved — twice, because
+the floor can rise while a request sits waiting — and the app checks it before
+the request leaves the phone so the answer is immediate and in Malay.
+
+A refused price is shown too, with the office's reason, for sixty days or until
+a later approval supersedes it. A refusal is as useful at the counter as an
+approval: it stops him promising a price the office has already said no to.
 
 ## The nine buttons that said "coming soon"
 
