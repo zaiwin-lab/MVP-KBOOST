@@ -23,6 +23,9 @@ printf '%s' "$REF" > app/.commit
 rm -rf _site
 mkdir -p _site/share _site/app
 cp index.html playbook.html og.png favicon.svg robots.txt sitemap.xml _site/
+# Headers and redirects travel with the files, so a folder dragged onto
+# Netlify's deploy page gets them too -- it never reads netlify.toml.
+cp _headers _redirects _site/
 cp share/index.html _site/share/
 cp app/index.html app/sw.js app/manifest.webmanifest _site/app/
 cp app/icon-192.png app/icon-512.png app/icon-maskable.png _site/app/

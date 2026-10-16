@@ -20,6 +20,7 @@
   command = """
     mkdir -p _site/share _site/app && \
     cp index.html playbook.html og.png favicon.svg robots.txt sitemap.xml _site/ && \
+    cp _headers _redirects _site/ && \
     cp share/index.html _site/share/ && \
     cp app/index.html app/sw.js app/manifest.webmanifest _site/app/ && \
     cp app/icon-192.png app/icon-512.png app/icon-maskable.png _site/app/ && \
@@ -30,41 +31,12 @@
   """
   publish = "_site"
 
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "SAMEORIGIN"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-
-# Long cache for the social image — it is content-addressed by the ?v= query
-# the meta tags carry, so a new image means a new query string.
-[[headers]]
-  for = "/og.png"
-  [headers.values]
-    Cache-Control = "public, max-age=604800"
-
-# The installable app lives under /app/. Two headers there are not cosmetic.
+# Headers and redirects are NOT declared here. They live in `_headers` and
+# `_redirects`, which the build above copies into the published folder.
 #
-# The service worker must never be cached. If a phone holds an old sw.js, it
-# keeps serving an old shell and a deploy never reaches the salesman — the one
-# failure mode of an installed app that the user cannot clear themselves.
-[[headers]]
-  for = "/app/sw.js"
-  [headers.values]
-    Cache-Control = "no-cache"
-    Service-Worker-Allowed = "/app/"
-
-# Netlify serves an unknown extension as octet-stream, and a manifest served
-# that way is ignored, which means no install prompt and no home-screen icon.
-[[headers]]
-  for = "/app/manifest.webmanifest"
-  [headers.values]
-    Content-Type = "application/manifest+json"
-    Cache-Control = "no-cache"
-
-# The proposal page was renamed to the playbook; keep the old link alive.
-[[redirects]]
-  from = "/proposal.html"
-  to = "/playbook.html"
-  status = 301
+# The reason is that netlify.toml is only read on a Netlify build. A folder
+# dragged onto Netlify's deploy page ignores it, so anything declared here
+# alone disappears on a manual deploy — including the no-cache on `sw.js`,
+# which is the one failure mode an installed phone cannot clear by itself.
+# Keeping them in the files that travel with the site means both routes
+# publish the same thing.

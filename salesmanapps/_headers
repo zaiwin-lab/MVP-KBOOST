@@ -1,0 +1,30 @@
+# Response headers, in Netlify's file format rather than in netlify.toml.
+#
+# This file is the single source: netlify.toml copies it into _site on a
+# Netlify build, and deploy.sh copies it on a local one. A folder dragged onto
+# Netlify's deploy page never reads netlify.toml, so headers written only
+# there would silently vanish on a manual deploy -- and two of the ones below
+# are not cosmetic.
+
+/*
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# Content-addressed by the ?v= query the social meta tags carry, so a new
+# image means a new query string.
+/og.png
+  Cache-Control: public, max-age=604800
+
+# The service worker must never be cached. If a phone holds an old sw.js it
+# keeps serving an old shell and a deploy never reaches the salesman -- the one
+# failure mode of an installed app that the user cannot clear themselves.
+/app/sw.js
+  Cache-Control: no-cache
+  Service-Worker-Allowed: /app/
+
+# Netlify serves an unknown extension as octet-stream, and a manifest served
+# that way is ignored: no install prompt and no home-screen icon.
+/app/manifest.webmanifest
+  Content-Type: application/manifest+json
+  Cache-Control: no-cache
