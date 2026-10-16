@@ -679,7 +679,16 @@ node db/validate.mjs                        # with the app served on :8901
 It prints pass or fail per criterion and writes `validation-run.json`. The
 findings go in a dated note — see `VALIDATION-2026-10-15.md` for the shape:
 dataset, tester roles, result per criterion, defects found, and an explicit
-statement of what the run does **not** cover.
+statement of what the run does **not** cover. `VALIDATION-2026-10-16.md` is
+the most recent run, against commit `0e2908e`.
+
+**A suite must own the data it asserts on.** The database is also a live demo
+that people click through; a suite leaning on whatever happens to be pending
+is measuring the demo set, not the software, and will fail for reasons that
+have nothing to do with the build. That happened on 16 October, when the
+office queue was cleared between two runs. Create what you assert on and
+dispose of it, or — for rows that only need to be *drawn* — inject them into
+the loaded data in the page and redraw, which touches nothing.
 
 ### The suites in this folder
 

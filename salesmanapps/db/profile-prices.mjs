@@ -80,14 +80,40 @@ check('and is labelled as approved', /Harga diluluskan/.test(await T('.block')),
 await pg.click('.bk, [data-a="back"]').catch(() => {}); await pg.waitForTimeout(1200);
 
 /* ---------------------------------------------------------------------- 5 */
+/* This section used to lean on whatever happened to be pending in the demo
+   data, and a person clearing the office queue broke it -- which is a fault in
+   the test, not in the screen. It now raises its own request through the real
+   function, asserts, and removes it again. Rows it only needs to *draw* are
+   injected into the loaded data in the page instead, so no fixture has to
+   survive somebody else using the app. */
 console.log('\n=== what the outlet is waiting on ===');
+await open('Pasar Mini Abadi');
+
+const made = await pg.evaluate(async () => {
+  const c = cur().id;
+  /* A product with no request already waiting on it -- request_price refuses
+     a second one -- asked for at a price that clears the floor. */
+  const busy = DB.priceReqs.filter(r => r.customer_id === c && r.status === 'pending')
+                           .map(r => r.product_id);
+  const p = DB.products.find(q => !busy.includes(q.id) && +q.floor_price > 0);
+  /* Three percent off, but never under the floor -- the function refuses that
+     now, and this test is about the panel, not about the guard. */
+  const want = +Math.max(+p.floor_price, +p.price * 0.97).toFixed(2);
+  const { data, error } = await sb.rpc('request_price',
+    { p_customer: c, p_product: p.id, p_price: want, p_note: 'ujian automatik' });
+  return { id: data && data.request_id, product: p.id, name: p.name, want,
+           err: error ? error.message : null };
+});
+check('a price request can be raised', made.err, 'null');
+ok('raised', `${made.name} @ ${made.want}`);
+
+await pg.reload({ waitUntil: 'load' }); await pg.waitForTimeout(9000);
 await open('Pasar Mini Abadi');
 check('waiting panel shown', await pg.locator('.waitbar').count(), 1);
 check('it is tappable for a salesman', await pg.locator('button.waitbar').count(), 1);
 ok('panel', await T('.waitbar'));
 const wt = await pg.evaluate(() => {
-  const w = waitingOn(cur().id);
-  const c = cur().id;
+  const c = cur().id; const w = waitingOn(c);
   return { n: w.length, kinds: w.map(x => x.k),
     realPrice: DB.priceReqs.filter(r => r.customer_id === c && r.status === 'pending').length,
     realCn: DB.creditNotes.filter(r => r.customer_id === c && r.status === 'pending').length,
@@ -97,7 +123,9 @@ const wt = await pg.evaluate(() => {
 check('count matches the pending rows', wt.n, wt.realPrice + wt.realCn + wt.realPay);
 check('rows in the panel match the count', await pg.locator('.wrow').count(), wt.n);
 check('longest wait first', wt.sorted, true);
-check('a pending price request is listed', wt.kinds.includes('Tukar Harga'), true);
+check('the request just raised is listed', wt.kinds.includes('Tukar Harga'), true);
+check('the panel names the product asked about',
+  (await T('.waitbar')).includes(made.name), true);
 check('each row says how long it has waited',
   (await ALL('.wrow .d')).split('|').every(s => /hari/.test(s)), true);
 check('it does not list stock requests', wt.kinds.includes('Request Stok'), false);
@@ -106,19 +134,72 @@ await pg.screenshot({ path: '.shots/b-prices.png', fullPage: true });
 console.log('\n--- tapping it opens Permohonan Saya ---');
 await pg.click('button.waitbar'); await pg.waitForTimeout(1500);
 check('Permohonan Saya opened', /Permohonan Saya/i.test(await T('body')), true);
-await open('Kedai Maju');
 
-console.log('\n--- an outlet with a refused price and a payment in the air ---');
-const kt = await pg.evaluate(() => ({
-  refused: refusedPrices(cur().id).length,
-  wait: waitingOn(cur().id).map(x => x.k),
-}));
-check('a refusal is shown at the counter', kt.refused >= 1, true);
+console.log('\n--- and the panel is gone once nothing is waiting ---');
+/* Removed through the app's own client, under the same policy that let him
+   raise it -- no service-role key, and nothing left behind in the queue. */
+const gone = await pg.evaluate(async id => {
+  const del = await sb.from('price_requests').delete().eq('id', id);
+  const left = await sb.from('price_requests').select('id').eq('id', id);
+  return { err: del.error ? del.error.message : null, rows: (left.data || []).length };
+}, made.id);
+check('the test request is deleted', gone.err, 'null');
+check('and no longer in the table', gone.rows, 0);
+await pg.reload({ waitUntil: 'load' }); await pg.waitForTimeout(9000);
+await open('Pasar Mini Abadi');
+check('no panel when nothing is waiting', await pg.evaluate(() =>
+  waitingOn(cur().id).length === document.querySelectorAll('.wrow').length), true);
+
+console.log('\n--- all three kinds draw, and a refusal carries its reason ---');
+/* Drawn from injected rows rather than real ones: a credit note and an
+   unconfirmed payment cannot be fabricated without moving real money, and the
+   office may clear either at any moment. The refusal rules are asserted by
+   identity, not by a count, because the live data contributes refusals too. */
+const drawn = await pg.evaluate(() => {
+  const c = cur().id;
+  const mine = q => DB.custPrices.some(x => x.customer_id === c && x.product_id === q.id);
+  const free = DB.products.filter(q => !mine(q));
+  const owned = DB.products.find(mine);
+  const appr = DB.custPrices.find(x => x.customer_id === c && x.product_id === owned.id);
+  const inv = DB.invoices.find(v => v.customer_id === c) || { id: 'x', doc_no: 'INV000000' };
+  const day = n => new Date(Date.now() - n * 864e5).toISOString();
+
+  DB.priceReqs.push({ id: 't1', customer_id: c, product_id: free[0].id, status: 'pending',
+    old_price: 9.9, new_price: 8.8, requested_at: day(4) });
+  DB.creditNotes.push({ id: 't2', customer_id: c, invoice_id: inv.id, status: 'pending',
+    amount: 25, reason: 'Barang rosak', requested_at: day(2) });
+  DB.payments.push({ id: 't3', customer_id: c, invoice_id: inv.id, amount: 40,
+    method: 'tunai', paid_at: day(1), approved_at: null, rejected_at: null });
+
+  /* One refusal per product, so each exclusion rule is tested on its own
+     rather than being masked by the one-per-product rule. */
+  DB.priceReqs.push({ id: 't4', customer_id: c, product_id: free[0].id, status: 'rejected',
+    old_price: 9.9, new_price: 7.7, decided_at: day(3),
+    decide_note: 'Terlalu rendah untuk kedai ini' });
+  DB.priceReqs.push({ id: 't5', customer_id: c, product_id: free[1].id, status: 'rejected',
+    old_price: 9.9, new_price: 7.0, decided_at: day(90), decide_note: 'Sudah lama' });
+  /* Refused before the standing price was approved, so the approval answers
+     it and it should not reappear at the counter. */
+  const before = new Date(new Date(appr.set_at).getTime() - 864e5).toISOString();
+  DB.priceReqs.push({ id: 't6', customer_id: c, product_id: owned.id, status: 'rejected',
+    old_price: 9.9, new_price: 6.5, decided_at: before, decide_note: 'Sebelum diluluskan' });
+  draw();
+  const ids = refusedPrices(c).map(r => r.id);
+  return { kinds: waitingOn(c).map(x => x.k),
+           recent: ids.includes('t4'), old: ids.includes('t5'), superseded: ids.includes('t6') };
+});
+check('all three kinds are listed', drawn.kinds.join(','), 'Tukar Harga,Credit Note,Bayaran');
+check('longest wait first', (await ALL('.wrow .k')).startsWith('TUKAR HARGA'), true);
+check('the credit note names its reason', /Barang rosak/.test(await T('.waitbar')), true);
+check('a recent refusal is kept', drawn.recent, true);
+check('one older than 60 days is dropped', drawn.old, false);
+check('one answered by a later approval is dropped', drawn.superseded, false);
 check('the refusal row is on the profile', /Ditolak/.test(await T('.pcard')), true);
-ok('refusal', (await T('.prow:has-text("Ditolak")')) || '?');
-check('the office reason is carried with it',
-  /Harga lantai tidak boleh dilanggar/.test(await T('.pcard')), true);
-check('an unconfirmed payment is waiting', kt.wait.includes('Bayaran'), true);
+check('and carries the office reason',
+  /Terlalu rendah untuk kedai ini/.test(await T('.pcard')), true);
+check('the old refusal is not shown', /Sudah lama/.test(await T('.pcard')), false);
+check('the superseded one is not shown', /Sebelum diluluskan/.test(await T('.pcard')), false);
+await pg.reload({ waitUntil: 'load' }); await pg.waitForTimeout(9000);
 
 /* -------------------------------------------------------------- the drift */
 console.log('\n=== drift: the prices it was approved against have moved ===');
@@ -188,6 +269,15 @@ await pg.reload({ waitUntil: 'load' }); await pg.waitForTimeout(3000);
 await pg.fill('#em', 'manager@salesportal.demo'); await pg.fill('#pw', 'portal2026');
 await pg.click('#go'); await pg.waitForTimeout(13000);
 await open('Pasar Mini Abadi');
+/* The office queue is a live screen that somebody may have just cleared, so
+   the panel is given a row to draw rather than borrowed from the queue. */
+await pg.evaluate(() => {
+  DB.priceReqs.push({ id: 'o1', customer_id: cur().id, product_id: DB.products[0].id,
+    status: 'pending', old_price: 9.9, new_price: 8.8,
+    requested_at: new Date(Date.now() - 3 * 864e5).toISOString() });
+  draw();
+});
+await pg.waitForTimeout(500);
 check('the office sees the waiting panel', await pg.locator('.waitbar').count(), 1);
 check('but it is not a button for them', await pg.locator('button.waitbar').count(), 0);
 check('it points at the Kelulusan tab', /tab Kelulusan/.test(await T('.waitbar')), true);
