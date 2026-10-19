@@ -784,11 +784,22 @@ The data since then is about ten weeks of a five-salesman round, and it is
 maintained so that opening either login shows a working day rather than an
 empty screen:
 
-- **The office queue is never empty.** It is meant to hold collections awaiting
+- **The office queue is never empty.** It holds collections awaiting
   confirmation, price requests, a credit note and stock requests, spread across
-  four salesmen so it reads like a team rather than one man. Working through it
-  for real empties it, which is fine — but top it up before a demo rather than
-  opening on a blank screen.
+  all five salesmen so it reads like a team rather than one man. Working through
+  it for real empties it, which is fine — but top it up before a demo rather
+  than opening on a blank screen. A good shape is around nine items: four
+  collections, two price requests, one credit note, two stock requests.
+
+  **Refill it by raising each item the way a salesman would** — `post_payment`,
+  `request_price`, `request_credit_note`, `request_stock`, signed in as the
+  salesman who owns that outlet — never by inserting rows. An inserted row can
+  be inconsistent with the ledger behind it in ways the screens will happily
+  show: a collection with no receipt, a price request whose `old_price` never
+  matched, a credit note on an invoice that cannot carry one. Raising it
+  through the function is also the only way the demo stays reconcilable, which
+  is the thing worth demonstrating. Keep collections **partial**, so the debt
+  ageing on the reseller profile still has something to show.
 - **Nothing the acceptance sprint creates may be left in it.** The sprint takes
   two real payments per run, and they used to stay in the approval queue
   afterwards: eight accumulated over four runs in one morning, every one a
