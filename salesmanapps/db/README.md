@@ -825,6 +825,22 @@ empty screen:
   through the function is also the only way the demo stays reconcilable, which
   is the thing worth demonstrating. Keep collections **partial**, so the debt
   ageing on the reseller profile still has something to show.
+- **Refer & Earn has one referral per salesman, in three different states.**
+  Three recorded but not yet registered, one registered and waiting on its
+  first settled invoice, and one verified with the commission earned — 5% of
+  `INV000092`, which the referral now names. All five were raised through
+  `add_referral`, and the two linked ones through the ordinary registration
+  flow, so the dates read in the right order: a shop is introduced before it is
+  registered.
+
+  Worth knowing, because it misled me: the **portal ships seven simulated
+  referrals** and shows those until somebody signs in through its own login
+  form, at which point `loadLive()` replaces them with the real rows. So the
+  screen never looked empty while the table was. Signing in with
+  `sb.auth.signInWithPassword` from a console is not enough — it sets a session
+  but never calls `loadLive()`, so `LIVE()` stays false and the simulated set
+  remains.
+
 - **Nothing the acceptance sprint creates may be left in it.** The sprint takes
   two real payments per run, and they used to stay in the approval queue
   afterwards: eight accumulated over four runs in one morning, every one a
