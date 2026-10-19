@@ -37,6 +37,7 @@ why, so the repository is not silent about where the data lives.
 | 24 | `price_request_floor_guard` | `request_price()` and `decide_price_request()` check the product's floor price, so an approved special price cannot be one no order can use |
 | 25 | `customer_coords_source` | `customers.coords_source`, backfilled, so the profile can say whether a pin is a device fix or an estimate |
 | 26 | `register_customer_sets_coords_source` | `register_customer()` stamps the source itself rather than taking the client's word for it |
+| 27 | `not_found_is_not_a_server_error` | 26 functions raised `P0002` for "not found", which PostgREST returns as HTTP 500; they now raise `PT404` |
 
 ## The leaderboard, without a hole in row level security
 
@@ -675,6 +676,35 @@ provenance the server does not already know, and a provenance field sent by a
 client is a claim rather than a fact. Anything that writes `lat`/`lng` by some
 other route in future has to set this column too, or the profile will say the
 source was never recorded -- which is at least true.
+
+## What a refusal should look like on the wire
+
+PostgREST turns a raised exception into an HTTP status by its SQLSTATE, so the
+errcode is not decoration -- it is the status the salesman's phone receives.
+The ones this schema uses:
+
+| errcode | HTTP | Use it for |
+|---|---|---|
+| `22023` | 400 | The caller sent something invalid -- a missing quantity, no lines |
+| `P0001` | 400 | A business rule says no -- over the balance, below the floor, already decided |
+| `42501` | 403 | The caller is not allowed -- another salesman's outlet, management only |
+| `PT404` | 404 | The thing is not there -- unknown product, outlet not found |
+
+**Do not use `P0002`.** It is `no_data_found`, and PostgREST maps it to **500
+Internal Server Error**. Twenty-six functions here used it for ordinary "not
+found" refusals, so a routine answer reached the client as a server fault, and
+anybody reading the logs could not tell a real fault from an expected refusal
+-- both were 500s. Migration 27 moved all of them to `PT404`, which PostgREST
+reads as "return this status".
+
+The messages were left alone: the application maps them to Malay by their text
+rather than by their code, so nothing the user sees changed.
+
+This was found by the acceptance sprint, which had been logging a 500 on every
+run while still passing -- it asserts that a call was *refused*, and a 500 is a
+refusal. An assertion about the outcome will not notice the wrong status code,
+so the sprint now records the method and path of every failing request instead
+of the browser's useless "Failed to load resource".
 
 ## Validating a release
 

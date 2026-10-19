@@ -37,7 +37,13 @@ const check = (n, got, want) => {
 const open = async (email, pw) => {
   const pg = await page(browserRef, { width: 390, height: 844 });
   pg.on('pageerror', e => errs.push('PAGEERROR ' + e.message));
-  pg.on('console', m => { if (m.type() === 'error') errs.push('CONSOLE ' + m.text().slice(0, 150)); });
+  /* "Failed to load resource: 500" tells you nothing about which resource.
+     The response listener records the method and path, so the error list is
+     something you can act on; the browser's own duplicate of it is dropped. */
+  pg.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text()))
+    errs.push('CONSOLE ' + m.text().slice(0, 150)); });
+  pg.on('response', r => { if (r.status() >= 400)
+    errs.push(`HTTP ${r.status()} ${r.request().method()} ${new URL(r.url()).pathname}`); });
   await pg.goto('http://localhost:8901/app/', { waitUntil: 'load' });
   await pg.waitForTimeout(2500);
   const r = await pg.evaluate(async ([e, p]) => {
@@ -68,12 +74,43 @@ console.log('Synthetic account:', NEW.email, '/', NEW.code);
 const mg = await open('manager@salesportal.demo', 'portal2026');
 if (mg.signin !== 'ok') { console.log('cannot sign in as management:', mg.signin); process.exit(1); }
 
+/* Revoking the account is itself one of the checks, so a run that fails before
+   criterion 1 leaves a working salesman login behind. Four of them accumulated
+   that way over one afternoon of iterating on this file, and sat usable for
+   four days. Rather than make the teardown clever, each run begins by revoking
+   any account a previous run left live: the leak then heals on the next run,
+   whatever killed the last one. */
+const swept = await mg.pg.evaluate(async () => {
+  const { data } = await sb.from('profiles').select('id,code,name')
+    .eq('role', 'salesman').eq('active', true).like('name', 'Ujian Validasi%');
+  const done = [];
+  for (const p of data || []) {
+    const { error } = await sb.functions.invoke('admin-users',
+      { body: { action: 'set_active', id: p.id, active: false } });
+    done.push(p.code + (error ? ' (failed: ' + error.message + ')' : ''));
+  }
+  return done;
+});
+if (swept.length) console.log('Revoked leftovers from an earlier run:', swept.join(', '));
+
+/* The same for the current run, on any crash: the handler cannot await, so it
+   fires the request and lets the process end -- better than certainly leaking. */
+let CURRENT = null;
+const sweepCurrent = () => { if (!CURRENT) return;
+  mg.pg.evaluate(id => sb.functions.invoke('admin-users',
+    { body: { action: 'set_active', id, active: false } }), CURRENT).catch(() => {}); };
+process.on('unhandledRejection', e => { console.log('\nABORTED:', e && e.message);
+  sweepCurrent(); process.exitCode = 1; });
+process.on('uncaughtException', e => { console.log('\nABORTED:', e && e.message);
+  sweepCurrent(); process.exitCode = 1; });
+
 /* ---------------------------------------------------------------------- 1 */
 C(1, 'Management can create and revoke a salesperson account');
 const created = await fn(mg.pg, { action: 'create', email: NEW.email, password: NEW.pw,
   name: NEW.name, code: NEW.code, zone: NEW.zone });
 check('account created', !!(created.data && created.data.id), true);
 const NEWID = created.data && created.data.id;
+CURRENT = NEWID;
 ok('account id', NEWID || created.error);
 
 const smFirst = await open(NEW.email, NEW.pw);
