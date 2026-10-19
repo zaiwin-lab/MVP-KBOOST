@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>Salesman Portal Comparison</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -251,14 +252,17 @@ td.c{font-family:var(--mono);font-size:.8rem;color:var(--faint);white-space:nowr
   <p class="standfirst">What was asked for, what has been delivered, and what Coach
     Aril's design adds on top of it.</p>
   <div class="byline">
-    <span>Revised 15 October 2026</span>
+    <span>Revised 19 October 2026</span>
     <span>Prepared as a reference for discussion with Coach Aril</span>
   </div>
-  <p class="revnote">This revises the report of 8 October. Since that date a phone
-    application has been built to Coach Aril's design and is running on the live
-    database. <strong>Eight of the nineteen additions identified below are now
-    built</strong>, and two more are partly built. Section 02a records what changed;
-    every other section has been brought up to date against it.</p>
+  <p class="revnote">This revises the report of 8 October, and supersedes the revision
+    of 15 October. Since the original a phone application has been built to Coach Aril's
+    design and is running on the live database. <strong>Eight of the nineteen additions
+    identified below are now built</strong>, and two more are partly built. The second
+    week went into making the result trustworthy rather than larger: an audited
+    acceptance run, a security and performance pass on the database, and a deeper
+    reseller profile. Section 02a records what changed; every other section has been
+    brought up to date against it.</p>
 </header>
 
 <nav class="toc">
@@ -266,7 +270,7 @@ td.c{font-family:var(--mono);font-size:.8rem;color:var(--faint);white-space:nowr
   <ol>
     <li><a href="#basis"><span class="t">01</span><span>What this is based on</span></a></li>
     <li><a href="#delivered"><span class="t">02</span><span>What was delivered</span></a></li>
-    <li><a href="#since"><span class="t">02a</span><span>What changed in a week</span></a></li>
+    <li><a href="#since"><span class="t">02a</span><span>What changed since 8 October</span></a></li>
     <li><a href="#character"><span class="t">03</span><span>The two builds</span></a></li>
     <li><a href="#additions"><span class="t">04</span><span>Additions beyond the brief</span></a></li>
     <li><a href="#cost"><span class="t">05</span><span>What the additions cost</span></a></li>
@@ -362,17 +366,20 @@ td.c{font-family:var(--mono);font-size:.8rem;color:var(--faint);white-space:nowr
 <!-- ============================================================= -->
 <section id="since">
   <span class="num">02a</span>
-  <h2>What changed in a week</h2>
+  <h2>What changed since 8 October</h2>
   <p class="lede">On 8 October the answer to “can it look like Coach Aril's design?”
-    was a shell that signed in and nothing more. It is now a working phone application
-    built to his screenshots, on the same live database.</p>
+    was a shell that signed in and nothing more. Eleven days later it is a working phone
+    application built to his screenshots, on the same live database, with an audited
+    acceptance run behind it.</p>
 
   <div class="figs">
-    <div class="fig"><b>26</b><span>screens on the phone</span></div>
+    <div class="fig"><b>28</b><span>screens on the phone</span></div>
     <div class="fig"><b>8 / 19</b><span>of his additions now built</span></div>
-    <div class="fig"><b>20</b><span>database migrations applied</span></div>
-    <div class="fig"><b>7</b><span>days</span></div>
+    <div class="fig"><b>31</b><span>database migrations applied</span></div>
+    <div class="fig"><b>8 / 8</b><span>acceptance criteria passing</span></div>
   </div>
+
+  <h3>The first week: the interface question</h3>
 
   <div class="col">
     <p>Everything below runs against real rows. Post an order on the phone and the van
@@ -398,6 +405,43 @@ td.c{font-family:var(--mono);font-size:.8rem;color:var(--faint);white-space:nowr
     </ul>
   </div>
 
+  <h3>The second week: making it trustworthy</h3>
+
+  <div class="col">
+    <p>Nothing in this week makes the application larger. It is the difference between a
+      build that demonstrates well and one that can be put in front of money.</p>
+    <ul>
+      <li><strong>An audited acceptance run.</strong> The eight criteria written into
+        the project's own README, executed end to end as one cycle: an account created
+        and revoked, stock issued, an outlet registered, a sale posted, a payment
+        refused for exceeding the balance, a return, and every management figure
+        recomputed from the underlying rows. It runs through the application's own
+        client with a real salesman's credentials — <strong>no administrator key, no
+        bypass</strong> — because a validation that runs as an administrator proves
+        nothing about what a salesman can reach. <strong>43 checks, none failing.</strong>
+        The result is a dated note that also states plainly what it does <em>not</em>
+        cover.</li>
+      <li><strong>The database was locked down at the cause.</strong> A linter found
+        that every function in the schema was reachable over the API, including the
+        internal ones that move van stock — the platform publishes new functions by
+        default, so each one written had inherited it. The default is now deny, with
+        access granted back only to the twenty-six the applications actually call, and
+        that was verified from the outside by signing in as a salesman and trying each
+        one. Fifteen are now unreachable.</li>
+      <li><strong>And tuned.</strong> Thirty row-level-security policies were
+        re-evaluating the signed-in user for every row scanned; they now do it once per
+        statement. Forty-three foreign keys gained a covering index.</li>
+      <li><strong>The reseller profile became the screen it was meant to be.</strong>
+        Everything registration collects, shown only where it exists; how old the debt
+        is and which invoices to chase first; when the shop last actually paid; the
+        special prices the office has approved, checked against the current floor and
+        list price; and what the outlet is still waiting on the office to answer.</li>
+      <li><strong>The published build names the commit it came from.</strong> It
+        previously carried a hand-typed date that was three days stale. Without that,
+        nobody can say what a tester tested.</li>
+    </ul>
+  </div>
+
   <div class="sides">
     <div class="side his">
       <h4>Still only in his design</h4>
@@ -417,10 +461,16 @@ td.c{font-family:var(--mono);font-size:.8rem;color:var(--faint);white-space:nowr
 
   <div class="note good">
     <h4>The practical reading</h4>
-    <p>Seven days took the interface question off the table. What is left to
-      decide is not <em>whose screens</em> — it is the three schema items, and the
-      labels nobody outside his team can read. <strong>Those are the only things
-      genuinely blocking the next phase.</strong></p>
+    <p>The first week took the interface question off the table; the second answered
+      whether the result can be trusted with real figures. What is left to decide is not
+      <em>whose screens</em> — it is the three schema items, and the labels nobody
+      outside his team can read. <strong>Those are the only things genuinely blocking
+      the next phase.</strong></p>
+    <p>Two things still stand between this and a real salesman's hands, and neither is
+      an engineering problem: the company's <strong>SSM number and registered
+      address</strong>, without which nothing the app prints is a valid commercial
+      document, and a run on a <strong>physical handset</strong>, which no amount of
+      automated testing replaces.</p>
   </div>
 </section>
 
@@ -820,7 +870,7 @@ td.c{font-family:var(--mono);font-size:.8rem;color:var(--faint);white-space:nowr
   <div class="qgroup">
     <h3>GPS <span class="n">3</span></h3>
     <div class="q"><input type="checkbox" id="q35"><label for="q35"><span class="qn">35</span>On the Nearest Reseller map, what do the <strong>blue, green and red pins</strong> mean?</label></div>
-    <div class="q"><input type="checkbox" id="q36"><label for="q36"><span class="qn">36</span>Should GPS be <strong>captured from the phone</strong> at registration? The current build derives coordinates from the registered district, accurate to roughly 600 metres.</label></div>
+    <div class="q"><input type="checkbox" id="q36"><label for="q36"><span class="qn">36</span><strong>Answered — nothing needed here.</strong> This previously asked whether GPS should be captured from the phone at registration. It already is: an outlet registered through the app stores a device fix taken standing at the shop. Only the seeded demo outlets carry coordinates approximated from their district, to about 600m, and the profile now says which of the two a pin is.</label></div>
     <div class="q"><input type="checkbox" id="q37"><label for="q37"><span class="qn">37</span>What does <strong>Reset Route</strong> do?</label></div>
   </div>
 

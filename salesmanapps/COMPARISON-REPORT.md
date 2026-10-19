@@ -3,14 +3,17 @@
 **What was asked for, what has been delivered, and what Coach Aril's design adds
 on top of it.**
 
-Date: **Revised 15 October 2026** (original 8 October 2026)
+Date: **Revised 19 October 2026** (revision of 15 October, original 8 October 2026)
 Prepared as a reference for discussion with Coach Aril.
 
-> **This revises the report of 8 October.** Since that date a phone application
-> has been built to Coach Aril's design and is running on the live database.
-> **Eight of the nineteen additions identified below are now built**, and two
-> more are partly built. Section 2a records what changed; every other section
-> has been brought up to date against it.
+> **This revises the report of 8 October**, and supersedes the revision of 15
+> October. Since the original a phone application has been built to Coach Aril's
+> design and is running on the live database. **Eight of the nineteen additions
+> identified below are now built**, and two more are partly built. The second
+> week went into making the result trustworthy rather than larger: an audited
+> acceptance run, a security and performance pass on the database, and a deeper
+> reseller profile. Section 2a records what changed; every other section has
+> been brought up to date against it.
 
 ---
 
@@ -80,16 +83,19 @@ not have survived contact with real use without them:
 
 ---
 
-## 2a. What changed in a week
+## 2a. What changed since 8 October
 
 On 8 October the answer to "can it look like Coach Aril's design?" was a shell
-that signed in and nothing more. It is now a working phone application built to
-his screenshots, on the same live database.
+that signed in and nothing more. Eleven days later it is a working phone
+application built to his screenshots, on the same live database, with an
+audited acceptance run behind it.
 
-- **26** screens on the phone
+- **28** screens on the phone
 - **8 / 19** of his additions now built
-- **20** database migrations applied
-- **7** days
+- **31** database migrations applied
+- **8 / 8** acceptance criteria passing
+
+### The first week: the interface question
 
 Everything below runs against real rows. Post an order on the phone and the van
 decrements, the invoice exists, the debt moves and the receipt prints — on
@@ -112,6 +118,39 @@ another device, next week.
   and van stock all move together. The document stays on file, numbered, marked
   *Dibatalkan*.
 
+### The second week: making it trustworthy
+
+Nothing in this week makes the application larger. It is the difference between
+a build that demonstrates well and one that can be put in front of money.
+
+- **An audited acceptance run.** The eight criteria written into the project's
+  own README, executed end to end as one cycle: an account created and revoked,
+  stock issued, an outlet registered, a sale posted, a payment refused for
+  exceeding the balance, a return, and every management figure recomputed from
+  the underlying rows. It runs through the application's own client with a real
+  salesman's credentials — **no administrator key, no bypass** — because a
+  validation that runs as an administrator proves nothing about what a salesman
+  can reach. **43 checks, none failing.** The result is a dated note that also
+  states plainly what it does *not* cover.
+- **The database was locked down at the cause.** A linter found that every
+  function in the schema was reachable over the API, including the internal ones
+  that move van stock — the platform publishes new functions by default, so each
+  one written had inherited it. The default is now deny, with access granted
+  back only to the twenty-six the applications actually call, verified from the
+  outside by signing in as a salesman and trying each one. Fifteen are now
+  unreachable.
+- **And tuned.** Thirty row-level-security policies were re-evaluating the
+  signed-in user for every row scanned; they now do it once per statement.
+  Forty-three foreign keys gained a covering index.
+- **The reseller profile became the screen it was meant to be.** Everything
+  registration collects, shown only where it exists; how old the debt is and
+  which invoices to chase first; when the shop last actually paid; the special
+  prices the office has approved, checked against the current floor and list
+  price; and what the outlet is still waiting on the office to answer.
+- **The published build names the commit it came from.** It previously carried
+  a hand-typed date that was three days stale. Without that, nobody can say what
+  a tester tested.
+
 **Still only in his design:** product flavours, multi-branch operation and free
 goods — the three that change the database. GPS route recording and the Kerja
 Harian log, both of which the requirement document explicitly excludes. Over
@@ -122,10 +161,16 @@ what it did; the salesman seeing what happened to his own requests; the office's
 record of its own decisions. These are not features anybody asked for — they are
 the things a system needs before real money moves through it.
 
-**The practical reading.** Seven days took the interface question off the table.
+**The practical reading.** The first week took the interface question off the
+table; the second answered whether the result can be trusted with real figures.
 What is left to decide is not *whose screens* — it is the three schema items,
 and the labels nobody outside his team can read. Those are the only things
 genuinely blocking the next phase.
+
+Two things still stand between this and a real salesman's hands, and neither is
+an engineering problem: the company's **SSM number and registered address**,
+without which nothing the app prints is a valid commercial document, and a run
+on a **physical handset**, which no amount of automated testing replaces.
 
 ---
 
@@ -439,9 +484,12 @@ Items marked **[Scope]** change the size of the job.
 ### GPS
 
 35. On the Nearest Reseller map, what do the **blue, green and red pins** mean?
-36. Should GPS be **captured from the phone** at registration? The current build
-    derives coordinates from the registered district, accurate to roughly 600
-    metres.
+36. **Answered — nothing needed here.** This previously asked whether GPS
+    should be captured from the phone at registration. It already is: an outlet
+    registered through the app stores a device fix taken standing at the shop.
+    Only the seeded demo outlets carry coordinates approximated from their
+    district, to about 600m, and the profile now says which of the two a pin
+    is.
 37. What does **Reset Route** do?
 
 ### e-Invoice
