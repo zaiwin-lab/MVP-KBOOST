@@ -429,6 +429,17 @@ seeded outlets carry no opening hours, so they have no Waktu Operasi section at
 all; the one registered from a real phone does, and shows *Ahad, Sabtu* under
 **Hari Tutup** with the note not to schedule a visit then.
 
+**The screen says where the pin came from.** An outlet seeded into the demo has
+coordinates approximated from its district, to about 600m. An outlet registered
+through the app has a device GPS fix taken standing at the shop. The profile
+called both of them the first kind, which is wrong in the direction that costs
+something: a salesman told his pin is a 600m estimate drives to the area and
+looks around rather than driving to the pin. `coords_source` now records which
+it is, the caption reads from it, and the nearest-reseller list marks an
+estimated distance with `~` because a distance is only as good as the pin it is
+measured from. Found when the first outlet registered from a phone outside this
+project carried the same caption as the seeded ones.
+
 **Every number is actionable where it sits.** The phone row carries a dial
 button, the WhatsApp row its own link with the number normalised to a 60 prefix,
 the office line a dial button, the email a `mailto:`. Previously one Call button

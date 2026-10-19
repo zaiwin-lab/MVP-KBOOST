@@ -922,6 +922,17 @@ function waitingOn(custId) {
   /* Longest wait first: that is the one to chase. */
   return out.sort((a, b) => new Date(a.at) - new Date(b.at));
 }
+/* Where the pin came from, in the salesman's words. This line used to say
+   "daripada daerah" for every outlet, which was true only of the seeded ones.
+   An outlet registered through the app carries a device GPS fix taken standing
+   at the shop, and telling him that is a 600m estimate is wrong in the
+   direction that costs something: he drives to the area and looks around
+   instead of driving to the pin. */
+const coordNote = c =>
+  c.coords_source === "gps"      ? "Bacaan GPS diambil di kedai semasa pendaftaran."
+: c.coords_source === "district" ? "<b>Anggaran</b> daripada daerah, tepat lebih kurang 600m."
+:                                  "Sumber bacaan ini tidak direkod.";
+
 const waitedDays = at => {
   const n = Math.floor((dOnly(new Date()) - dOnly(new Date(at))) / 864e5);
   return n <= 0 ? "hari ini" : `${N(n)} hari`;
@@ -1681,7 +1692,7 @@ function custGeneral(c) {
       `<button class="sbtn" data-a="loc" data-id="${c.id}">${ic(I.pin)}</button>`)}
     ${row(null, "Koordinat", (c.lat && c.lng)
       ? `${(+c.lat).toFixed(5)}, ${(+c.lng).toFixed(5)}
-         <span class="sub">Diambil daripada daerah, tepat lebih kurang 600m</span>`
+         <span class="sub">${coordNote(c)}</span>`
       : `<span style="color:var(--dim)">Belum ditangkap</span>`)}
 
     ${(hours || off.length) ? sec("Waktu Operasi") : ""}
@@ -2207,7 +2218,10 @@ function vNearest() {
         <div class="t"><div class="code">#${esc(rcode(c))}</div>
           <div class="nm">${esc(c.name)}</div>
           <div style="font-size:12px;color:var(--dim);margin-top:2px">
-            ${esc(c.district || "")}${d != null ? ` · ${d.toFixed(1)} km` : ""}</div></div>
+            ${[esc(c.district || ""), d != null
+                 /* The distance is only as good as the pin it is measured from. */
+                 ? `${c.coords_source === "district" ? "&asymp;" : ""}${d.toFixed(1)} km`
+                 : ""].filter(Boolean).join(" · ")}</div></div>
         <button class="sbtn" data-a="loc" data-id="${c.id}">${ic(I.pin)}</button>
       </div>`).join("")}</div>`
       : `<div class="empty"><b>Tiada koordinat</b></div>`}

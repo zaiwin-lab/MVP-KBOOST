@@ -35,6 +35,8 @@ why, so the repository is not silent about where the data lives.
 | 22 | `rls_initplan_and_fk_indexes` | 30 policies evaluate `auth.uid()` once per statement instead of once per row; 43 foreign keys gain a covering index |
 | 23 | `reseller_code_collision` | Counters repaired to the highest number in use; `next_free_code()` walks past a code already taken |
 | 24 | `price_request_floor_guard` | `request_price()` and `decide_price_request()` check the product's floor price, so an approved special price cannot be one no order can use |
+| 25 | `customer_coords_source` | `customers.coords_source`, backfilled, so the profile can say whether a pin is a device fix or an estimate |
+| 26 | `register_customer_sets_coords_source` | `register_customer()` stamps the source itself rather than taking the client's word for it |
 
 ## The leaderboard, without a hole in row level security
 
@@ -654,6 +656,26 @@ current list and floor and says so in both directions: below the new floor
 paying more than everyone else). Neither can be prevented at write time — only
 noticed.
 
+## Where a pin came from
+
+`customers.lat/lng` has two possible origins and they are not equally good.
+The twelve outlets seeded on 1 October had coordinates approximated from their
+district, to about 600m. Every outlet registered since came through
+`register_customer()`, whose only source is the registration screen's
+`navigator.geolocation` call with `enableHighAccuracy` on: a device fix taken
+standing at the shop, good to metres.
+
+The profile described all of them as the first kind. That is wrong in the
+direction that costs something, because a salesman who is told a pin is a 600m
+estimate drives to the area and looks around instead of driving to the pin.
+
+`coords_source` records which it is, and **the function sets it rather than
+the client sending it**. The client cannot tell the server anything about
+provenance the server does not already know, and a provenance field sent by a
+client is a claim rather than a fact. Anything that writes `lat`/`lng` by some
+other route in future has to set this column too, or the profile will say the
+source was never recorded -- which is at least true.
+
 ## Validating a release
 
 `db/validate.mjs` runs the acceptance criteria from the repository README as
@@ -703,6 +725,7 @@ about what a salesman can reach.
 | `api-surface.mjs` | The internal functions are unreachable from outside, and the ones the app needs still work |
 | `profile-debt.mjs` | Debt ageing and last payment agree with the ledger, and the figures open the list behind them |
 | `profile-prices.mjs` | Approved special prices match `customer_prices`, both drift warnings render, and the waiting panel matches the pending rows |
+| `profile-location.mjs` | The coordinate caption follows `coords_source`, and an estimated pin is marked as one in the nearest list |
 
 `harness.mjs` reads three environment variables, so the suites are runnable
 outside the machine they were written on:
