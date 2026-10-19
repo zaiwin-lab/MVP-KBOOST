@@ -38,6 +38,7 @@ why, so the repository is not silent about where the data lives.
 | 25 | `customer_coords_source` | `customers.coords_source`, backfilled, so the profile can say whether a pin is a device fix or an estimate |
 | 26 | `register_customer_sets_coords_source` | `register_customer()` stamps the source itself rather than taking the client's word for it |
 | 27 | `not_found_is_not_a_server_error` | 26 functions raised `P0002` for "not found", which PostgREST returns as HTTP 500; they now raise `PT404` |
+| 28 | `referral_commission_follows_the_invoice` | `referrals.invoice_id`, `unsettle_referral()`, and both routes that un-settle an invoice give the commission back |
 
 ## The leaderboard, without a hole in row level security
 
@@ -677,6 +678,28 @@ client is a claim rather than a fact. Anything that writes `lat`/`lng` by some
 other route in future has to set this column too, or the profile will say the
 source was never recorded -- which is at least true.
 
+## A commission belongs to one invoice
+
+A referral is verified when the shop's first invoice is **settled**, and 5% of
+that invoice is recorded as commission. Nothing recorded *which* invoice, so
+the commission outlived the sale that earned it.
+
+Two things un-settle an invoice, and both had to be covered: **cancelling it**,
+and **rejecting a payment on it**, which recalculates `paid` and can take the
+invoice from `paid` back to `partial`. Either way `unsettle_referral()` puts
+the referral back to `registered` and zeroes the commission. Back to
+`registered`, not `pending`: the shop is still introduced and still linked, the
+commission is simply not earned yet, so a later settled invoice verifies it
+again through the same path — which the suite checks by earning it twice.
+
+`settle_referral()` was already being handed the invoice id. It threw it away.
+
+This was fixed while `referrals` was empty, and that timing was the point. The
+original note in the repository README said the fix "needs a column first",
+because with commissions already paid against unknown invoices there is no safe
+way to decide which sale earned which. With no rows there is nothing to guess
+at. The same fix after the feature is in use is a different and worse job.
+
 ## What a refusal should look like on the wire
 
 PostgREST turns a raised exception into an HTTP status by its SQLSTATE, so the
@@ -756,6 +779,8 @@ about what a salesman can reach.
 | `profile-debt.mjs` | Debt ageing and last payment agree with the ledger, and the figures open the list behind them |
 | `profile-prices.mjs` | Approved special prices match `customer_prices`, both drift warnings render, and the waiting panel matches the pending rows |
 | `profile-location.mjs` | The coordinate caption follows `coords_source`, and an estimated pin is marked as one in the nearest list |
+| `profile-shelf.mjs` | Consignment shelf age matches the drops behind it, and the stale threshold follows the outlet's own service interval |
+| `referral-commission.mjs` | A commission is earned on settlement and given back by both routes that un-settle the invoice |
 
 `harness.mjs` reads three environment variables, so the suites are runnable
 outside the machine they were written on:

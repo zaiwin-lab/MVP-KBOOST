@@ -204,6 +204,8 @@ img{max-width:100%}
 .chip{display:inline-block;font-size:11px;font-weight:700;padding:5px 11px;border-radius:14px;
   margin-top:7px;color:#fff}
 .chip.out{background:var(--grn)} .chip.in{background:var(--blue)}
+/* Consignment stock nobody has counted for longer than the agreed interval. */
+.chip.due{background:var(--amb)}
 
 /* ---------- red section header + table, as on his detail screens ---------- */
 .block{background:var(--card);border-radius:var(--r);overflow:hidden;margin-bottom:16px;
@@ -922,6 +924,34 @@ function waitingOn(custId) {
   /* Longest wait first: that is the one to chase. */
   return out.sort((a, b) => new Date(a.at) - new Date(b.at));
 }
+/* Consignment stock is goods the shop has but has not been billed for. The
+   profile listed the quantities and never said how long they had been sitting
+   there, so a shelf last counted in August looked exactly like one counted
+   yesterday. What makes it overdue is the outlet's own agreed service
+   interval, not a number picked here: counting is what turns the stock into a
+   bill, so a shelf uncounted for longer than the interval is money the round
+   was supposed to collect and did not. */
+function shelfOf(custId) {
+  const open = SHELF().filter(g => g.customer_id === custId);
+  const qty = {};
+  open.forEach(g => { qty[g.product_id] = (qty[g.product_id] || 0) + g.qty_sent; });
+  const today = dOnly(new Date());
+  const days = g => Math.floor((today - dOnly(new Date(g.sent_at))) / 864e5);
+  return {
+    qty, ids: Object.keys(qty), drops: open.length,
+    total: Object.values(qty).reduce((a, n) => a + n, 0),
+    oldest: open.length ? Math.max.apply(null, open.map(days)) : 0,
+    since:  open.length ? open.map(g => g.sent_at).sort()[0] : null,
+  };
+}
+
+/* Returns how many days overdue a count is, or 0. The outlet's own agreed
+   service interval is the threshold; registration's default is monthly. */
+const shelfStale = c => {
+  const s = shelfOf(c.id);
+  return s.drops > 0 && s.oldest > (c.service_days || 30) ? s.oldest : 0;
+};
+
 /* Where the pin came from, in the salesman's words. This line used to say
    "daripada daerah" for every outlet, which was true only of the seeded ones.
    An outlet registered through the app carries a device GPS fix taken standing
@@ -1129,6 +1159,8 @@ function vReseller() {
           <div class="code">#${esc(rcode(c))}${c.vip ? `<span class="vtag">VIP</span>` : ""}</div>
           <div class="nm">${esc(c.name)}</div>
           ${c.active === false ? `<span class="chip in">Reactivate Customer</span>` : ""}
+          ${c.active !== false && shelfStale(c)
+            ? `<span class="chip due">Perlu Semak Stok · ${N(shelfStale(c))} hari</span>` : ""}
         </div>
         <span class="chev">${ic(I.chev)}</span>
       </button>`).join("")}</div>`
@@ -1591,11 +1623,13 @@ function vCust(id, sub) {
 }
 
 function custGeneral(c) {
-  const stock = {};
-  SHELF().filter(g => g.customer_id === c.id)
-    .forEach(g => { stock[g.product_id] = (stock[g.product_id] || 0) + g.qty_sent; });
-  const stockRows = Object.keys(stock);
+  const shelf = shelfOf(c.id);
+  const stock = shelf.qty, stockRows = shelf.ids;
   const months = c.service_days ? Math.max(1, Math.round(c.service_days / 30)) : 1;
+  /* The agreed visit interval is what the shelf is judged against. An outlet
+     with none recorded is treated as monthly, which is the registration
+     default. */
+  const stale = shelfStale(c) > 0;
 
   /* A row only appears when it has something to say. Registration collects
      twenty-odd fields and an outlet registered last year may have half of
@@ -1757,11 +1791,16 @@ function custGeneral(c) {
     ${sec("Stok Di Kedai")}
     ${row(I.box, "Stok", stockRows.length
       ? stockRows.map(k => `${esc(prodOf(k).name)}: <b>${N(stock[k])}</b>`).join("<br>") +
-        `<br><b>Total: ${N(Object.values(stock).reduce((a,n)=>a+n,0))}</b>`
+        `<br><b>Total: ${N(shelf.total)}</b>
+         <span class="sub">Di rak sejak ${esc(fShort(new Date(shelf.since)))} &middot;
+           ${N(shelf.oldest)} hari belum dikira</span>
+         ${stale ? `<span class="drift">Melebihi kitaran servis ${N(months)} bulan.
+           Stok ini belum dibilkan &mdash; buat Semak Baki Stok.</span>` : ""}`
       : `<span style="color:var(--dim)">${c.term === "consign"
           ? "Tiada stok konsainan terbuka" : "Bukan konsainan"}</span>`,
       (c.term === "consign" && stockRows.length)
-        ? `<button class="sbtn" data-a="cgcheck" data-id="${c.id}">${ic(I.list)} Semak</button>` : "")}
+        ? `<button class="sbtn${stale ? "" : " o"}" data-a="cgcheck" data-id="${c.id}">${
+            ic(I.list)} Semak</button>` : "")}
 
     ${isMgmt() ? "" : `
     <button class="rowbtn" data-a="takeorder" data-id="${c.id}">

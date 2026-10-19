@@ -402,10 +402,18 @@ screens belong to the salesman's side — and the office is the only side that
 can cancel one. "Somebody rang about DO000020" is how that conversation starts,
 so that is what it takes.
 
-One known limitation, left deliberately rather than guessed at: a **referral
-verified by an invoice that is later cancelled keeps its commission**. The
-table records the customer, not the invoice, so there is no safe way to tell
-which sale verified it. It needs a column first.
+That limitation is now closed. A referral records **which invoice** verified
+it, and the commission is given back by both routes that un-settle one:
+cancelling the invoice, and rejecting a payment on it — the second being easy
+to miss, since rejecting a payment recalculates the balance and can take an
+invoice from paid back to partial without anybody cancelling anything. The
+referral returns to *registered* rather than *pending*: the shop is still
+introduced and still linked, the commission simply is not earned yet, so a
+later settled invoice earns it again.
+
+It was fixed while the referrals table was empty, which was the whole point of
+doing it now. With commissions already paid against unknown invoices there is
+no safe way to decide which sale earned which.
 
 ## The reseller profile shows what registration collected
 
@@ -428,6 +436,20 @@ a field existed shows a shorter profile rather than a column of dashes. The
 seeded outlets carry no opening hours, so they have no Waktu Operasi section at
 all; the one registered from a real phone does, and shows *Ahad, Sabtu* under
 **Hari Tutup** with the note not to schedule a visit then.
+
+**Consignment stock says how long it has been sitting there.** Goods on a
+shop's shelf are not billed until somebody counts them, so stock nobody has
+counted is money the round was supposed to collect and did not. The profile
+listed the quantities and never mentioned the date, which made a shelf last
+counted in August look exactly like one counted yesterday — and there is one
+in the demo data, untouched since **9 August**. The stock row now reads *"Di
+rak sejak 9 Ogos · 71 hari belum dikira"*, and when that exceeds the outlet's
+**own agreed service interval** it says so and points at Semak Baki Stok. The
+threshold is the outlet's interval rather than a number chosen here, because
+that interval is the promise about how often somebody turns up to count.
+
+The Reseller list carries the same flag, since finding which shops need a count
+by opening fourteen profiles is not finding them at all.
 
 **The screen says where the pin came from.** An outlet seeded into the demo has
 coordinates approximated from its district, to about 600m. An outlet registered
