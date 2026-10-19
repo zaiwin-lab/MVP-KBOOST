@@ -784,9 +784,18 @@ The data since then is about ten weeks of a five-salesman round, and it is
 maintained so that opening either login shows a working day rather than an
 empty screen:
 
-- **The office queue is never empty.** Three collections taken this morning and
-  not yet confirmed, two price requests, a credit note and two stock requests —
-  spread across four salesmen, so it reads like a team rather than one man.
+- **The office queue is never empty.** It is meant to hold collections awaiting
+  confirmation, price requests, a credit note and stock requests, spread across
+  four salesmen so it reads like a team rather than one man. Working through it
+  for real empties it, which is fine — but top it up before a demo rather than
+  opening on a blank screen.
+- **Nothing the acceptance sprint creates may be left in it.** The sprint takes
+  two real payments per run, and they used to stay in the approval queue
+  afterwards: eight accumulated over four runs in one morning, every one a
+  *Kedai Ujian Validasi* row on the screen the office actually uses. Its
+  teardown now confirms its own payments, deactivates its outlet, and the next
+  run revokes any account an aborted run left behind. A test that leaves
+  residue on a live screen is not finished.
 - **`SM01` is the demo salesman.** His home screen shows money taken and
   quantity sold *today*, his bell carries an unread count, and Permohonan Saya
   has both things waiting and things recently answered, including rejections

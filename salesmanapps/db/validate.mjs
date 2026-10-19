@@ -350,6 +350,24 @@ const tidy = await mg.pg.evaluate(async c => {
 }, CUST);
 ok('test outlet', tidy);
 
+/* The cycle takes two real payments, and they sat in the office's approval
+   queue afterwards -- eight of them accumulated over four runs in one morning,
+   every one a "Kedai Ujian Validasi" row on the screen the office actually
+   uses. They are confirmed rather than rejected because nothing was wrong with
+   them: the money was taken and the invoices read paid. Only this run's own
+   outlet is touched. */
+const cleared = await mg.pg.evaluate(async c => {
+  const { data } = await sb.from('payments').select('id')
+    .eq('customer_id', c).is('approved_at', null).is('rejected_at', null);
+  let n = 0;
+  for (const p of data || []) {
+    const { error } = await sb.rpc('approve_payment', { p_payment: p.id });
+    if (!error) n++;
+  }
+  return n;
+}, CUST);
+ok('payments taken off the queue', cleared);
+
 /* ---------------------------------------------------------------- summary */
 const byCrit = {};
 results.forEach(r => { byCrit[r.crit] = byCrit[r.crit] || { pass: 0, fail: 0, fails: [] };
